@@ -744,7 +744,14 @@ function cierreEstimado(importe, fecha){
   return new Date(hoy.getFullYear(), hoy.getMonth()+2, 0).toISOString().slice(0,10);
 }
 
-const sinVersion = n => String(n||'').trim().replace(/\.\d+$/, '');
+/* Beta10 exporta el numero con ceros a la izquierda (E25/07) y en Radar
+   esta guardado sin ellos (E25/7). Se normalizan los dos lados o no casa
+   nada. */
+const sinVersion = n => {
+  const s = String(n||'').trim().replace(/\.\d+$/, '');
+  const m = s.match(/^([A-Za-z]+)(\d+)\/0*(\d+)$/);
+  return m ? m[1].toUpperCase() + m[2] + '/' + Number(m[3]) : s.toUpperCase();
+};
 const norm = s => String(s||'').trim().toUpperCase();
 const esExcluido = cliente => EXCLUIDOS.some(x => norm(cliente).includes(x));
 
