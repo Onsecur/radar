@@ -294,7 +294,7 @@ ul.chequeo li{margin-bottom:6px}
 </aside>
 
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
 <script>
 /* ═══════ Conexión con Supabase ═══════ */
 const SB_URL = 'https://abaifdjykfvzvtmlwzay.supabase.co';
@@ -551,7 +551,6 @@ const pendientes = () => D.acts
 
 /* ═══════ navegación ═══════ */
 document.querySelectorAll('.rail [data-vista]').forEach(b => b.onclick = () => { vista = b.dataset.vista; pintar(); });
-$('#btnReset').onclick = () => { D = estructuraClonada(); cerrarCajon(); pintar(); };
 
 /* ═══════ Acceso ═══════ */
 const zonaBotones = $('#lUsuarios');
