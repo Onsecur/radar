@@ -397,7 +397,7 @@ async function cargarDatos(){
       'probabilidad,cierre_previsto,fecha_revision,cierre_real,motivo_perdida,'+
       'motivo_exclusion,ultima_actividad,notas,origen_dato'),
     todasLasFilas('nota', 'id,oportunidad_id,tipo,texto,fecha_actividad,proxima_accion,autor_nombre'),
-    todasLasFilas('presupuesto', 'numero,oportunidad_id')
+    todasLasFilas('presupuesto', 'numero,oportunidad_id,importe,estado,fecha,fecha_aceptacion')
   ]);
 
   /* Los numeros de Beta10 de cada oportunidad, para poder sacarlos como
@@ -446,6 +446,8 @@ async function cargarDatos(){
       origenDato : o.origen_dato === 'beta10' ? 'Beta10' : 'Holded',
       presupuestos: (presPorOpo.get(String(o.id)) || []).sort().join(', ')
     })),
+    pres: presupuestos.map(p => ({ numero:p.numero, opo:p.oportunidad_id ? String(p.oportunidad_id) : null,
+      importe:Number(p.importe)||0, estado:p.estado, fecha:p.fecha, fecha_aceptacion:p.fecha_aceptacion })),
     acts: notas.map(n => ({
       id:String(n.id), opo:String(n.oportunidad_id), tipo:n.tipo, desc:n.texto,
       fecha:n.fecha_actividad + 'T09:00:00.000Z',
@@ -555,7 +557,7 @@ const MESES_RADAR = 5;   // mes 0 + 4 siguientes, además de la columna de venci
 const hoyISO = n => { const d=new Date(); d.setDate(d.getDate()+(n||0)); return d.toISOString().slice(0,10); };
 const haceDias = n => { const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString(); };
 
-let SEMILLA = { usuarios:[], cuentas:[], opos:[], acts:[] };
+let SEMILLA = { usuarios:[], cuentas:[], opos:[], acts:[], pres:[] };
 let D = estructuraClonada();
 let vista = 'panel', comoUsuario = 'u1', abierta = null;
 let filtros = { texto:'', comercial:'', etapa:'', estado:'abierta' };
@@ -752,12 +754,25 @@ const sinVersion = n => {
   const m = s.match(/^([A-Za-z]+)(\d+)\/0*(\d+)$/);
   return m ? m[1].toUpperCase() + m[2] + '/' + Number(m[3]) : s.toUpperCase();
 };
+/* Número con versión, normalizado igual: E25/07.2 → E25/7.2 */
+const conVersion = n => {
+  const s = String(n||'').trim(), m = s.match(/\.(\d+)$/);
+  return sinVersion(s) + (m ? '.' + Number(m[1]) : '');
+};
+/* Las ganadas con cierre hasta aquí son histórico cerrado: el importador
+   no las toca nunca. Septiembre sigue abierto y se cierra ya en Radar. */
+const HISTORICO_HASTA = '2026-08-31';
 const norm = s => String(s||'').trim().toUpperCase();
 const esExcluido = cliente => EXCLUIDOS.some(x => norm(cliente).includes(x));
 
 function fechaISO(v){
   if(!v) return null;
-  if(v instanceof Date) return v.toISOString().slice(0,10);
+  /* Con cellDates, SheetJS devuelve la medianoche local. Pasarla a UTC en
+     hora de Madrid la lleva al día anterior: se leen las cifras locales. */
+  if(v instanceof Date){
+    if(isNaN(v)) return null;
+    return `${v.getFullYear()}-${String(v.getMonth()+1).padStart(2,'0')}-${String(v.getDate()).padStart(2,'0')}`;
+  }
   if(typeof v === 'number'){                      /* fecha serie de Excel */
     const d = new Date(Date.UTC(1899,11,30) + v*864e5);
     return d.toISOString().slice(0,10);
@@ -812,15 +827,26 @@ function construirPlan(){
   const pres = impFicheros.presupuestos ? impFicheros.presupuestos.filas : [];
   const cubo = impFicheros.cubo         ? impFicheros.cubo.filas         : [];
 
-  /* El cubo, indexado por número sin versión. */
-  const porNumero = new Map();
+  /* El cubo trae una fila por versión. Se indexa por número con versión,
+     para coger exactamente la versión Principal de la descarga, y por
+     número sin versión como red cuando falta la descarga o la versión. */
+  const porVersion = new Map(), porNumero = new Map();
+  const nVer = s => { const m = String(s||'').trim().match(/\.(\d+)$/); return m ? Number(m[1]) : 0; };
   for(const r of cubo){
-    const n = sinVersion(r['Serie/Num']);
-    if(n) porNumero.set(n, r);
+    const bruto = r['Serie/Num'];
+    const n = sinVersion(bruto);
+    if(!n) continue;
+    porVersion.set(conVersion(bruto), r);
+    const prev = porNumero.get(n);
+    /* Sin Principal: vale la versión aceptada; si no hay, la más alta. */
+    const gana = x => (ESTADO_B10[x['Estado']]||{}).estado === 'ganada';
+    if(!prev || (gana(r) && !gana(prev)) || (gana(r) === gana(prev) && nVer(bruto) > nVer(prev['Serie/Num'])))
+      porNumero.set(n, r);
   }
 
   const plan = { nuevas:[], actualiza:[], igual:[], version:0, excluidas:[],
-                 sinImporte:[], desaparecidos:[], porImporte:[] };
+                 sinImporte:[], desaparecidos:[], porImporte:[],
+                 historico:0, revisar:[], presupuestos:[] };
 
   /* Las oportunidades que ya tenemos, por número de presupuesto. */
   const yaTengo = new Map();
@@ -828,10 +854,12 @@ function construirPlan(){
     for(const n of String(o.presupuestos||'').split(',').map(x=>x.trim()).filter(Boolean))
       yaTengo.set(n, o);
 
-  /* Segunda red: 218 fichas vienen de Holded y no llevan número de
-     presupuesto. Sin esto, el importador las daría de alta otra vez.
-     Se emparejan por cliente e importe, y se listan aparte para poder
-     revisarlas antes de aplicar. */
+  /* Lo que la base sabe de cada presupuesto, para sumar los que no vengan
+     en este fichero. */
+  const presBase = new Map((D.pres||[]).map(p => [p.numero, p]));
+
+  /* Segunda red: fichas de Holded sin número de presupuesto. Se emparejan
+     por cliente e importe y se listan aparte para revisarlas. */
   const porClienteImporte = new Map();
   for(const o of D.opos){
     if(String(o.presupuestos||'').trim()) continue;
@@ -839,6 +867,10 @@ function construirPlan(){
     if(!porClienteImporte.has(k)) porClienteImporte.set(k, o);
   }
   const usadas = new Set();
+
+  /* Presupuestos que casan con una ficha existente, agrupados por ficha.
+     La ficha se decide con todos sus presupuestos a la vez, nunca con uno. */
+  const grupos = new Map();
 
   const vistos = new Set();
   const origen = pres.length ? pres : cubo;
@@ -848,14 +880,16 @@ function construirPlan(){
     const numero = sinVersion(bruto);
     if(!numero) continue;
 
-    /* Principal decide la versión. Sin esa columna vale la fila del cubo. */
+    /* Principal decide la versión. */
     if(pres.length && r['Principal'] !== true && String(r['Principal']).toLowerCase() !== 'true'){
       plan.version++; continue;
     }
     if(vistos.has(numero)) { plan.version++; continue; }
     vistos.add(numero);
 
-    const c = porNumero.get(numero) || null;
+    const c = pres.length
+      ? (porVersion.get(conVersion(bruto)) || porNumero.get(numero) || null)
+      : porNumero.get(numero);
     const cliente = (pres.length ? r['Cliente/Cliente potencial'] : r['Nombre del Cliente']) || '';
     if(esExcluido(cliente)){ plan.excluidas.push({ numero, cliente }); continue; }
 
@@ -868,7 +902,6 @@ function construirPlan(){
     }
     if(!importe){ plan.sinImporte.push({ numero, cliente }); }
 
-    /* Actuación y sistema salen del mismo campo. */
     const campo = String((pres.length ? r['Tipo de actuación'] : '') || '').trim();
     let actuacion = c ? c['Tipo de actuación'] : null, sistema = c ? c['Tipo de sistema'] : null;
     if(!actuacion && campo){
@@ -882,10 +915,10 @@ function construirPlan(){
     const fPres = fechaISO(c ? c['Fecha presupuesto'] : r['Fecha']);
     const fAcep = fechaISO(c ? c['Fecha aceptación'] : null);
 
-    const comB10 = (pres.length ? r['Comercial'] : r['Comercial']) || '';
+    const comB10 = r['Comercial'] || '';
     const ficha = {
       numero,
-      version    : String(bruto).trim(),
+      version    : String(c ? c['Serie/Num'] : bruto).trim(),
       cliente    : String(cliente).trim(),
       titulo     : String(r['Título'] || r['Descripción del sistema'] || cliente).trim()
                    + ' · ' + numero,
@@ -898,6 +931,7 @@ function construirPlan(){
       estado     : mapa.estado,
       etapa      : mapa.etapa,
       fechaPres  : fPres,
+      fechaAcep  : fAcep,
       fechaCierre: fAcep || fPres,
       estadoB10
     };
@@ -912,22 +946,113 @@ function construirPlan(){
       }
     }
     if(!existente){
+      /* Una venta nueva con fecha dentro del histórico cerrado no entra
+         sola: cambiaría un cierre que ya está dado por bueno. */
+      if(ficha.estado === 'ganada' && ficha.fechaCierre && ficha.fechaCierre <= HISTORICO_HASTA){
+        plan.revisar.push({ o:{ nombre:ficha.titulo }, numeros:numero,
+          motivo:'Aceptada el ' + ficha.fechaCierre + ', dentro del histórico cerrado. No se crea.' });
+        continue;
+      }
       ficha.cierrePrevisto = ficha.estado === 'abierta'
         ? cierreEstimado(importe, fPres) : null;
       plan.nuevas.push(ficha);
-    } else {
-      const cambios = [];
-      if(Math.abs((existente.valor||0) - importe) > 0.5)
-        cambios.push({ campo:'Importe', de:eur(existente.valor), a:eur(importe) });
-      if(existente.estado !== ficha.estado)
-        cambios.push({ campo:'Estado', de:existente.estado, a:ficha.estado });
-      else if(existente.estado === 'abierta' && existente.etapa !== ficha.etapa
-              && ficha.etapa === 'enviada' && existente.etapa === 'estudio')
-        cambios.push({ campo:'Etapa', de:'Estudio', a:'Enviada' });
-      if(emparejadaPorImporte) plan.porImporte.push({ ficha, o:existente, cambios });
-      else if(cambios.length)  plan.actualiza.push({ ficha, o:existente, cambios });
-      else plan.igual.push(ficha);
+      continue;
     }
+    if(!grupos.has(existente.id))
+      grupos.set(existente.id, { o:existente, fichas:[], porImporte:false });
+    const g = grupos.get(existente.id);
+    g.fichas.push(ficha);
+    if(emparejadaPorImporte) g.porImporte = true;
+    plan.presupuestos.push({
+      numero:ficha.numero, version:ficha.version, importe:ficha.importe,
+      importe_cuotas:ficha.cuota, fecha:ficha.fechaPres, fecha_aceptacion:ficha.fechaAcep,
+      estado:ficha.estadoB10, oportunidad_id:Number(existente.id)
+    });
+  }
+
+  /* ── cada ficha existente, con todos sus presupuestos ── */
+  const estadoDe = e => (ESTADO_B10[e] || { estado:'abierta' }).estado;
+  for(const { o, fichas, porImporte } of grupos.values()){
+    /* Todos los presupuestos de la ficha: los del fichero y, de los que no
+       vienen, lo que ya sabía la base. */
+    const todos = new Map();
+    for(const n of String(o.presupuestos||'').split(',').map(x=>x.trim()).filter(Boolean)){
+      const p = presBase.get(n);
+      if(p) todos.set(n, { importe:Number(p.importe)||0, estado:estadoDe(p.estado), fecha:p.fecha_aceptacion||p.fecha });
+    }
+    for(const f of fichas)
+      todos.set(f.numero, { importe:f.importe, estado:f.estado, fecha:f.fechaCierre, etapa:f.etapa });
+    const lista = [...todos.values()];
+
+    const ganados  = lista.filter(p => p.estado === 'ganada');
+    const abiertos = lista.filter(p => p.estado === 'abierta');
+    const suma = a => Math.round(a.reduce((s,p)=>s+p.importe,0)*100)/100;
+
+    /* Estado según el conjunto: ganada si hay alguno aceptado; perdida
+       solo si todos están rechazados o anulados. */
+    const estadoNuevo = ganados.length ? 'ganada' : abiertos.length ? 'abierta' : 'perdida';
+    /* Importe: la suma de los que cuentan para ese estado. */
+    const importeNuevo = ganados.length ? suma(ganados)
+                       : abiertos.length ? suma(abiertos) : o.valor;
+
+    const cambio = {}, cambios = [];
+    const numeros = fichas.map(f=>f.numero).join(', ');
+
+    /* 1. Histórico cerrado: no se toca nada. Si Beta10 dice otra cosa, se
+          avisa para que lo mire dirección. */
+    if(o.estado === 'ganada' && o.cierre && o.cierre <= HISTORICO_HASTA){
+      plan.historico++;
+      if(estadoNuevo !== 'ganada')
+        plan.revisar.push({ o, numeros, motivo:'Cerrada en el histórico y Beta10 la da como ' + estadoNuevo });
+      continue;
+    }
+
+    /* 2. Ganada: nunca baja de estado ni cambia de fecha. Solo se ajusta
+          el importe a la suma de lo aceptado. */
+    if(o.estado === 'ganada'){
+      if(estadoNuevo !== 'ganada')
+        plan.revisar.push({ o, numeros, motivo:'Ganada en Radar y Beta10 la da como ' + estadoNuevo + '. No se toca.' });
+      else if(Math.abs((o.valor||0) - importeNuevo) > 0.5){
+        cambio.importe = importeNuevo;
+        cambios.push({ campo:'Importe', de:eur(o.valor), a:eur(importeNuevo) });
+      }
+    }
+
+    /* 3. Abierta o perdida: puede ganarse. Una abierta solo se pierde si
+          se pierden todos sus presupuestos. */
+    else {
+      if(Math.abs((o.valor||0) - importeNuevo) > 0.5){
+        cambio.importe = importeNuevo;
+        cambios.push({ campo:'Importe', de:eur(o.valor), a:eur(importeNuevo) });
+      }
+      const fechasG = ganados.map(p=>p.fecha).filter(Boolean).sort();
+      if(estadoNuevo === 'ganada' && o.estado !== 'ganada'
+         && fechasG[0] && fechasG[0] <= HISTORICO_HASTA){
+        /* Ganada con fecha dentro del histórico cerrado: no se mueve sola. */
+        plan.revisar.push({ o, numeros, motivo:'Aceptada el ' + fechasG[0] + ', dentro del histórico cerrado. Sigue ' + o.estado + '.' });
+        continue;
+      }
+      if(estadoNuevo === 'ganada' && o.estado !== 'ganada'){
+        const fechas = fechasG;
+        Object.assign(cambio, { estado:'ganada', etapa:'cerrado', probabilidad:95,
+          cierre_real: fechas[0] || new Date().toISOString().slice(0,10), cierre_previsto:null });
+        cambios.push({ campo:'Estado', de:o.estado, a:'ganada' });
+      } else if(estadoNuevo === 'perdida' && o.estado === 'abierta'){
+        const fechas = lista.map(p=>p.fecha).filter(Boolean).sort();
+        Object.assign(cambio, { estado:'perdida', etapa:'cerrado',
+          cierre_real: fechas[fechas.length-1] || new Date().toISOString().slice(0,10), cierre_previsto:null });
+        cambios.push({ campo:'Estado', de:'abierta', a:'perdida' });
+      } else if(o.estado === 'abierta' && o.etapa === 'estudio'
+                && fichas.some(f => f.etapa === 'enviada')){
+        cambio.etapa = 'enviada';
+        cambios.push({ campo:'Etapa', de:'Estudio', a:'Enviada' });
+      }
+    }
+
+    const x = { ficha:fichas[0], numeros, o, cambios, cambio };
+    if(porImporte) plan.porImporte.push(x);
+    else if(cambios.length) plan.actualiza.push(x);
+    else plan.igual.push(fichas[0]);
   }
 
   /* Presupuestos que Radar conoce y el fichero ya no trae. */
@@ -981,35 +1106,28 @@ async function aplicarPlan(){
       }));
       const { data, error } = await SB.from('oportunidad').insert(filas).select('id');
       if(error) throw error;
-      /* Los presupuestos, enganchados a su ficha. */
-      await SB.from('presupuesto').insert(impPlan.nuevas.map((f,i) => ({
-        numero:f.numero, version:f.version, importe:f.importe,
-        fecha:f.fechaPres, estado:f.estadoB10, oportunidad_id:data[i].id
+      const { error:e2 } = await SB.from('presupuesto').insert(impPlan.nuevas.map((f,i) => ({
+        numero:f.numero, version:f.version, importe:f.importe, importe_cuotas:f.cuota,
+        fecha:f.fechaPres, fecha_aceptacion:f.fechaAcep, estado:f.estadoB10,
+        oportunidad_id:data[i].id
       })));
+      if(e2) throw e2;
     }
 
-    /* Cambios sobre fichas que ya existen. Ni probabilidad ni fecha prevista. */
-    for(const { ficha, o } of [...impPlan.actualiza, ...impPlan.porImporte]){
-      const cambio = { importe:ficha.importe, estado:ficha.estado };
-      if(ficha.estado !== 'abierta'){
-        cambio.etapa = 'cerrado';
-        cambio.cierre_real = ficha.fechaCierre;
-        cambio.cierre_previsto = null;
-      } else if(o.etapa === 'estudio' && ficha.etapa === 'enviada'){
-        cambio.etapa = 'enviada';
-      }
+    /* Cambios sobre fichas que ya existen: solo lo que ha decidido el plan
+       con todos sus presupuestos. Ni probabilidad ni fecha prevista. */
+    for(const { o, cambio } of [...impPlan.actualiza, ...impPlan.porImporte]){
+      if(!Object.keys(cambio).length) continue;
       const { error } = await SB.from('oportunidad').update(cambio).eq('id', o.id);
       if(error) throw error;
     }
 
-    /* A las que se emparejaron por importe se les engancha por fin su
-       número de Beta10, para que la próxima vez casen por número. */
-    if(impPlan.porImporte.length){
-      const { error } = await SB.from('presupuesto').upsert(
-        impPlan.porImporte.map(({ficha,o}) => ({
-          numero:ficha.numero, version:ficha.version, importe:ficha.importe,
-          fecha:ficha.fechaPres, estado:ficha.estadoB10, oportunidad_id:Number(o.id)
-        })), { onConflict:'numero' });
+    /* Los presupuestos de las fichas existentes se refrescan siempre, para
+       que la próxima suma parta de datos al día. Las emparejadas por
+       importe quedan enganchadas por número. */
+    for(let i=0; i<impPlan.presupuestos.length; i+=500){
+      const { error } = await SB.from('presupuesto')
+        .upsert(impPlan.presupuestos.slice(i, i+500), { onConflict:'numero' });
       if(error) throw error;
     }
 
@@ -1480,7 +1598,10 @@ const DEPOSITOS = [
     manda:'Alimenta el margen por operación y por comercial. No toca la cifra de venta.' }
 ];
 const REGLAS_IMPORT = [
-  ['Versiones','Se toma solo la última versión de cada número de presupuesto. El cubo trae una fila por versión.'],
+  ['Versiones','Cuenta la versión marcada como Principal, que no siempre es la más alta. El cubo trae una fila por versión.'],
+  ['Varios presupuestos','Una ficha se decide con todos sus presupuestos a la vez. Su importe es la suma de los aceptados, o de los vivos si aún no hay ninguno aceptado.'],
+  ['Estado','Solo sube. Una abierta pasa a ganada con un presupuesto aceptado y a perdida solo si se pierden todos. Una ganada no baja nunca: si Beta10 la rechaza, sale en «Para revisar».'],
+  ['Histórico cerrado','Las ganadas hasta el 31/08/2026 no se tocan: ni importe, ni fecha, ni estado.'],
   ['Duplicados manuales','Mismo cliente y dirección, menos de 90 días y el importe difiere menos del 15 % (o del 40 % si comparten título): se conserva el último.'],
   ['Plantillas','Los presupuestos que empiezan por «Presupuesto tipo» no crean oportunidad.'],
   ['Importe','El del cubo, ya con descuento. El importe neto de la descarga es tarifa y no se usa.'],
@@ -1529,6 +1650,8 @@ function vImportar(c){
           <tr><td>Emparejadas por cliente e importe</td><td class="der num">${p.porImporte.length}</td></tr>
           <tr><td>Sin cambios</td><td class="der num">${p.igual.length}</td></tr>
           <tr><td>Descartadas por versión</td><td class="der num">${p.version}</td></tr>
+          <tr><td>Histórico cerrado (no se toca)</td><td class="der num">${p.historico}</td></tr>
+          <tr><td>Para revisar</td><td class="der num">${p.revisar.length}</td></tr>
           <tr><td>Excluidas (cuentas nacionales y pruebas)</td><td class="der num">${p.excluidas.length}</td></tr>
           <tr><td>Sin importe</td><td class="der num">${p.sinImporte.length}</td></tr>
           <tr class="totalFila"><td>Presupuestos desaparecidos</td><td class="der num">${p.desaparecidos.length}</td></tr>
@@ -1547,13 +1670,17 @@ function vImportar(c){
           <td>${esc(x.cliente)}</td><td>${esc(usuario(x.comercial||'sinasignar'))}</td>
           <td class="der num">${eur(x.importe)}</td></tr>`).join('')}</tbody></table>`:''}
         ${p.actualiza.length?`<h3>Cambian · ${p.actualiza.length}</h3>
-        <table><tbody>${p.actualiza.map(x=>`<tr><td>${esc(x.ficha.numero)}</td>
+        <table><tbody>${p.actualiza.map(x=>`<tr><td>${esc(x.numeros)}</td>
           <td>${esc(x.o.nombre)}</td><td>${x.cambios.map(ca=>
             esc(ca.campo+': '+ca.de+' → '+ca.a)).join('<br>')}</td></tr>`).join('')}</tbody></table>`:''}
         ${p.porImporte.length?`<h3>Emparejadas por cliente e importe · ${p.porImporte.length}</h3>
         <p class="sub">No traían número de presupuesto porque venían de Holded. Compruébalas: si alguna no es la misma operación, quita el fichero y dímelo antes de aplicar.</p>
         <table><tbody>${p.porImporte.map(x=>`<tr><td>${esc(x.ficha.numero)}</td>
           <td>${esc(x.o.nombre)}</td><td class="der num">${eur(x.ficha.importe)}</td></tr>`).join('')}</tbody></table>`:''}
+        ${p.revisar.length?`<h3>Para revisar · ${p.revisar.length}</h3>
+        <p class="sub">Radar no las cambia. Beta10 dice algo distinto de lo que hay en la ficha: míralo y decide a mano.</p>
+        <table><tbody>${p.revisar.map(x=>`<tr><td>${esc(x.numeros)}</td>
+          <td>${esc(x.o.nombre)}</td><td>${esc(x.motivo)}</td></tr>`).join('')}</tbody></table>`:''}
         ${p.desaparecidos.length?`<h3>Ya no vienen en el fichero · ${p.desaparecidos.length}</h3>
         <p class="sub">Radar no los toca. Revísalos a mano por si se anularon en Beta10.</p>
         <table><tbody>${p.desaparecidos.map(x=>`<tr><td>${esc(x.numero)}</td>
