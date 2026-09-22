@@ -868,6 +868,23 @@ function construirPlan(){
   }
   const usadas = new Set();
 
+  /* Tercera red, antes que la de cliente e importe: muchas fichas de Holded
+     llevan el número de Beta10 en el título («BETA E26-1392-2», «E26/597»,
+     «#1387»). Casan por ese número solo si el importe también coincide,
+     porque en Holded hay «#» antiguos que no son números de Beta10. */
+  const porTitulo = new Map();
+  const anio = String(new Date().getFullYear()).slice(2);
+  const reNum = /\bE\s?(\d{2})\s?[\/-]\s?0*(\d{1,5})\b|#\s?0*(\d{3,5})\b/gi;
+  for(const o of D.opos){
+    if(String(o.presupuestos||'').trim()) continue;
+    for(const m of String(o.nombre||'').matchAll(reNum)){
+      const n = m[1] ? 'E' + m[1] + '/' + Number(m[2]) : 'E' + anio + '/' + Number(m[3]);
+      if(!porTitulo.has(n)) porTitulo.set(n, []);
+      porTitulo.get(n).push(o);
+    }
+  }
+  const importeCasa = (o, imp) => Math.abs((o.valor||0) - imp) <= Math.max(1, Math.abs(imp)*0.01);
+
   /* Presupuestos que casan con una ficha existente, agrupados por ficha.
      La ficha se decide con todos sus presupuestos a la vez, nunca con uno. */
   const grupos = new Map();
@@ -938,6 +955,13 @@ function construirPlan(){
 
     let existente = yaTengo.get(numero);
     let emparejadaPorImporte = false;
+    if(!existente){
+      const cand = (porTitulo.get(numero) || [])
+        .find(o => !usadas.has(o.id) && importeCasa(o, importe));
+      if(cand){
+        existente = cand; usadas.add(cand.id); emparejadaPorImporte = true;
+      }
+    }
     if(!existente){
       const k = norm(ficha.cliente) + '|' + Math.round(importe);
       const cand = porClienteImporte.get(k);
@@ -1647,7 +1671,7 @@ function vImportar(c){
         <table><tbody>
           <tr><td>Fichas nuevas</td><td class="der num">${p.nuevas.length}</td></tr>
           <tr><td>Fichas que se actualizan</td><td class="der num">${p.actualiza.length}</td></tr>
-          <tr><td>Emparejadas por cliente e importe</td><td class="der num">${p.porImporte.length}</td></tr>
+          <tr><td>Emparejadas por título o por cliente e importe</td><td class="der num">${p.porImporte.length}</td></tr>
           <tr><td>Sin cambios</td><td class="der num">${p.igual.length}</td></tr>
           <tr><td>Descartadas por versión</td><td class="der num">${p.version}</td></tr>
           <tr><td>Histórico cerrado (no se toca)</td><td class="der num">${p.historico}</td></tr>
@@ -1673,7 +1697,7 @@ function vImportar(c){
         <table><tbody>${p.actualiza.map(x=>`<tr><td>${esc(x.numeros)}</td>
           <td>${esc(x.o.nombre)}</td><td>${x.cambios.map(ca=>
             esc(ca.campo+': '+ca.de+' → '+ca.a)).join('<br>')}</td></tr>`).join('')}</tbody></table>`:''}
-        ${p.porImporte.length?`<h3>Emparejadas por cliente e importe · ${p.porImporte.length}</h3>
+        ${p.porImporte.length?`<h3>Emparejadas sin número de presupuesto · ${p.porImporte.length}</h3>
         <p class="sub">No traían número de presupuesto porque venían de Holded. Compruébalas: si alguna no es la misma operación, quita el fichero y dímelo antes de aplicar.</p>
         <table><tbody>${p.porImporte.map(x=>`<tr><td>${esc(x.ficha.numero)}</td>
           <td>${esc(x.o.nombre)}</td><td class="der num">${eur(x.ficha.importe)}</td></tr>`).join('')}</tbody></table>`:''}
