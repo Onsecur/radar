@@ -265,6 +265,19 @@ details.columnas > div{display:flex;flex-wrap:wrap;gap:4px 18px;margin-top:8px;
   padding:10px;border:1px solid var(--linea);border-radius:4px;background:var(--blanco)}
 details.columnas label{display:flex;gap:6px;align-items:center;font-size:13px;white-space:nowrap}
 details.columnas input{width:auto}
+
+/* Importador */
+.impZona.encima{border-color:var(--azul);background:#f2f7ff}
+.impCargados{display:flex;gap:10px;margin-top:10px}
+.impCargados > div{flex:1;border:1px solid var(--linea);border-radius:4px;padding:8px 10px;
+  font-size:12px;display:flex;flex-direction:column;gap:2px;background:var(--blanco)}
+.impCargados > div.ok{border-left:3px solid var(--azul)}
+.impCargados > div span{color:var(--gris)}
+.impCargados button{align-self:flex-start;margin-top:4px;padding:2px 8px;font-size:11px}
+.impDetalle{margin-top:16px}
+.impDetalle h3{font-size:14px;margin:14px 0 6px}
+.impDetalle table{font-size:12px}
+.impDetalle p.sub{font-size:12px;color:var(--gris);margin:0 0 6px}
 </style>
 </head>
 <body>
@@ -310,6 +323,7 @@ details.columnas input{width:auto}
 
 
 <script src="supabase.js"></script>
+<script src="xlsx.js"></script>
 <script>
 /* ═══════ Conexión con Supabase ═══════ */
 const SB_URL = 'https://abaifdjykfvzvtmlwzay.supabase.co';
@@ -657,6 +671,353 @@ function celda(o, k){
     default: return esc(o[k] || '');
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Importador de Beta10
+
+   Lee los dos ficheros que se descargan de Beta10 y propone los cambios.
+   Nada se escribe hasta que se pulsa Aplicar.
+
+   Qué manda, según las reglas:
+     - El Importe del cubo, que ya lleva el descuento. El Importe neto de
+       la descarga de presupuestos es precio de tarifa y solo se usa si no
+       hay cubo, y entonces restándole el descuento.
+     - La fecha de aceptación del cubo manda sobre la del presupuesto.
+     - La columna Principal decide qué versión cuenta. No es siempre la
+       más alta.
+     - El propietario de la cuenta manda sobre el comercial que diga
+       Beta10. Es lo que corrige el caso de Ramón, que a propósito no
+       figura como comercial.
+
+   Lo que el importador NO toca de una ficha que ya existe: la
+   probabilidad y la fecha prevista de cierre. Las pone el comercial y
+   sería absurdo pisárselas cada semana.
+   ═══════════════════════════════════════════════════════════════════ */
+
+const EXCLUIDOS = ['ORONA', 'ICS 360', 'ICS360', 'CLIENTE PRUEBA', 'GOLD GYM', 'CLIENTE  ANTIGUO'];
+
+const COMERCIAL_B10 = {
+  'Puig Ferrer, Alejandro'     : 'alejandropuig',
+  'Martínez Garreta, Sergio'   : 'sergiomartinez',
+  'Palou Carballo, Ramón'      : 'ramonpalou',
+  'Morera Ramos, Jorge'        : 'jorgemorera',
+  'Buñuel López, Miguel Ángel' : 'miguelangel',
+  'Callizo Silvestre, Gustavo' : 'gustavocallizo',
+  'Simó, Jordi'                : 'jordisimo'
+};
+
+/* Beta10 junta actuación y sistema en un solo campo: "Instalación COMBINADO". */
+const ACTUACION_B10 = {
+  'Instalación':'Instalación', 'Ampliación':'Ampliación',
+  'Avería Presencial':'Avería', 'Avería Remota':'Avería',
+  'Averia de Guardia Presencial':'Avería',
+  'Revisión anual':'Revisión', 'Revisión mensual':'Revisión',
+  'Revisión trimestral':'Revisión',
+  'Cambio titularidad':'Cambio de titularidad',
+  'Gestión Cliente':'Gestión de cliente'
+};
+const SISTEMA_B10 = {
+  'COMBINADO':'Combinado', 'CCTV':'CCTV', 'INTRUSIÓN':'Intrusión',
+  'CONTROL DE ACCESO':'Control de acceso', 'SEGURIDAD FISICA':'Seguridad física',
+  'PCI':'PCI'
+};
+
+/* Estado de Beta10 → dónde cae en el embudo de Radar. */
+const ESTADO_B10 = {
+  'En estudio técnico'          : { estado:'abierta', etapa:'estudio'     },
+  'Pdte. de revisión comercial' : { estado:'abierta', etapa:'estudio'     },
+  'Pdte. de aceptación'         : { estado:'abierta', etapa:'enviada'     },
+  'Aceptado'                    : { estado:'ganada',  etapa:'cerrado'     },
+  'Totalmente facturado'        : { estado:'ganada',  etapa:'cerrado'     },
+  'Rechazado'                   : { estado:'perdida', etapa:'cerrado'     },
+  'Anulado'                     : { estado:'perdida', etapa:'cerrado'     }
+};
+
+/* Tramos para estimar el cierre: p75 histórico entre emisión y aceptación. */
+function cierreEstimado(importe, fecha){
+  const dias = importe < 3000 ? 15 : importe < 25000 ? 30 : importe < 50000 ? 60 : 110;
+  const base = fecha ? new Date(fecha) : new Date();
+  const f = new Date(base.getTime() + dias*864e5);
+  const hoy = new Date();
+  if(f >= hoy) return f.toISOString().slice(0,10);
+  /* Ya vencida al nacer: se lleva al último día del mes que viene. */
+  return new Date(hoy.getFullYear(), hoy.getMonth()+2, 0).toISOString().slice(0,10);
+}
+
+const sinVersion = n => String(n||'').trim().replace(/\.\d+$/, '');
+const norm = s => String(s||'').trim().toUpperCase();
+const esExcluido = cliente => EXCLUIDOS.some(x => norm(cliente).includes(x));
+
+function fechaISO(v){
+  if(!v) return null;
+  if(v instanceof Date) return v.toISOString().slice(0,10);
+  if(typeof v === 'number'){                      /* fecha serie de Excel */
+    const d = new Date(Date.UTC(1899,11,30) + v*864e5);
+    return d.toISOString().slice(0,10);
+  }
+  const s = String(v).trim();
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
+  const m = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/);
+  if(m) return `${m[3]}-${String(m[2]).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`;
+  return null;
+}
+
+/* ── lectura de los ficheros ────────────────────────────────────────── */
+
+let impFicheros = { cubo:null, presupuestos:null };
+let impPlan = null;
+
+async function leerLibro(file){
+  const buf = await file.arrayBuffer();
+  const lib = XLSX.read(buf, { type:'array', cellDates:true });
+  const hoja = lib.Sheets[lib.SheetNames[0]];
+  return XLSX.utils.sheet_to_json(hoja, { defval:null });
+}
+
+/* Se reconocen por sus columnas, no por el nombre del fichero. */
+function queFicheroEs(filas){
+  if(!filas.length) return null;
+  const cols = Object.keys(filas[0]);
+  if(cols.includes('Serie/Num') && cols.includes('Fecha aceptación')) return 'cubo';
+  if(cols.includes('Nº Presupuesto') && cols.includes('Principal'))   return 'presupuestos';
+  return null;
+}
+
+async function recibirFicheros(files){
+  for(const f of files){
+    let filas;
+    try{ filas = await leerLibro(f); }
+    catch(e){ aviso('No se ha podido leer ' + f.name + ': ' + e.message); continue; }
+    const tipo = queFicheroEs(filas);
+    if(!tipo){
+      aviso(f.name + ': no reconozco las columnas. ¿Es una descarga de Beta10 sin modificar?');
+      continue;
+    }
+    impFicheros[tipo] = { nombre:f.name, filas };
+  }
+  impPlan = null;
+  pintar();
+}
+
+/* ── el plan ────────────────────────────────────────────────────────── */
+
+function construirPlan(){
+  const pres = impFicheros.presupuestos ? impFicheros.presupuestos.filas : [];
+  const cubo = impFicheros.cubo         ? impFicheros.cubo.filas         : [];
+
+  /* El cubo, indexado por número sin versión. */
+  const porNumero = new Map();
+  for(const r of cubo){
+    const n = sinVersion(r['Serie/Num']);
+    if(n) porNumero.set(n, r);
+  }
+
+  const plan = { nuevas:[], actualiza:[], igual:[], version:0, excluidas:[],
+                 sinImporte:[], desaparecidos:[], porImporte:[] };
+
+  /* Las oportunidades que ya tenemos, por número de presupuesto. */
+  const yaTengo = new Map();
+  for(const o of D.opos)
+    for(const n of String(o.presupuestos||'').split(',').map(x=>x.trim()).filter(Boolean))
+      yaTengo.set(n, o);
+
+  /* Segunda red: 218 fichas vienen de Holded y no llevan número de
+     presupuesto. Sin esto, el importador las daría de alta otra vez.
+     Se emparejan por cliente e importe, y se listan aparte para poder
+     revisarlas antes de aplicar. */
+  const porClienteImporte = new Map();
+  for(const o of D.opos){
+    if(String(o.presupuestos||'').trim()) continue;
+    const k = norm(cuentaNombre(o.cuenta)) + '|' + Math.round(o.valor);
+    if(!porClienteImporte.has(k)) porClienteImporte.set(k, o);
+  }
+  const usadas = new Set();
+
+  const vistos = new Set();
+  const origen = pres.length ? pres : cubo;
+
+  for(const r of origen){
+    const bruto = pres.length ? r['Nº Presupuesto'] : r['Serie/Num'];
+    const numero = sinVersion(bruto);
+    if(!numero) continue;
+
+    /* Principal decide la versión. Sin esa columna vale la fila del cubo. */
+    if(pres.length && r['Principal'] !== true && String(r['Principal']).toLowerCase() !== 'true'){
+      plan.version++; continue;
+    }
+    if(vistos.has(numero)) { plan.version++; continue; }
+    vistos.add(numero);
+
+    const c = porNumero.get(numero) || null;
+    const cliente = (pres.length ? r['Cliente/Cliente potencial'] : r['Nombre del Cliente']) || '';
+    if(esExcluido(cliente)){ plan.excluidas.push({ numero, cliente }); continue; }
+
+    /* Importe: manda el cubo. Si no hay, tarifa menos descuento. */
+    let importe = c ? Number(c['Importe']) : null;
+    if(importe === null || isNaN(importe)){
+      const neto = Number(r['Importe neto']) || 0;
+      const desc = Number(r['Descuento']) || 0;
+      importe = Math.round(neto * (1 - desc/100) * 100) / 100;
+    }
+    if(!importe){ plan.sinImporte.push({ numero, cliente }); }
+
+    /* Actuación y sistema salen del mismo campo. */
+    const campo = String((pres.length ? r['Tipo de actuación'] : '') || '').trim();
+    let actuacion = c ? c['Tipo de actuación'] : null, sistema = c ? c['Tipo de sistema'] : null;
+    if(!actuacion && campo){
+      const clave = Object.keys(ACTUACION_B10).find(k => campo.startsWith(k));
+      actuacion = clave || null;
+      sistema = clave ? campo.slice(clave.length).trim() : null;
+    }
+
+    const estadoB10 = (c ? c['Estado'] : r['Estado']) || 'En estudio técnico';
+    const mapa = ESTADO_B10[estadoB10] || { estado:'abierta', etapa:'estudio' };
+    const fPres = fechaISO(c ? c['Fecha presupuesto'] : r['Fecha']);
+    const fAcep = fechaISO(c ? c['Fecha aceptación'] : null);
+
+    const comB10 = (pres.length ? r['Comercial'] : r['Comercial']) || '';
+    const ficha = {
+      numero,
+      version    : String(bruto).trim(),
+      cliente    : String(cliente).trim(),
+      titulo     : String(r['Título'] || r['Descripción del sistema'] || cliente).trim()
+                   + ' · ' + numero,
+      direccion  : String(r['Dirección'] || '').replace(/[\r\n]+/g, ', ').trim(),
+      importe,
+      cuota      : c ? (Number(c['Importe cuotas']) || 0) : 0,
+      comercial  : COMERCIAL_B10[String(comB10).trim()] || null,
+      actuacion  : ACTUACION_B10[actuacion] || null,
+      sistema    : SISTEMA_B10[norm(sistema)] || null,
+      estado     : mapa.estado,
+      etapa      : mapa.etapa,
+      fechaPres  : fPres,
+      fechaCierre: fAcep || fPres,
+      estadoB10
+    };
+
+    let existente = yaTengo.get(numero);
+    let emparejadaPorImporte = false;
+    if(!existente){
+      const k = norm(ficha.cliente) + '|' + Math.round(importe);
+      const cand = porClienteImporte.get(k);
+      if(cand && !usadas.has(cand.id)){
+        existente = cand; usadas.add(cand.id); emparejadaPorImporte = true;
+      }
+    }
+    if(!existente){
+      ficha.cierrePrevisto = ficha.estado === 'abierta'
+        ? cierreEstimado(importe, fPres) : null;
+      plan.nuevas.push(ficha);
+    } else {
+      const cambios = [];
+      if(Math.abs((existente.valor||0) - importe) > 0.5)
+        cambios.push({ campo:'Importe', de:eur(existente.valor), a:eur(importe) });
+      if(existente.estado !== ficha.estado)
+        cambios.push({ campo:'Estado', de:existente.estado, a:ficha.estado });
+      else if(existente.estado === 'abierta' && existente.etapa !== ficha.etapa
+              && ficha.etapa === 'enviada' && existente.etapa === 'estudio')
+        cambios.push({ campo:'Etapa', de:'Estudio', a:'Enviada' });
+      if(emparejadaPorImporte) plan.porImporte.push({ ficha, o:existente, cambios });
+      else if(cambios.length)  plan.actualiza.push({ ficha, o:existente, cambios });
+      else plan.igual.push(ficha);
+    }
+  }
+
+  /* Presupuestos que Radar conoce y el fichero ya no trae. */
+  for(const [n, o] of yaTengo)
+    if(!vistos.has(n) && o.estado === 'abierta') plan.desaparecidos.push({ numero:n, o });
+
+  return plan;
+}
+
+/* ── aplicar ────────────────────────────────────────────────────────── */
+
+async function aplicarPlan(){
+  if(!impPlan) return;
+  const b = $('#impAplicar');
+  if(b){ b.disabled = true; b.textContent = 'Aplicando…'; }
+
+  try{
+    /* Cuentas que faltan. */
+    const nombres = new Set(impPlan.nuevas.map(f => f.cliente).filter(Boolean));
+    const tengo = new Map(D.cuentas.map(c => [c.nombre.toLowerCase(), c.id]));
+    const faltan = [...nombres].filter(n => !tengo.has(n.toLowerCase()));
+    if(faltan.length){
+      const { data, error } = await SB.from('cuenta')
+        .insert(faltan.map(n => ({ nombre:n }))).select('id,nombre');
+      if(error) throw error;
+      for(const c of data){
+        D.cuentas.push({ id:String(c.id), nombre:c.nombre });
+        tengo.set(c.nombre.toLowerCase(), String(c.id));
+      }
+    }
+
+    /* Altas. */
+    if(impPlan.nuevas.length){
+      const filas = impPlan.nuevas.map(f => ({
+        titulo         : f.titulo,
+        cliente        : f.cliente,
+        cuenta_id      : Number(tengo.get(f.cliente.toLowerCase())) || null,
+        calle          : f.direccion || null,
+        comercial      : f.comercial,
+        tipo_actuacion : f.actuacion ? COD.actuacion[f.actuacion] : null,
+        tipo           : f.actuacion ? TIPO_DE_ACTUACION[COD.actuacion[f.actuacion]] : 'obra',
+        tipo_sistema   : f.sistema ? COD.sistema[f.sistema] : null,
+        importe        : f.importe,
+        cuota_anual    : f.cuota,
+        etapa          : f.etapa,
+        estado         : f.estado,
+        probabilidad   : f.etapa === 'enviada' ? 20 : f.estado === 'ganada' ? 95 : 10,
+        cierre_previsto: f.estado === 'abierta' ? f.cierrePrevisto : null,
+        cierre_real    : f.estado === 'abierta' ? null : f.fechaCierre,
+        origen_dato    : 'beta10'
+      }));
+      const { data, error } = await SB.from('oportunidad').insert(filas).select('id');
+      if(error) throw error;
+      /* Los presupuestos, enganchados a su ficha. */
+      await SB.from('presupuesto').insert(impPlan.nuevas.map((f,i) => ({
+        numero:f.numero, version:f.version, importe:f.importe,
+        fecha:f.fechaPres, estado:f.estadoB10, oportunidad_id:data[i].id
+      })));
+    }
+
+    /* Cambios sobre fichas que ya existen. Ni probabilidad ni fecha prevista. */
+    for(const { ficha, o } of [...impPlan.actualiza, ...impPlan.porImporte]){
+      const cambio = { importe:ficha.importe, estado:ficha.estado };
+      if(ficha.estado !== 'abierta'){
+        cambio.etapa = 'cerrado';
+        cambio.cierre_real = ficha.fechaCierre;
+        cambio.cierre_previsto = null;
+      } else if(o.etapa === 'estudio' && ficha.etapa === 'enviada'){
+        cambio.etapa = 'enviada';
+      }
+      const { error } = await SB.from('oportunidad').update(cambio).eq('id', o.id);
+      if(error) throw error;
+    }
+
+    /* A las que se emparejaron por importe se les engancha por fin su
+       número de Beta10, para que la próxima vez casen por número. */
+    if(impPlan.porImporte.length){
+      const { error } = await SB.from('presupuesto').upsert(
+        impPlan.porImporte.map(({ficha,o}) => ({
+          numero:ficha.numero, version:ficha.version, importe:ficha.importe,
+          fecha:ficha.fechaPres, estado:ficha.estadoB10, oportunidad_id:Number(o.id)
+        })), { onConflict:'numero' });
+      if(error) throw error;
+    }
+
+    impFicheros = { cubo:null, presupuestos:null };
+    impPlan = null;
+    await recargar();
+    aviso('Importación aplicada.');
+  }catch(e){
+    console.error(e);
+    aviso('La importación ha fallado: ' + (e.message || e));
+    if(b){ b.disabled = false; b.textContent = 'Aplicar importación'; }
+  }
+}
+
+let impDetalle = false;
 
 /* ═══════ navegación ═══════ */
 document.querySelectorAll('.rail [data-vista]').forEach(b => b.onclick = () => { vista = b.dataset.vista; pintar(); });
@@ -1124,46 +1485,76 @@ const REGLAS_IMPORT = [
 let impDeposito = 'presupuestos', impCargados = [];
 
 function vImportar(c){
-  const dep = DEPOSITOS.find(d=>d.id===impDeposito);
-  c.innerHTML = `
-  <div class="resHead">
-    <div>
-      <h2 style="font-size:18px">Importar desde Beta10</h2>
-      <p style="margin:2px 0 0;color:var(--gris);font-size:13px">Dos depósitos con ritmos distintos. Nada se aplica hasta que lo confirmes.</p>
-    </div>
-  </div>
+  const f = impFicheros, listo = f.cubo || f.presupuestos;
+  if(listo && !impPlan) impPlan = construirPlan();
+  const p = impPlan;
 
-  <div class="impTabs">
-    ${DEPOSITOS.map(d=>`<button class="impTab ${d.id===impDeposito?'on':''}" data-dep="${d.id}">
-      ${d.nombre}<span>${d.ritmo}</span></button>`).join('')}
-  </div>
+  c.innerHTML = `
+  <div class="resHead"><div>
+    <h2 style="font-size:18px">Importar desde Beta10</h2>
+    <p style="margin:2px 0 0;color:var(--gris);font-size:13px">
+      Suelta las dos descargas. Nada se escribe hasta que lo confirmes.</p>
+  </div></div>
 
   <div class="resCols">
     <section>
       <div class="impZona" id="impZona">
-        <b>Arrastra aquí ${dep.ficheros.length===2?'los dos ficheros':'el fichero'}</b>
-        <span>${dep.ficheros.join(' · ')}</span>
-        <button class="btn sec" style="margin-top:12px">Buscar en el equipo</button>
+        <b>Arrastra aquí los dos ficheros</b>
+        <span>El cubo de presupuestos y la descarga de presupuestos</span>
+        <button class="btn sec" id="impBuscar" style="margin-top:12px">Buscar en el equipo</button>
+        <input type="file" id="impFile" multiple accept=".xlsx,.xls,.xlsb" hidden>
       </div>
-      <p style="color:var(--gris);font-size:12px;margin-top:8px">${esc(dep.manda)}</p>
 
-      <div class="impResumen" id="impResumen" hidden>
+      <div class="impCargados">
+        ${['cubo','presupuestos'].map(k=>`<div class="${f[k]?'ok':''}">
+          <b>${k==='cubo'?'Cubo':'Presupuestos'}</b>
+          <span>${f[k] ? esc(f[k].nombre)+' · '+f[k].filas.length+' filas' : 'pendiente'}</span>
+          ${f[k]?`<button class="btn sec" data-quita="${k}">Quitar</button>`:''}
+        </div>`).join('')}
+      </div>
+
+      ${!p ? '' : `
+      <div class="impResumen">
         <h3>Qué va a pasar</h3>
-        <table>
-          <tbody>
-            <tr><td>Fichas nuevas</td><td class="der num" id="rNuevas">—</td></tr>
-            <tr><td>Fichas que se actualizan</td><td class="der num" id="rAct">—</td></tr>
-            <tr><td>Descartadas por versión</td><td class="der num" id="rVer">—</td></tr>
-            <tr><td>Descartadas por duplicado</td><td class="der num" id="rDup">—</td></tr>
-            <tr><td>Presupuestos desaparecidos</td><td class="der num" id="rDesap">—</td></tr>
-            <tr class="totalFila"><td>Pendientes de decidir</td><td class="der num" id="rPend">—</td></tr>
-          </tbody>
-        </table>
+        <table><tbody>
+          <tr><td>Fichas nuevas</td><td class="der num">${p.nuevas.length}</td></tr>
+          <tr><td>Fichas que se actualizan</td><td class="der num">${p.actualiza.length}</td></tr>
+          <tr><td>Emparejadas por cliente e importe</td><td class="der num">${p.porImporte.length}</td></tr>
+          <tr><td>Sin cambios</td><td class="der num">${p.igual.length}</td></tr>
+          <tr><td>Descartadas por versión</td><td class="der num">${p.version}</td></tr>
+          <tr><td>Excluidas (cuentas nacionales y pruebas)</td><td class="der num">${p.excluidas.length}</td></tr>
+          <tr><td>Sin importe</td><td class="der num">${p.sinImporte.length}</td></tr>
+          <tr class="totalFila"><td>Presupuestos desaparecidos</td><td class="der num">${p.desaparecidos.length}</td></tr>
+        </tbody></table>
         <div style="display:flex;gap:8px;margin-top:12px">
-          <button class="btn">Aplicar importación</button>
-          <button class="btn sec">Ver el detalle línea a línea</button>
+          <button class="btn" id="impAplicar" ${p.nuevas.length+p.actualiza.length+p.porImporte.length?'':'disabled'}>
+            Aplicar importación</button>
+          <button class="btn sec" id="impDetalle">${impDetalle?'Ocultar':'Ver'} el detalle</button>
         </div>
       </div>
+
+      ${!impDetalle ? '' : `
+      <div class="impDetalle">
+        ${p.nuevas.length?`<h3>Nuevas · ${p.nuevas.length}</h3>
+        <table><tbody>${p.nuevas.map(x=>`<tr><td>${esc(x.numero)}</td>
+          <td>${esc(x.cliente)}</td><td>${esc(usuario(x.comercial||'sinasignar'))}</td>
+          <td class="der num">${eur(x.importe)}</td></tr>`).join('')}</tbody></table>`:''}
+        ${p.actualiza.length?`<h3>Cambian · ${p.actualiza.length}</h3>
+        <table><tbody>${p.actualiza.map(x=>`<tr><td>${esc(x.ficha.numero)}</td>
+          <td>${esc(x.o.nombre)}</td><td>${x.cambios.map(ca=>
+            esc(ca.campo+': '+ca.de+' → '+ca.a)).join('<br>')}</td></tr>`).join('')}</tbody></table>`:''}
+        ${p.porImporte.length?`<h3>Emparejadas por cliente e importe · ${p.porImporte.length}</h3>
+        <p class="sub">No traían número de presupuesto porque venían de Holded. Compruébalas: si alguna no es la misma operación, quita el fichero y dímelo antes de aplicar.</p>
+        <table><tbody>${p.porImporte.map(x=>`<tr><td>${esc(x.ficha.numero)}</td>
+          <td>${esc(x.o.nombre)}</td><td class="der num">${eur(x.ficha.importe)}</td></tr>`).join('')}</tbody></table>`:''}
+        ${p.desaparecidos.length?`<h3>Ya no vienen en el fichero · ${p.desaparecidos.length}</h3>
+        <p class="sub">Radar no los toca. Revísalos a mano por si se anularon en Beta10.</p>
+        <table><tbody>${p.desaparecidos.map(x=>`<tr><td>${esc(x.numero)}</td>
+          <td>${esc(x.o.nombre)}</td><td class="der num">${eur(x.o.valor)}</td></tr>`).join('')}</tbody></table>`:''}
+        ${p.excluidas.length?`<h3>Excluidas · ${p.excluidas.length}</h3>
+        <table><tbody>${p.excluidas.map(x=>`<tr><td>${esc(x.numero)}</td>
+          <td>${esc(x.cliente)}</td></tr>`).join('')}</tbody></table>`:''}
+      </div>`}`}
     </section>
 
     <section class="resCaja">
@@ -1171,15 +1562,21 @@ function vImportar(c){
       <dl class="impReglas">
         ${REGLAS_IMPORT.map(([t,d])=>`<div><dt>${esc(t)}</dt><dd>${esc(d)}</dd></div>`).join('')}
       </dl>
-      <h3 style="margin-top:16px">Última importación</h3>
-      <p style="color:var(--gris);font-size:12px;margin:0">Carga inicial del 21/09/2026: 476 oportunidades de histórico y 478 de embudo.</p>
     </section>
   </div>`;
 
-  c.querySelectorAll('.impTab').forEach(b => b.onclick = () => { impDeposito = b.dataset.dep; pintar(); });
-  const z = c.querySelector('#impZona');
-  ['dragover','dragenter'].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.add('encima'); }));
-  ['dragleave','drop'].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.remove('encima'); }));
+  const z = $('#impZona'), inp = $('#impFile');
+  ['dragover','dragenter'].forEach(ev => z.addEventListener(ev, e => {
+    e.preventDefault(); z.classList.add('encima'); }));
+  ['dragleave','drop'].forEach(ev => z.addEventListener(ev, e => {
+    e.preventDefault(); z.classList.remove('encima'); }));
+  z.addEventListener('drop', e => recibirFicheros([...e.dataTransfer.files]));
+  $('#impBuscar').onclick = () => inp.click();
+  inp.onchange = () => recibirFicheros([...inp.files]);
+  c.querySelectorAll('[data-quita]').forEach(b => b.onclick = () => {
+    impFicheros[b.dataset.quita] = null; impPlan = null; pintar(); });
+  if($('#impAplicar')) $('#impAplicar').onclick = aplicarPlan;
+  if($('#impDetalle')) $('#impDetalle').onclick = () => { impDetalle = !impDetalle; pintar(); };
 }
 
 function vPanel(c){
