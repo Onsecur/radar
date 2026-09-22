@@ -250,6 +250,21 @@ ul.chequeo li{margin-bottom:6px}
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .tablero.previsiones .tarjeta .pie{font-size:10px}
 .tablero.previsiones .tarjeta .pie[style]{margin-top:1px !important}
+
+/* Oportunidades: cabeceras que ordenan y selector de columnas. */
+table.lista th.ord{cursor:pointer;user-select:none;white-space:nowrap}
+table.lista th.ord:hover{color:var(--azul)}
+table.lista th.ord.activa{color:var(--azul)}
+table.lista th .flecha{font-size:9px;margin-left:3px}
+table.lista td .sub{font-size:12px;color:var(--gris)}
+table.lista tfoot td{font-weight:600;border-top:2px solid var(--linea);background:var(--blanco)}
+details.columnas{margin:0 0 10px}
+details.columnas summary{cursor:pointer;font-size:13px;color:var(--gris);
+  display:inline-block;padding:4px 10px;border:1px solid var(--linea);border-radius:4px}
+details.columnas > div{display:flex;flex-wrap:wrap;gap:4px 18px;margin-top:8px;
+  padding:10px;border:1px solid var(--linea);border-radius:4px;background:var(--blanco)}
+details.columnas label{display:flex;gap:6px;align-items:center;font-size:13px;white-space:nowrap}
+details.columnas input{width:auto}
 </style>
 </head>
 <body>
@@ -360,15 +375,26 @@ async function todasLasFilas(tabla, columnas){
 }
 
 async function cargarDatos(){
-  const [cuentas, opos, notas] = await Promise.all([
+  const [cuentas, opos, notas, presupuestos] = await Promise.all([
     todasLasFilas('cuenta', 'id,nombre'),
     todasLasFilas('v_oportunidad',
       'id,titulo,cuenta_id,cliente,calle,poblacion,provincia,comercial,proyectista,'+
       'tipo_actuacion,tipo_sistema,vertical,origen,importe,cuota_anual,etapa,estado,'+
       'probabilidad,cierre_previsto,fecha_revision,cierre_real,motivo_perdida,'+
       'motivo_exclusion,ultima_actividad,notas,origen_dato'),
-    todasLasFilas('nota', 'id,oportunidad_id,tipo,texto,fecha_actividad,proxima_accion,autor_nombre')
+    todasLasFilas('nota', 'id,oportunidad_id,tipo,texto,fecha_actividad,proxima_accion,autor_nombre'),
+    todasLasFilas('presupuesto', 'numero,oportunidad_id')
   ]);
+
+  /* Los numeros de Beta10 de cada oportunidad, para poder sacarlos como
+     columna y buscar por ellos. */
+  const presPorOpo = new Map();
+  for(const p of presupuestos){
+    if(!p.oportunidad_id) continue;
+    const k = String(p.oportunidad_id);
+    if(!presPorOpo.has(k)) presPorOpo.set(k, []);
+    presPorOpo.get(k).push(p.numero);
+  }
 
   const usuarios = Object.entries(COMERCIALES)
       .map(([id,nombre]) => ({ id, nombre, rol:'comercial' }));
@@ -403,7 +429,8 @@ async function cargarDatos(){
       proyectista: etq('proyectista', o.proyectista),
       notas      : o.notas || '',
       tocada     : o.ultima_actividad ? o.ultima_actividad + 'T09:00:00.000Z' : null,
-      origenDato : o.origen_dato === 'beta10' ? 'Beta10' : 'Holded'
+      origenDato : o.origen_dato === 'beta10' ? 'Beta10' : 'Holded',
+      presupuestos: (presPorOpo.get(String(o.id)) || []).sort().join(', ')
     })),
     acts: notas.map(n => ({
       id:String(n.id), opo:String(n.oportunidad_id), tipo:n.tipo, desc:n.texto,
@@ -517,7 +544,7 @@ const haceDias = n => { const d=new Date(); d.setDate(d.getDate()-n); return d.t
 let SEMILLA = { usuarios:[], cuentas:[], opos:[], acts:[] };
 let D = estructuraClonada();
 let vista = 'panel', comoUsuario = 'u1', abierta = null;
-let filtros = { texto:'', comercial:'', etapa:'', cerradas:false };
+let filtros = { texto:'', comercial:'', etapa:'', estado:'abierta' };
 let radar = { comercial:'', prob:'', vertical:'', proyectista:'', orden:'importe' };
 
 function estructuraClonada(){ return JSON.parse(JSON.stringify(SEMILLA)); }
@@ -539,15 +566,97 @@ const mias = () => D.opos.filter(o => esManager() || o.owner===comoUsuario);
 const abiertas = () => mias().filter(o=>o.estado==='abierta');
 const nuevoId = p => p + Math.random().toString(36).slice(2,8);
 
-const visibles = () => mias().filter(o =>
-  (filtros.cerradas || o.estado==='abierta') &&
+/* Etapas pasa todos=true: su columna Cerrado necesita las cerradas aunque
+   la lista este filtrada por estado, y alli el selector no se ve. */
+const visibles = (todos) => mias().filter(o =>
+  (todos || !filtros.estado || o.estado===filtros.estado) &&
   (!filtros.comercial || o.owner===filtros.comercial) &&
   (!filtros.etapa || o.etapa===filtros.etapa) &&
-  (!filtros.texto || (o.nombre+' '+cuentaNombre(o.cuenta)).toLowerCase().includes(filtros.texto.toLowerCase())));
+  (!filtros.texto || (o.nombre+' '+cuentaNombre(o.cuenta)+' '+(o.presupuestos||'')).toLowerCase().includes(filtros.texto.toLowerCase())));
 
 const pendientes = () => D.acts
   .filter(a=>a.proxFecha && !a.hecha && mias().some(o=>o.id===a.opo && o.estado==='abierta'))
   .sort((a,b)=>a.proxFecha.localeCompare(b.proxFecha));
+
+
+/* ═══════ Oportunidades: columnas y orden ═══════ */
+/* Cada quien se monta la tabla como quiera. La eleccion se guarda en el
+   navegador, no en la base: es una preferencia de pantalla, no un dato. */
+const COLUMNAS = [
+  { k:'nombre',     t:'Oportunidad',    fijo:true },
+  { k:'cuenta',     t:'Cuenta' },
+  { k:'presupuestos', t:'Presupuesto' },
+  { k:'owner',      t:'Comercial' },
+  { k:'etapa',      t:'Etapa' },
+  { k:'valor',      t:'Valor',          num:true },
+  { k:'prob',       t:'Prob.',          num:true },
+  { k:'ponderado',  t:'Ponderado',      num:true },
+  { k:'cuota',      t:'Cuota anual',    num:true },
+  { k:'cierre',     t:'Cierre' },
+  { k:'revision',   t:'Revisión' },
+  { k:'vertical',   t:'Vertical' },
+  { k:'servicio',   t:'Sistema' },
+  { k:'tipo',       t:'Actuación' },
+  { k:'origen',     t:'Origen' },
+  { k:'proyectista',t:'Proyectista' },
+  { k:'poblacion',  t:'Población' },
+  { k:'provincia',  t:'Provincia' },
+  { k:'motivo',     t:'Motivo pérdida' },
+  { k:'tocada',     t:'Sin tocar',      num:true }
+];
+const COLS_DEFECTO = ['nombre','cuenta','owner','etapa','valor','prob','cierre','tocada'];
+
+let lista = { cols:[...COLS_DEFECTO], orden:'valor', dir:-1 };
+try{
+  const g = JSON.parse(localStorage.getItem('radar.lista') || 'null');
+  if(g && Array.isArray(g.cols) && g.cols.length) lista = g;
+}catch(e){ /* sin preferencia guardada, se usa la de serie */ }
+function guardarLista(){
+  try{ localStorage.setItem('radar.lista', JSON.stringify(lista)); }catch(e){}
+}
+
+/* Valor con el que se ordena: numero cuando lo es, texto en minusculas
+   cuando no, para que la Ñ y los acentos no salten al final. */
+function clave(o, k){
+  switch(k){
+    case 'valor': case 'prob': case 'cuota': return Number(o[k]) || 0;
+    case 'ponderado': return (o.valor||0) * (o.prob||0) / 100;
+    case 'tocada':    return o.tocada ? dias(o.tocada) : -1;
+    case 'cuenta':    return cuentaNombre(o.cuenta).toLowerCase();
+    case 'owner':     return usuario(o.owner).toLowerCase();
+    case 'etapa':     return o.estado==='abierta' ? etapaNombre(o.etapa).toLowerCase() : o.estado;
+    case 'cierre': case 'revision': return o[k] || '';
+    default: return String(o[k] || '').toLowerCase();
+  }
+}
+function ordenarLista(ops){
+  const k = lista.orden, d = lista.dir;
+  return [...ops].sort((a,b)=>{
+    const x = clave(a,k), y = clave(b,k);
+    if(x < y) return -d;
+    if(x > y) return  d;
+    return a.nombre.localeCompare(b.nombre);
+  });
+}
+
+function celda(o, k){
+  switch(k){
+    case 'nombre': return `<strong>${esc(o.nombre)}</strong>` +
+      (o.servicio?`<br><span class="sub">${esc(o.servicio)}</span>`:'');
+    case 'cuenta': return esc(cuentaNombre(o.cuenta));
+    case 'owner':  return esc(usuario(o.owner));
+    case 'etapa':  return o.estado==='abierta'
+      ? `<span class="etiqueta">${etapaNombre(o.etapa)}</span>`
+      : `<span class="etiqueta ${o.estado}">${o.estado==='ganada'?'Ganada':'Perdida'}</span>`;
+    case 'valor':  return eur(o.valor);
+    case 'cuota':  return o.cuota ? eur(o.cuota) : '';
+    case 'ponderado': return eur(o.valor * o.prob / 100);
+    case 'prob':   return o.prob + '%';
+    case 'cierre': case 'revision': return o[k] ? fechaCorta(o[k]) : '';
+    case 'tocada': return o.tocada ? dias(o.tocada) + ' d' : '—';
+    default: return esc(o[k] || '');
+  }
+}
 
 /* ═══════ navegación ═══════ */
 document.querySelectorAll('.rail [data-vista]').forEach(b => b.onclick = () => { vista = b.dataset.vista; pintar(); });
@@ -609,7 +718,7 @@ if(document.readyState !== 'loading') arrancarUnaVez();
 
 function entrar(id){
   comoUsuario = id;
-  filtros = { texto:'', comercial:'', etapa:'', cerradas:false };
+  filtros = { texto:'', comercial:'', etapa:'', estado:'abierta' };
   radar = { comercial:'', prob:'', vertical:'', proyectista:'', orden:'importe' };
   vista = 'panel';
   $('#usuarioActivo').textContent = yo().nombre;
@@ -647,7 +756,7 @@ function pintarCifras(){
 
 /* ═══════ pipeline ═══════ */
 function vPipeline(c){
-  const ops = visibles();
+  const ops = visibles(true);
   const enEtapa = e => e==='cerrado'
     ? ops.filter(o=>o.estado!=='abierta')
     : ops.filter(o=>o.estado==='abierta' && o.etapa===e);
@@ -708,8 +817,12 @@ function filtrosHTML(conCerradas=true){
       ${D.usuarios.map(u=>`<option value="${u.id}" ${filtros.comercial===u.id?'selected':''}>${esc(u.nombre)}</option>`).join('')}</select>`:''}
     <select id="fEtapa"><option value="">Todas las etapas</option>
       ${ETAPAS.map(e=>`<option value="${e.id}" ${filtros.etapa===e.id?'selected':''}>${e.nombre}</option>`).join('')}</select>
-    ${conCerradas?`<label style="display:flex;gap:6px;align-items:center;font-size:13px">
-      <input type="checkbox" id="fCerradas" ${filtros.cerradas?'checked':''} style="width:auto"> Ver cerradas</label>`:''}
+    ${conCerradas?`<select id="fEstado">
+      <option value="abierta" ${filtros.estado==='abierta'?'selected':''}>Solo abiertas</option>
+      <option value="ganada"  ${filtros.estado==='ganada' ?'selected':''}>Solo ganadas</option>
+      <option value="perdida" ${filtros.estado==='perdida'?'selected':''}>Solo perdidas</option>
+      <option value=""        ${filtros.estado===''       ?'selected':''}>Todas</option>
+    </select>`:''}
   </div>`;
 }
 function activarFiltros(){
@@ -717,7 +830,7 @@ function activarFiltros(){
   if(t) t.oninput = e => { filtros.texto = e.target.value; const p=e.target.selectionStart; pintar(); const n=$('#fTexto'); n.focus(); n.setSelectionRange(p,p); };
   if($('#fComercial')) $('#fComercial').onchange = e => { filtros.comercial = e.target.value; pintar(); };
   if($('#fEtapa')) $('#fEtapa').onchange = e => { filtros.etapa = e.target.value; pintar(); };
-  if($('#fCerradas')) $('#fCerradas').onchange = e => { filtros.cerradas = e.target.checked; pintar(); };
+  if($('#fEstado')) $('#fEstado').onchange = e => { filtros.estado = e.target.value; pintar(); };
 }
 
 /* ═══════ radar · previsiones ═══════ */
@@ -840,18 +953,40 @@ function activarRadar(){
 
 /* ═══════ lista ═══════ */
 function vLista(c){
-  const ops = visibles();
-  c.innerHTML = filtrosHTML() + (ops.length?`<table><thead><tr>
-    <th>Oportunidad</th><th>Cuenta</th><th class="opcional">Comercial</th><th>Etapa</th>
-    <th class="der">Valor</th><th class="der opcional">Prob.</th><th class="opcional">Cierre</th><th class="der opcional">Sin tocar</th></tr></thead><tbody>
-    ${ops.map(o=>`<tr data-id="${o.id}">
-      <td><strong>${esc(o.nombre)}</strong><br><span style="font-size:12px;color:var(--gris)">${esc(o.servicio)}</span></td>
-      <td>${esc(cuentaNombre(o.cuenta))}</td><td class="opcional">${esc(usuario(o.owner))}</td>
-      <td>${o.estado==='abierta'?`<span class="etiqueta">${etapaNombre(o.etapa)}</span>`:`<span class="etiqueta ${o.estado}">${o.estado==='ganada'?'Ganada':'Perdida'}</span>`}</td>
-      <td class="der num">${eur(o.valor)}</td><td class="der num opcional">${o.prob}%</td>
-      <td class="num opcional">${fechaCorta(o.cierre)}</td><td class="der num opcional">${dias(o.tocada)} d</td>
-    </tr>`).join('')}</tbody></table>`:'<p class="vacio">No hay oportunidades con estos filtros.</p>');
+  const ops = ordenarLista(visibles());
+  const cols = COLUMNAS.filter(x => lista.cols.includes(x.k));
+
+  c.innerHTML = filtrosHTML() + `
+  <details class="columnas">
+    <summary>Columnas · ${cols.length}</summary>
+    <div>${COLUMNAS.map(x=>`<label><input type="checkbox" data-col="${x.k}"
+      ${lista.cols.includes(x.k)?'checked':''} ${x.fijo?'disabled':''}> ${x.t}</label>`).join('')}</div>
+  </details>` + (ops.length?`<table class="lista"><thead><tr>
+    ${cols.map(x=>`<th class="${x.num?'der':''} ord ${lista.orden===x.k?'activa':''}" data-ord="${x.k}">
+      ${x.t}<span class="flecha">${lista.orden===x.k?(lista.dir>0?'▲':'▼'):''}</span></th>`).join('')}
+    </tr></thead><tbody>
+    ${ops.map(o=>`<tr data-id="${o.id}">${cols.map(x=>
+      `<td class="${x.num?'der num':''}">${celda(o,x.k)}</td>`).join('')}</tr>`).join('')}
+    </tbody><tfoot><tr>
+    ${cols.map(x=>`<td class="${x.num?'der num':''}">${
+      x.k==='valor'    ? eur(ops.reduce((s,o)=>s+o.valor,0)) :
+      x.k==='ponderado'? eur(ops.reduce((s,o)=>s+o.valor*o.prob/100,0)) :
+      x.k==='cuota'    ? eur(ops.reduce((s,o)=>s+(o.cuota||0),0)) :
+      x.k==='nombre'   ? ops.length+' oportunidades' : ''}</td>`).join('')}
+    </tr></tfoot></table>`:'<p class="vacio">No hay oportunidades con estos filtros.</p>');
+
   activarFiltros();
+  c.querySelectorAll('[data-col]').forEach(b => b.onchange = () => {
+    lista.cols = COLUMNAS.filter(x => x.fijo ||
+      c.querySelector(`[data-col="${x.k}"]`).checked).map(x=>x.k);
+    guardarLista(); pintar();
+    const d = $('.columnas'); if(d) d.open = true;
+  });
+  c.querySelectorAll('[data-ord]').forEach(th => th.onclick = () => {
+    const k = th.dataset.ord;
+    if(lista.orden === k) lista.dir = -lista.dir; else { lista.orden = k; lista.dir = 1; }
+    guardarLista(); pintar();
+  });
   c.querySelectorAll('tbody tr').forEach(tr=>tr.onclick=()=>abrirCajon(D.opos.find(o=>o.id===tr.dataset.id)));
 }
 
