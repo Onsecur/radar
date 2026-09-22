@@ -241,15 +241,18 @@ ul.chequeo li{margin-bottom:6px}
   .fila-barra{grid-template-columns:92px 1fr 78px;font-size:12px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* Previsiones muestra seis columnas a la vez, asi que la tarjeta va
+   comprimida: mismo contenido, la mitad de alto. */
+.tablero.previsiones .tarjeta{padding:4px 7px;border-left-width:2px}
+.tablero.previsiones .tarjeta .cuenta{font-size:10px;line-height:1.2}
+.tablero.previsiones .tarjeta .titulo{font-size:12px;margin:0 0 2px;line-height:1.2;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tablero.previsiones .tarjeta .pie{font-size:10px}
+.tablero.previsiones .tarjeta .pie[style]{margin-top:1px !important}
 </style>
 </head>
 <body>
-
-<div class="cinta">
-  Maqueta · datos de ejemplo
-  <span>Los cambios se pierden al recargar. Nada se guarda todavía.</span>
-  <button id="btnReset">Restaurar datos</button>
-</div>
 
 <div id="acceso">
   <div class="ficha">
@@ -258,10 +261,6 @@ ul.chequeo li{margin-bottom:6px}
     <div class="campo"><label for="lEmail">Correo</label><input id="lEmail" type="email" placeholder="nombre@onsecur.com"></div>
     <div class="campo"><label for="lClave">Contraseña</label><input id="lClave" type="password" placeholder="••••••••"></div>
     <button class="btn" id="lEntrar" style="width:100%;margin-top:6px">Entrar</button>
-    <div class="demo">
-      <span>Maqueta · entra directamente como:</span>
-      <div id="lUsuarios"></div>
-    </div>
   </div>
 </div>
 
@@ -771,7 +770,7 @@ function vRadar(c){
     </select>
   </div>
 
-  <div class="tablero">${columnas.map(col=>{
+  <div class="tablero previsiones">${columnas.map(col=>{
     const bruto = col.lista.reduce((s,o)=>s+o.valor,0);
     const fc = col.lista.reduce((s,o)=>s+o.valor*o.prob/100,0);
     return `<section class="columna ${col.aviso?'vencido':''}" data-mes="${col.clave}">
@@ -1165,7 +1164,9 @@ function abrirCajon(o){
 
   $('#cajonPie').innerHTML = `<button class="btn" id="btnGuardar">${nuevo?'Crear oportunidad':'Guardar cambios'}</button>
     ${!nuevo&&o.estado==='abierta'?`<button class="btn curry" id="btnGanada">Marcar ganada</button><button class="btn sec" id="btnPerdida">Marcar perdida</button>`:''}
-    ${!nuevo&&o.estado!=='abierta'?`<button class="btn sec" id="btnReabrir">Reabrir</button>`:''}`;
+    ${!nuevo&&o.estado!=='abierta'?`<button class="btn sec" id="btnReabrir">Reabrir</button>`:''}
+    ${!nuevo&&MI_ROL==='director'?`<button class="btn sec" id="btnEliminar" style="margin-left:auto;color:#b3261e;border-color:#e7bab6">Eliminar</button>`:''}`;
+  if($('#btnEliminar')) $('#btnEliminar').onclick = () => eliminar(o);
   $('#btnGuardar').onclick = () => guardar(nuevo?null:o);
   if($('#btnGanada')) $('#btnGanada').onclick = () => { o.estado='ganada'; o.etapa='cerrado'; o.prob=95; o.tocada=new Date().toISOString(); cerrarCajon(); pintar(); };
   if($('#btnPerdida')) $('#btnPerdida').onclick = () => {
@@ -1225,6 +1226,20 @@ async function guardarNota(o){
     autor_nombre   : MI_PERFIL ? MI_PERFIL.nombre : 'Radar'
   });
   if(error) aviso('La nota no se ha guardado: ' + error.message);
+}
+
+
+/* Borrado. Solo direccion. Se usa para las duplicadas de la carga inicial.
+   Los presupuestos de Beta10 no se borran: quedan sueltos y el importador
+   los sacara como huerfanos. */
+async function eliminar(o){
+  if(!confirm('Eliminar "' + o.nombre + '" por ' + eur(o.valor) + '?\n\nNo se puede deshacer.')) return;
+  const antes = D.opos;
+  D.opos = D.opos.filter(x => x.id !== o.id);
+  cerrarCajon(); pintar();
+  if(String(o.id).startsWith('nuevo:')) return;
+  const { error } = await SB.from('oportunidad').delete().eq('id', o.id);
+  if(error){ D.opos = antes; pintar(); aviso('No se ha podido eliminar: ' + error.message); }
 }
 
 async function guardar(existente){
