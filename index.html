@@ -136,6 +136,11 @@ main{flex:1;min-width:0;display:flex;flex-direction:column}
 .impZona.encima{border-color:var(--curry);background:var(--curry-claro)}
 .impZona b{display:block;font-size:15px}
 .impZona span{display:block;font-size:12px;color:var(--gris);margin-top:3px}
+.copiaPasos{margin:12px 0 0;font-size:13px;color:var(--gris)}
+.copiaAviso{margin-top:12px;padding:10px 12px;border-radius:var(--r);font-size:13px;background:var(--azul-claro)}
+.copiaAviso.mal{background:#F6E3E3;color:var(--granate)}
+.copiaAviso.bien{background:#E4EFE6;color:#23532E}
+td.falta{color:var(--granate);font-weight:600}
 .impResumen{margin-top:16px;background:var(--blanco);border:1px solid var(--linea);border-radius:var(--r);padding:14px}
 .impResumen h3{font-size:13px;margin-bottom:8px}
 .impResumen table{border:none}
@@ -302,6 +307,7 @@ details.columnas input{width:auto}
     <button data-vista="agenda">Agenda <span class="chip" id="chipAgenda">0</span></button>
     <button data-vista="lista">Oportunidades <span class="chip" id="chipLista">0</span></button>
     <button data-vista="importar">Importar</button>
+    <button data-vista="copia" id="navCopia" class="oculto">Copia de seguridad</button>
     <div class="pie">
       <b id="usuarioActivo">—</b>
       <span id="rolActivo"></span>
@@ -1168,6 +1174,334 @@ async function aplicarPlan(){
 
 let impDetalle = false;
 
+/* ═══════ Copia de seguridad ═══════
+   Solo dirección. Descarga todo Radar en dos formatos:
+   - Excel legible: las fichas con sus etiquetas, notas, historial y catálogos.
+   - JSON completo: las tablas tal cual están en la base, para poder
+     reconstruirla si algún día hace falta.
+   La lista de tablas la da radar.conteo_copia(), que además dice cuántas
+   filas hay de verdad en cada una. Al terminar se compara: si falta algo,
+   la pantalla lo dice en lugar de dar la copia por buena. */
+
+const COPIA_NOMBRES = {
+  oportunidad:'Oportunidades', presupuesto:'Presupuestos Beta10', nota:'Notas y actividad',
+  cambio:'Historial de cambios', cuenta:'Cuentas', cuenta_alias:'Alias de cuentas',
+  prescriptor:'Prescriptores', prescriptor_contacto:'Contactos de prescriptores',
+  perfil:'Usuarios', objetivo:'Objetivos', proyectista:'Proyectistas',
+  importacion:'Importaciones', import_revision:'Revisiones de importación',
+  exportacion:'Copias hechas', etapa:'Etapas', tipo_oportunidad:'Tipos de oportunidad',
+  tipo_actuacion:'Tipos de actuación', tipo_sistema:'Tipos de sistema',
+  vertical:'Verticales', vertical_alias:'Alias de verticales', origen:'Orígenes',
+  motivo_perdida:'Motivos de pérdida', motivo_exclusion:'Motivos de exclusión',
+  tramo_importe:'Tramos de importe', ajuste:'Ajustes'
+};
+/* Orden en pantalla y en el Excel: primero lo que es trabajo del equipo. */
+const COPIA_ORDEN = ['oportunidad','presupuesto','nota','cambio','cuenta','cuenta_alias',
+  'prescriptor','prescriptor_contacto','perfil','objetivo','proyectista',
+  'importacion','import_revision','exportacion'];
+/* Clave por la que se ordena al paginar. Sin orden fijo, PostgREST puede
+   repetir o saltarse filas entre una página y la siguiente. */
+const COPIA_CLAVE = { perfil:['id'], objetivo:['tag_comercial','anio','mes'],
+  vertical_alias:['alias'], cuenta_alias:['alias'], ajuste:['clave'] };
+const claveCopia = t => COPIA_CLAVE[t] ||
+  (['cuenta','prescriptor','prescriptor_contacto','oportunidad','presupuesto','nota',
+    'cambio','importacion','import_revision','exportacion'].includes(t) ? ['id'] : ['codigo']);
+
+let copia = { conteo:null, ultima:null, cargando:false, trabajando:'', resultado:null, error:'' };
+
+const nombreTabla = t => COPIA_NOMBRES[t] || t.replace(/_/g,' ');
+const ordenTablas = ts => [...ts].sort((a,b)=>{
+  const ia = COPIA_ORDEN.indexOf(a), ib = COPIA_ORDEN.indexOf(b);
+  return (ia<0?99:ia)-(ib<0?99:ib) || nombreTabla(a).localeCompare(nombreTabla(b),'es');
+});
+const fechaHora = d => d ? new Date(d).toLocaleString('es-ES',
+  {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+const sello = () => { const d = new Date(), z = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}_${z(d.getHours())}${z(d.getMinutes())}`; };
+const numES = n => new Intl.NumberFormat('es-ES').format(n||0);
+
+async function leerConteo(){
+  const { data, error } = await SB.rpc('conteo_copia');
+  if(error) throw error;
+  return Object.fromEntries(data.map(r => [r.tabla, Number(r.filas)]));
+}
+
+async function filasCopia(tabla, claves){
+  const filas = []; let desde = 0;
+  for(;;){
+    let q = SB.from(tabla).select('*');
+    claves.forEach(k => q = q.order(k, { ascending:true }));
+    const { data, error } = await q.range(desde, desde+999);
+    if(error) throw new Error(`${nombreTabla(tabla)}: ${error.message}`);
+    filas.push(...data);
+    if(data.length < 1000) return filas;
+    desde += 1000;
+  }
+}
+
+async function cargarEstadoCopia(){
+  copia.cargando = true; copia.error = '';
+  try{
+    copia.conteo = await leerConteo();
+    const { data } = await SB.from('exportacion')
+      .select('hecha_en,autor_nombre,formato,total_filas,completa')
+      .order('hecha_en', { ascending:false }).limit(5);
+    copia.ultima = data || [];
+  }catch(e){ copia.error = e.message || String(e); }
+  copia.cargando = false;
+  if(vista === 'copia') pintar();
+}
+
+/* Lee todo. Devuelve las tablas, la vista de oportunidades y la comprobación. */
+async function leerTodo(){
+  const conteo = await leerConteo();
+  const tablas = ordenTablas(Object.keys(conteo));
+  const datos = {};
+  for(const [i,t] of tablas.entries()){
+    copia.trabajando = `Leyendo ${nombreTabla(t).toLowerCase()} (${i+1} de ${tablas.length})…`;
+    pintarTrabajoCopia();
+    datos[t] = await filasCopia(t, claveCopia(t));
+  }
+  copia.trabajando = 'Leyendo las fichas completas…'; pintarTrabajoCopia();
+  const fichas = await filasCopia('v_oportunidad', ['id']);
+  const faltan = tablas.filter(t => datos[t].length !== conteo[t])
+    .map(t => ({ tabla:t, copia:datos[t].length, base:conteo[t] }));
+  if(fichas.length !== (conteo.oportunidad||0))
+    faltan.push({ tabla:'v_oportunidad', copia:fichas.length, base:conteo.oportunidad||0 });
+  const total = tablas.reduce((s,t)=>s+datos[t].length,0);
+  return { conteo, tablas, datos, fichas, faltan, total };
+}
+
+function pintarTrabajoCopia(){
+  const e = $('#copiaTrabajo'); if(e) e.textContent = copia.trabajando;
+}
+
+async function registrarCopia(formato, r){
+  const { error } = await SB.from('exportacion').insert({
+    autor_nombre: MI_PERFIL.nombre, formato, total_filas: r.total,
+    conteo: Object.fromEntries(r.tablas.map(t=>[t, r.datos[t].length])),
+    completa: r.faltan.length === 0
+  });
+  if(error) console.warn('No se ha podido registrar la copia:', error.message);
+}
+
+function descargarBlob(blob, nombre){
+  const url = URL.createObjectURL(blob), a = document.createElement('a');
+  a.href = url; a.download = nombre; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 1000);
+}
+
+/* ── Excel legible ── */
+function libroCopia(r){
+  const { datos, fichas, conteo, tablas, faltan } = r;
+  const etiqueta = t => Object.fromEntries((datos[t]||[]).map(x=>[x.codigo, x.nombre]));
+  const L = { proyectista:etiqueta('proyectista'), origen:etiqueta('origen'),
+    tipo_actuacion:etiqueta('tipo_actuacion'), tipo_sistema:etiqueta('tipo_sistema'),
+    motivo_perdida:etiqueta('motivo_perdida'), motivo_exclusion:etiqueta('motivo_exclusion'),
+    etapa:etiqueta('etapa'), vertical:etiqueta('vertical'), tipo:etiqueta('tipo_oportunidad') };
+  const cuentas = Object.fromEntries((datos.cuenta||[]).map(x=>[x.id, x.nombre]));
+  const opo = Object.fromEntries(fichas.map(o=>[o.id, o]));
+  const comercial = tag => tag ? ((datos.perfil||[]).find(p=>p.tag_comercial===tag)?.nombre
+                                  || COMERCIALES[tag] || tag) : '';
+  const si = b => b===true ? 'Sí' : b===false ? 'No' : '';
+  const dia = d => d ? String(d).slice(0,10) : '';
+  const cuando = d => d ? fechaHora(d) : '';
+  const estado = { abierta:'Abierta', ganada:'Ganada', perdida:'Perdida' };
+
+  const wb = XLSX.utils.book_new();
+  const hoja = (nombre, filas, anchos) => {
+    const ws = XLSX.utils.json_to_sheet(filas.length ? filas : [{ '':'Sin registros' }]);
+    const cab = Object.keys(filas[0]||{});
+    ws['!cols'] = cab.map((k,i)=>({ wch: (anchos&&anchos[i]) || Math.min(45, Math.max(10, k.length+2)) }));
+    if(filas.length) ws['!autofilter'] = { ref: ws['!ref'] };
+    XLSX.utils.book_append_sheet(wb, ws, nombre.slice(0,31));
+  };
+
+  /* Portada */
+  const portada = [
+    ['Radar · copia de seguridad'], [],
+    ['Fecha', fechaHora(new Date())], ['Hecha por', MI_PERFIL.nombre],
+    ['Estado', faltan.length ? 'INCOMPLETA: revisa las tablas marcadas' : 'Completa: coincide con la base'],
+    ['Registros', r.total], [],
+    ['Tabla', 'En la copia', 'En la base', 'Comprobación'],
+    ...tablas.map(t=>[nombreTabla(t), datos[t].length, conteo[t],
+      datos[t].length===conteo[t] ? 'OK' : 'FALTAN FILAS'])
+  ];
+  const wp = XLSX.utils.aoa_to_sheet(portada);
+  wp['!cols'] = [{wch:32},{wch:34},{wch:12},{wch:16}];
+  XLSX.utils.book_append_sheet(wb, wp, 'Portada');
+
+  /* Fichas de oportunidad */
+  hoja('Oportunidades', fichas.map(o=>({
+    'ID':o.id, 'Título':o.titulo, 'Cliente':o.cliente, 'Cuenta':cuentas[o.cuenta_id]||'',
+    'Calle':o.calle||'', 'Población':o.poblacion||'', 'Provincia':o.provincia||'',
+    'Comercial':o.comercial_nombre||comercial(o.comercial),
+    'Proyectista':L.proyectista[o.proyectista]||o.proyectista||'',
+    'Tipo':o.tipo_nombre||o.tipo||'', 'KPI':o.kpi||'',
+    'Tipo de actuación':L.tipo_actuacion[o.tipo_actuacion]||o.tipo_actuacion||'',
+    'Tipo de sistema':L.tipo_sistema[o.tipo_sistema]||o.tipo_sistema||'',
+    'Vertical':o.vertical_nombre||o.vertical||'', 'Origen':L.origen[o.origen]||o.origen||'',
+    'Prescriptor':o.prescriptor_nombre||'',
+    'Etapa':o.etapa_nombre||o.etapa, 'Estado':estado[o.estado]||o.estado,
+    'Probabilidad %':o.probabilidad, 'Importe':Number(o.importe)||0,
+    'Ponderado':Number(o.ponderado)||0, 'Cuota anual':Number(o.cuota_anual)||0,
+    'Coste':o.coste==null?'':Number(o.coste), 'Margen':o.margen==null?'':Number(o.margen),
+    'Margen %':o.margen_pct==null?'':Number(o.margen_pct),
+    'Cierre previsto':dia(o.cierre_previsto), 'Fecha estimada por tramo':si(o.cierre_estimado),
+    'Vencida':si(o.vencida), 'Fecha de revisión':dia(o.fecha_revision),
+    'Cierre real':dia(o.cierre_real),
+    'Motivo de pérdida':L.motivo_perdida[o.motivo_perdida]||o.motivo_perdida||'',
+    'Cuenta en resultados':si(o.cuenta_resultados),
+    'Motivo de exclusión':L.motivo_exclusion[o.motivo_exclusion]||o.motivo_exclusion||'',
+    'Presupuestos':o.presupuestos, 'Última actividad':dia(o.ultima_actividad),
+    'Días sin actividad':o.dias_sin_actividad, 'Notas de la ficha':o.notas||'',
+    'Origen del dato':o.origen_dato, 'Creada':cuando(o.creado_en), 'Actualizada':cuando(o.actualizado_en)
+  })), [7,40,32,28]);
+
+  hoja('Presupuestos', (datos.presupuesto||[]).map(b=>({
+    'Número':b.numero, 'Versión':b.version||'', 'Principal':si(b.principal),
+    'ID oportunidad':b.oportunidad_id||'', 'Oportunidad':opo[b.oportunidad_id]?.titulo||'',
+    'Cliente Beta10':b.cliente_b10||'', 'Título Beta10':b.titulo||'',
+    'Importe':Number(b.importe)||0, 'Importe cuotas':Number(b.importe_cuotas)||0,
+    'Coste':b.coste==null?'':Number(b.coste), 'Fecha':dia(b.fecha),
+    'Fecha de aceptación':dia(b.fecha_aceptacion), 'Estado':b.estado||'',
+    'Facturación':b.estado_facturacion||'', 'Tipo de actuación':b.tipo_actuacion||'',
+    'Tipo de sistema':b.tipo_sistema||'', 'Comercial en Beta10':b.comercial_b10||'',
+    'Desaparecido':si(b.desaparecido), 'Visto por última vez':cuando(b.visto_en)
+  })));
+
+  hoja('Notas', (datos.nota||[]).map(n=>({
+    'ID oportunidad':n.oportunidad_id, 'Oportunidad':opo[n.oportunidad_id]?.titulo||'',
+    'Cliente':opo[n.oportunidad_id]?.cliente||'', 'Fecha':dia(n.fecha_actividad),
+    'Tipo':n.tipo, 'Texto':n.texto, 'Próxima acción':dia(n.proxima_accion),
+    'Autor':n.autor_nombre, 'Registrada':cuando(n.creada_en)
+  })), [14,36,28,11,10,70]);
+
+  const traduce = (campo, v) => {
+    if(v==null) return '';
+    const mapa = { etapa:L.etapa, vertical:L.vertical, origen:L.origen, tipo:L.tipo,
+      motivo_perdida:L.motivo_perdida, motivo_exclusion:L.motivo_exclusion }[campo];
+    if(mapa) return mapa[v] || v;
+    if(campo==='comercial') return comercial(v);
+    if(campo==='estado') return estado[v] || v;
+    return v;
+  };
+  hoja('Historial de cambios', (datos.cambio||[]).map(x=>({
+    'ID oportunidad':x.oportunidad_id, 'Oportunidad':opo[x.oportunidad_id]?.titulo||'',
+    'Campo':x.campo, 'Antes':traduce(x.campo,x.valor_anterior),
+    'Después':traduce(x.campo,x.valor_nuevo), 'Autor':x.autor_nombre, 'Cuándo':cuando(x.ocurrido_en)
+  })), [14,36,18,24,24,22,17]);
+
+  /* El resto, tal cual */
+  const hechas = new Set(['oportunidad','presupuesto','nota','cambio']);
+  tablas.filter(t=>!hechas.has(t)).forEach(t => hoja(nombreTabla(t),
+    datos[t].map(f => Object.fromEntries(Object.entries(f).map(([k,v]) =>
+      [k, v!==null && typeof v==='object' ? JSON.stringify(v) : (v ?? '')])))));
+  return wb;
+}
+
+/* ── JSON completo ── */
+function jsonCopia(r){
+  return JSON.stringify({
+    radar_copia: { version:1, esquema:'radar_v3', hecha_en:new Date().toISOString(),
+      hecha_por:MI_PERFIL.nombre, completa:r.faltan.length===0,
+      conteo_base:r.conteo, total_filas:r.total,
+      nota:'Tablas base sin traducir. Para restaurar, cargar en orden: catálogos, ' +
+           'perfil, cuenta, prescriptor, oportunidad, presupuesto, nota, cambio.' },
+    tablas: Object.fromEntries(r.tablas.map(t=>[t, r.datos[t]]))
+  }, null, 1);
+}
+
+async function hacerCopia(formato){
+  if(copia.trabajando) return;
+  copia.resultado = null; copia.error = ''; copia.trabajando = 'Preparando…'; pintar();
+  try{
+    const r = await leerTodo();
+    copia.trabajando = 'Generando el fichero…'; pintarTrabajoCopia();
+    const base = `Radar_copia_${sello()}`;
+    if(formato === 'excel') XLSX.writeFile(libroCopia(r), base + '.xlsx', { compression:true });
+    else descargarBlob(new Blob([jsonCopia(r)], { type:'application/json' }), base + '.json');
+    await registrarCopia(formato, r);
+    copia.resultado = { formato, total:r.total, tablas:r.tablas.length, faltan:r.faltan };
+  }catch(e){ copia.error = e.message || String(e); }
+  copia.trabajando = '';
+  await cargarEstadoCopia();
+}
+
+function vCopia(c){
+  if(!esManager()){ vista = 'panel'; return pintar(); }
+  if(!copia.cargando && !copia.trabajando && (!copia.conteo || Date.now()-(copia.leido||0) > 60000)){
+    copia.leido = Date.now(); cargarEstadoCopia();
+  }
+
+  const k = copia.conteo, tablas = k ? ordenTablas(Object.keys(k)) : [];
+  const total = tablas.reduce((s,t)=>s+k[t],0);
+  const ult = (copia.ultima||[])[0];
+  const dias = ult ? Math.floor((Date.now()-new Date(ult.hecha_en))/864e5) : null;
+  const res = copia.resultado;
+  const ocupado = !!copia.trabajando;
+
+  c.innerHTML = `
+  <div class="resHead"><div>
+    <h2 style="font-size:18px">Copia de seguridad</h2>
+    <p style="margin:2px 0 0;color:var(--gris);font-size:13px">
+      Descarga todo Radar: fichas, presupuestos, notas, historial, cuentas y catálogos.</p>
+  </div></div>
+
+  <div class="resCols">
+    <section>
+      <div class="impResumen" style="margin-top:0">
+        <h3>Descargar</h3>
+        <p style="margin:0 0 12px;font-size:13px">
+          <b>Excel</b> para consultar: una hoja por bloque, con los nombres en claro
+          y las fichas enlazadas por ID con sus notas e historial.<br>
+          <b>Copia completa</b> para guardar: las tablas tal cual están en la base.
+          Es la que sirve para reconstruir Radar.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn" id="copiaExcel" ${ocupado||!k?'disabled':''}>Descargar Excel</button>
+          <button class="btn sec" id="copiaJson" ${ocupado||!k?'disabled':''}>Descargar copia completa (JSON)</button>
+        </div>
+        ${ocupado ? `<p class="copiaPasos" id="copiaTrabajo">${esc(copia.trabajando)}</p>` : ''}
+        ${copia.error ? `<div class="copiaAviso mal">No se ha podido hacer la copia: ${esc(copia.error)}</div>` : ''}
+        ${res ? (res.faltan.length
+          ? `<div class="copiaAviso mal"><b>La copia está incompleta.</b> Se ha descargado,
+             pero no coincide con la base en: ${res.faltan.map(f=>esc(`${nombreTabla(f.tabla)} (${f.copia} de ${f.base})`)).join(', ')}.
+             No la des por buena.</div>`
+          : `<div class="copiaAviso bien">Copia ${res.formato==='excel'?'en Excel':'completa'} descargada:
+             ${numES(res.total)} registros de ${res.tablas} tablas, comprobados contra la base.</div>`) : ''}
+      </div>
+
+      <div class="impResumen">
+        <h3>Últimas copias</h3>
+        ${!copia.ultima ? '<p class="copiaPasos">Cargando…</p>' : !copia.ultima.length
+          ? '<p class="copiaPasos" style="margin:0">Todavía no se ha hecho ninguna.</p>'
+          : `<table><tbody>${copia.ultima.map(u=>`<tr>
+              <td>${esc(fechaHora(u.hecha_en))}</td><td>${esc(u.autor_nombre)}</td>
+              <td>${u.formato==='excel'?'Excel':'JSON'}</td>
+              <td class="der num">${numES(u.total_filas)}</td>
+              <td class="${u.completa?'':'falta'}">${u.completa?'Completa':'Incompleta'}</td></tr>`).join('')}
+            </tbody></table>
+            ${dias>=7?`<div class="copiaAviso">La última copia es de hace ${dias} días.</div>`:''}`}
+      </div>
+    </section>
+
+    <section class="impResumen" style="margin-top:0">
+      <h3>Qué entra</h3>
+      ${!k ? `<p class="copiaPasos" style="margin:0">${copia.error?'—':'Contando registros…'}</p>` : `
+      <table><tbody>
+        ${tablas.map(t=>`<tr><td>${esc(nombreTabla(t))}</td><td class="der num">${numES(k[t])}</td></tr>`).join('')}
+        <tr class="totalFila"><td>Total</td><td class="der num">${numES(total)}</td></tr>
+      </tbody></table>`}
+      <p class="copiaPasos">Incluye las oportunidades excluidas de resultados, marcadas como tales.
+        Los datos no salen del navegador: el fichero se genera aquí y se descarga directamente.</p>
+    </section>
+  </div>`;
+
+  const bx = $('#copiaExcel'), bj = $('#copiaJson');
+  if(bx) bx.onclick = () => hacerCopia('excel');
+  if(bj) bj.onclick = () => hacerCopia('json');
+}
+
 /* ═══════ navegación ═══════ */
 document.querySelectorAll('.rail [data-vista]').forEach(b => b.onclick = () => { vista = b.dataset.vista; pintar(); });
 
@@ -1233,6 +1567,7 @@ function entrar(id){
   vista = 'panel';
   $('#usuarioActivo').textContent = yo().nombre;
   $('#rolActivo').textContent = yo().rol;
+  $('#navCopia').classList.toggle('oculto', !esManager());
   $('#acceso').classList.add('oculto');
   $('#app').classList.remove('oculto');
   pintar();
@@ -1241,7 +1576,7 @@ function entrar(id){
 function pintar(){
   document.querySelectorAll('.rail [data-vista]').forEach(b=>b.setAttribute('aria-current',String(b.dataset.vista===vista)));
   pintarCifras();
-  ({pipeline:vPipeline,radar:vRadar,lista:vLista,agenda:vAgenda,panel:vPanel,resultados:vResultados,importar:vImportar})[vista]($('#contenido'));
+  ({pipeline:vPipeline,radar:vRadar,lista:vLista,agenda:vAgenda,panel:vPanel,resultados:vResultados,importar:vImportar,copia:vCopia})[vista]($('#contenido'));
 }
 
 function pintarCifras(){
