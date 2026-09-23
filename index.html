@@ -19,6 +19,10 @@
   --gris:#66757F;
   --linea:#D9DEE3;
   --granate:#8A2F2F;
+  --verde:#2E7D4F;
+  --verde-claro:#E3F1E8;
+  --rojo:#B3261E;
+  --rojo-claro:#F6E1DF;
   --r:5px;
 }
 *{box-sizing:border-box}
@@ -60,6 +64,10 @@ main{flex:1;min-width:0;display:flex;flex-direction:column}
 .btn.sec{background:var(--blanco);color:var(--azul);border:1px solid var(--linea);font-weight:500}
 .btn.sec:hover{background:var(--papel)}
 .btn.curry{background:var(--curry);color:var(--azul)}
+.btn.verde{background:var(--verde);color:#fff}
+.btn.verde:hover{background:#246540}
+.btn.rojo{background:var(--rojo);color:#fff}
+.btn.rojo:hover{background:#921F18}
 .contenido{padding:20px;flex:1;overflow:auto}
 
 /* tablero */
@@ -105,6 +113,11 @@ main{flex:1;min-width:0;display:flex;flex-direction:column}
 .columna.vencido{border-color:#E0C9C9}
 .columna.vencido h3,.columna.vencido .submes{color:var(--granate)}
 .tarjeta.vencida{border-left-color:var(--granate)}
+.tarjeta.ganada,.tarjeta.ganada:hover{border-left-color:var(--verde);background:var(--verde-claro)}
+.tarjeta.perdida,.tarjeta.perdida:hover{border-left-color:var(--rojo);background:var(--rojo-claro)}
+.tarjeta .cierreEst{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:20px;color:#fff;margin-bottom:4px}
+.tarjeta.ganada .cierreEst{background:var(--verde)}
+.tarjeta.perdida .cierreEst{background:var(--rojo)}
 .bandeja{margin-top:16px;background:var(--blanco);border:1px dashed #C3CBD2;border-radius:var(--r);padding:12px 14px}
 .bandeja.encima{border-color:var(--curry);background:var(--curry-claro)}
 .bandeja .lista{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
@@ -468,13 +481,14 @@ async function cargarDatos(){
 /* La interfaz va por delante: se pinta el cambio y se guarda después. Si el
    guardado falla se avisa y se recarga, para no dejar en pantalla algo que
    no está en la base. */
-function aviso(msg){
+function aviso(msg, ok=false){
   let b = document.querySelector('#avisoSync');
   if(!b){ b = document.createElement('div'); b.id = 'avisoSync';
     b.style.cssText = 'position:fixed;bottom:16px;left:50%;transform:translateX(-50%);'+
       'background:#b3261e;color:#fff;padding:10px 16px;border-radius:8px;z-index:9999;'+
       'font:14px system-ui;box-shadow:0 4px 16px rgba(0,0,0,.25)';
     document.body.appendChild(b); }
+  b.style.background = ok ? '#2E7D4F' : '#b3261e';
   b.textContent = msg;
   clearTimeout(b._t); b._t = setTimeout(()=>b.remove(), 6000);
 }
@@ -647,6 +661,11 @@ function clave(o, k){
     case 'ponderado': return (o.valor||0) * (o.prob||0) / 100;
     case 'tocada':    return o.tocada ? dias(o.tocada) : -1;
     case 'cuenta':    return cuentaNombre(o.cuenta).toLowerCase();
+    /* E26/1000 va después de E26/999: los números se rellenan con ceros
+       para que el orden de texto coincida con el numérico. */
+    case 'presupuestos': return o.presupuestos
+      ? String(o.presupuestos).toUpperCase().replace(/\d+/g, n => n.padStart(8,'0'))
+      : '';
     case 'owner':     return usuario(o.owner).toLowerCase();
     case 'etapa':     return o.estado==='abierta' ? etapaNombre(o.etapa).toLowerCase() : o.estado;
     case 'cierre': case 'revision': return o[k] || '';
@@ -1183,7 +1202,7 @@ async function aplicarMargenes(){
     }
     impFicheros.margenes = null; impPlanMargen = null;
     await recargar();
-    aviso('Márgenes aplicados.');
+    aviso('Márgenes aplicados.', true);
   }catch(e){
     console.error(e);
     aviso('Los márgenes han fallado: ' + (e.message || e));
@@ -1263,7 +1282,7 @@ async function aplicarPlan(){
     impFicheros.cubo = null; impFicheros.presupuestos = null;
     impPlan = null; impPlanMargen = null;
     await recargar();
-    aviso('Importación aplicada.');
+    aviso('Importación aplicada.', true);
   }catch(e){
     console.error(e);
     aviso('La importación ha fallado: ' + (e.message || e));
@@ -1719,7 +1738,9 @@ function vPipeline(c){
 
 function tarjeta(o){
   const d = dias(o.tocada);
-  return `<button class="tarjeta ${d>=DIAS_ESTANCADA?'estancada':''}" draggable="true" data-id="${o.id}">
+  const cerrada = o.estado==='ganada' || o.estado==='perdida';
+  return `<button class="tarjeta ${cerrada?o.estado:(d>=DIAS_ESTANCADA?'estancada':'')}" draggable="true" data-id="${o.id}">
+    ${cerrada?`<span class="cierreEst">${o.estado==='ganada'?'Ganada':'Perdida'}</span>`:''}
     <div class="cuenta">${esc(cuentaNombre(o.cuenta))}</div>
     <div class="titulo">${esc(o.nombre)}</div>
     <div class="pie"><span class="valor num">${eur(o.valor)}</span><span class="dias num">${d===0?'hoy':d+' d'}</span></div>
@@ -2335,7 +2356,7 @@ function abrirCajon(o){
   $('#cCuenta').onchange = e => $('#cCuentaNueva').classList.toggle('oculto', e.target.value!=='__n');
 
   $('#cajonPie').innerHTML = `<button class="btn" id="btnGuardar">${nuevo?'Crear oportunidad':'Guardar cambios'}</button>
-    ${!nuevo&&o.estado==='abierta'?`<button class="btn curry" id="btnGanada">Marcar ganada</button><button class="btn sec" id="btnPerdida">Marcar perdida</button>`:''}
+    ${!nuevo&&o.estado==='abierta'?`<button class="btn verde" id="btnGanada">Marcar ganada</button><button class="btn rojo" id="btnPerdida">Marcar perdida</button>`:''}
     ${!nuevo&&o.estado!=='abierta'?`<button class="btn sec" id="btnReabrir">Reabrir</button>`:''}
     ${!nuevo&&MI_ROL==='director'?`<button class="btn sec" id="btnEliminar" style="margin-left:auto;color:#b3261e;border-color:#e7bab6">Eliminar</button>`:''}`;
   if($('#btnEliminar')) $('#btnEliminar').onclick = () => eliminar(o);
