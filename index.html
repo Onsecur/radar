@@ -709,7 +709,14 @@ const VERTICALES = ['Casas','Pisos','Comunidades','Industria','Edificios corpora
 // Proyectistas: personal de ingeniería. Pendiente de sustituir por los nombres reales.
 const PROYECTISTAS = ['Sin asignar','Eloi Lloveras','Miguel Ángel Maza','Raúl Vera','Alejandro Puig','Sergio Martínez','Ramón Palou','Jorge Morera','Miguel Ángel Buñuel','Gustavo Callizo','Jordi Simó'];
 const ACTUACIONES = ['Instalación','Ampliación','Avería','Revisión','Cambio de titularidad','Gestión de cliente'];
-const MOTIVOS = ['Precio','Plazo','Solución','No responde','Pospone la inversión'];
+/* Código = radar.motivo_perdida.codigo (clave foránea). En BD se guarda el código, nunca la etiqueta. */
+const MOTIVOS = [ { c:'precio',        n:'Precio' },
+                  { c:'plazo',         n:'Plazo' },
+                  { c:'solucion',      n:'Solución' },
+                  { c:'sin_respuesta', n:'No responde' },
+                  { c:'pospone',       n:'Pospone la inversión' } ];
+const nombreMotivo = c => (MOTIVOS.find(m=>m.c===c)||{}).n || c || '—';
+const hoyLocal = () => { const d=new Date(); return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10); };
 /* Aviso de inactividad: días sin actividad a partir de los cuales la tarjeta
    se marca en naranja, según la etapa. Cerrado no avisa. */
 const INACTIVIDAD_ETAPA = { estudio:15, enviada:15, negociacion:21, standby:70 };
@@ -2833,7 +2840,7 @@ function abrirCajon(o){
         <div class="campo"><label>Cierre previsto</label><input id="cCierre" type="date" value="${o.cierre||''}"></div>
         <div class="campo ${o.etapa==='standby'?'':'oculto'}" id="wrapRev"><label>Revisar el</label><input id="cRevision" type="date" value="${o.revision||''}"></div>
         ${o.estado!=='abierta'?`<div class="campo"><label>Cierre real</label><input type="text" value="${o.cierre||'—'}" disabled></div>`:''}
-        ${o.estado==='perdida'?`<div class="campo"><label>Motivo</label><input type="text" value="${esc(o.motivo||'—')}" disabled></div>`:''}
+        ${o.estado==='perdida'?`<div class="campo"><label>Motivo</label><input type="text" value="${esc(nombreMotivo(o.motivo))}" disabled></div>`:''}
       </div></div>
 
     ${pres.length?`<div class="seccion"><h3>Presupuestos de Beta10 <span style="font-weight:400;color:var(--gris)">${pres.length}</span></h3>
@@ -2855,16 +2862,45 @@ function abrirCajon(o){
     ${!nuevo&&MI_ROL==='director'?`<button class="btn sec" id="btnEliminar" style="margin-left:auto;color:#b3261e;border-color:#e7bab6">Eliminar</button>`:''}`;
   if($('#btnEliminar')) $('#btnEliminar').onclick = () => eliminar(o);
   $('#btnGuardar').onclick = () => guardar(nuevo?null:o);
-  if($('#btnGanada')) $('#btnGanada').onclick = () => { o.estado='ganada'; o.etapa='cerrado'; o.prob=95; o.tocada=new Date().toISOString(); cerrarCajon(); pintar(); };
-  if($('#btnPerdida')) $('#btnPerdida').onclick = () => {
-    const m = prompt('Motivo de pérdida:\n' + MOTIVOS.map((x,i)=>(i+1)+'. '+x).join('\n'));
-    if(m===null) return;
-    const mm = MOTIVOS[Number(m)-1] || m;
-    o.estado='perdida'; o.etapa='cerrado'; o.prob=0; o.motivo=mm; o.tocada=new Date().toISOString(); cerrarCajon(); pintar();
+  if($('#btnGanada'))  $('#btnGanada').onclick  = () => pedirCierre(o, 'ganada');
+  if($('#btnPerdida')) $('#btnPerdida').onclick = () => pedirCierre(o, 'perdida');
+  if($('#btnReabrir')) $('#btnReabrir').onclick = () => {
+    o.estado='abierta'; o.etapa='negociacion'; o.motivo=null; o.tocada=new Date().toISOString();
+    cerrarCajon(); pintar(); sincronizar(o);
   };
-  if($('#btnReabrir')) $('#btnReabrir').onclick = () => { o.estado='abierta'; o.etapa='negociacion'; o.motivo=null; cerrarCajon(); pintar(); };
   if(!nuevo) activarActividad(o);
   $('#cajon').classList.add('abierto'); $('#velo').classList.add('abierto'); $('#cNombre').focus();
+}
+
+/* Cierre de una oportunidad: se pide en el pie del cajón (motivo obligatorio si es pérdida,
+   fecha de cierre real, por defecto hoy) y se guarda en Supabase. */
+function pedirCierre(o, tipo){
+  const perdida = tipo === 'perdida', hoy = hoyLocal();
+  $('#cajonPie').innerHTML = `<div class="campos" style="flex:1">
+      ${perdida?`<div class="campo"><label>Motivo de pérdida</label>
+        <select id="cMotivo"><option value="">Elige un motivo…</option>
+        ${MOTIVOS.map(m=>`<option value="${m.c}">${m.n}</option>`).join('')}</select></div>`:''}
+      <div class="campo ${perdida?'':'ancho'}"><label>Fecha de cierre real</label>
+        <input id="cFechaCierre" type="date" value="${hoy}" max="${hoy}"></div>
+      <div class="campo ancho" style="flex-direction:row;gap:8px">
+        <button class="btn ${perdida?'rojo':'verde'}" id="btnConfirmar">${perdida?'Confirmar pérdida':'Confirmar ganada'}</button>
+        <button class="btn sec" id="btnVolver">Cancelar</button></div>
+    </div>`;
+  $('#btnVolver').onclick = () => abrirCajon(o);
+  $('#btnConfirmar').onclick = () => {
+    const f = $('#cFechaCierre').value;
+    if(!f) return alert('Indica la fecha de cierre.');
+    if(perdida){
+      const m = $('#cMotivo').value;
+      if(!m) return alert('Elige el motivo de pérdida.');
+      o.estado='perdida'; o.prob=0; o.motivo=m;
+    } else {
+      o.estado='ganada'; o.prob=95; o.motivo=null;
+    }
+    o.etapa='cerrado'; o.cierre=f; o.tocada=new Date().toISOString();
+    cerrarCajon(); pintar(); sincronizar(o);
+  };
+  (perdida ? $('#cMotivo') : $('#cFechaCierre')).focus();
 }
 
 function actividadHTML(o){
