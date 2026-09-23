@@ -23,6 +23,8 @@
   --verde-claro:#E3F1E8;
   --rojo:#B3261E;
   --rojo-claro:#F6E1DF;
+  --naranja:#C8601A;     /* aviso de inactividad */
+  --naranja-claro:#FBE8DA;
   --r:5px;
 }
 *{box-sizing:border-box}
@@ -83,13 +85,14 @@ main{flex:1;min-width:0;display:flex;flex-direction:column}
 .columna .lista{padding:8px;display:flex;flex-direction:column;gap:8px}
 .tarjeta{background:var(--blanco);border:1px solid var(--linea);border-left:3px solid var(--azul);border-radius:4px;padding:9px 10px;text-align:left;width:100%;cursor:grab}
 .tarjeta:hover{border-color:#BDC6CE;border-left-color:var(--azul)}
-.tarjeta.estancada{border-left-color:var(--curry)}
+.tarjeta.estancada{border-left-color:var(--naranja)}
 .tarjeta .cuenta{font-size:12px;color:var(--gris)}
 .tarjeta .titulo{font-weight:600;margin:1px 0 6px;line-height:1.25}
 .tarjeta .pie{display:flex;justify-content:space-between;align-items:center;font-size:12px}
 .tarjeta .valor{font-weight:700}
 .tarjeta .dias{color:var(--gris)}
-.tarjeta.estancada .dias{color:var(--curry);font-weight:600}
+.tarjeta .marcas{display:flex;align-items:center;gap:6px}
+.tarjeta .inactiva{background:var(--naranja-claro);color:var(--naranja);font-weight:700;font-size:11px;padding:1px 6px;border-radius:10px;white-space:nowrap}
 #acceso{min-height:calc(100vh - 30px);display:grid;place-items:center;padding:20px;background:var(--azul)}
 #acceso .ficha{background:var(--blanco);border-radius:6px;padding:30px 28px;width:min(380px,100%)}
 #acceso .logo b{display:block;font-size:26px;font-weight:800;letter-spacing:-0.035em;line-height:1}
@@ -572,7 +575,9 @@ const VERTICALES = ['Casas','Pisos','Comunidades','Industria','Edificios corpora
 const PROYECTISTAS = ['Sin asignar','Eloi Lloveras','Miguel Ángel Maza','Raúl Vera','Alejandro Puig','Sergio Martínez','Ramón Palou','Jorge Morera','Miguel Ángel Buñuel','Gustavo Callizo','Jordi Simó'];
 const ACTUACIONES = ['Instalación','Ampliación','Avería','Revisión','Cambio de titularidad','Gestión de cliente'];
 const MOTIVOS = ['Precio','Plazo','Solución','No responde','Pospone la inversión'];
-const DIAS_ESTANCADA = 14;
+/* Aviso de inactividad: días sin actividad a partir de los cuales la tarjeta
+   se marca en naranja, según la etapa. Cerrado no avisa. */
+const INACTIVIDAD_ETAPA = { estudio:15, enviada:15, negociacion:21, standby:70 };
 const MESES_RADAR = 5;   // mes 0 + 4 siguientes, además de la columna de vencidas
 
 /* ═══════ Datos de ejemplo ═══════ */
@@ -591,13 +596,38 @@ function estructuraClonada(){ return JSON.parse(JSON.stringify(SEMILLA)); }
 const $ = s => document.querySelector(s);
 const eur = n => new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n||0);
 const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const dias = d => Math.floor((new Date(new Date().toDateString()) - new Date(new Date(d).toDateString()))/86400000);
+const dias = d => d == null || d === '' ? null : Math.floor((new Date(new Date().toDateString()) - new Date(new Date(d).toDateString()))/86400000);
 const mesActual = () => new Date().toISOString().slice(0,7);
 const vencida = o => !!o.cierre && o.cierre.slice(0,7) < mesActual();
 const fechaCorta = d => d ? new Date(d).toLocaleDateString('es-ES',{day:'2-digit',month:'short'}) : '—';
 const etapaNombre = id => (ETAPAS.find(e=>e.id===id)||{}).nombre||id;
 const usuario = id => (D.usuarios.find(u=>u.id===id)||{}).nombre||'—';
 const cuentaNombre = id => (D.cuentas.find(c=>c.id===id)||{}).nombre||'—';
+/* Fecha de creación: la del primer presupuesto de la oportunidad (no la de la
+   última versión). Se recalcula solo cuando cambia la lista de presupuestos. */
+let _creacion = { ref:null, mapa:new Map() };
+function fechaCreacion(o){
+  if(_creacion.ref !== D.pres){
+    const m = new Map();
+    for(const p of D.pres||[]){
+      if(!p.opo || !p.fecha) continue;
+      const f = String(p.fecha).slice(0,10), act = m.get(p.opo);
+      if(!act || f < act) m.set(p.opo, f);
+    }
+    _creacion = { ref:D.pres, mapa:m };
+  }
+  return _creacion.mapa.get(String(o.id)) || null;
+}
+/* Días sin actividad: desde la última actividad; si nunca la hubo, desde la
+   creación del presupuesto. */
+const diasSinActividad = o => dias(o.tocada || fechaCreacion(o));
+/* Devuelve los días sin actividad si superan el umbral de su etapa; si no, null. */
+function avisoInactividad(o){
+  if(o.estado !== 'abierta') return null;
+  const umbral = INACTIVIDAD_ETAPA[o.etapa];
+  const d = diasSinActividad(o);
+  return umbral && d != null && d >= umbral ? d : null;
+}
 const yo = () => D.usuarios.find(u=>u.id===comoUsuario);
 const esManager = () => MI_ROL === 'director';
 const mias = () => D.opos.filter(o => esManager() || o.owner===comoUsuario);
@@ -659,7 +689,7 @@ function clave(o, k){
   switch(k){
     case 'valor': case 'prob': case 'cuota': return Number(o[k]) || 0;
     case 'ponderado': return (o.valor||0) * (o.prob||0) / 100;
-    case 'tocada':    return o.tocada ? dias(o.tocada) : -1;
+    case 'tocada':    { const d = diasSinActividad(o); return d == null ? -1 : d; }
     case 'cuenta':    return cuentaNombre(o.cuenta).toLowerCase();
     /* E26/1000 va después de E26/999: los números se rellenan con ceros
        para que el orden de texto coincida con el numérico. */
@@ -696,7 +726,7 @@ function celda(o, k){
     case 'ponderado': return eur(o.valor * o.prob / 100);
     case 'prob':   return o.prob + '%';
     case 'cierre': case 'revision': return o[k] ? fechaCorta(o[k]) : '';
-    case 'tocada': return o.tocada ? dias(o.tocada) + ' d' : '—';
+    case 'tocada': { const d = diasSinActividad(o); return d == null ? '—' : d + ' d'; }
     default: return esc(o[k] || '');
   }
 }
@@ -1737,13 +1767,15 @@ function vPipeline(c){
 }
 
 function tarjeta(o){
-  const d = dias(o.tocada);
+  const edad = dias(fechaCreacion(o));
+  const aviso = avisoInactividad(o);
   const cerrada = o.estado==='ganada' || o.estado==='perdida';
-  return `<button class="tarjeta ${cerrada?o.estado:(d>=DIAS_ESTANCADA?'estancada':'')}" draggable="true" data-id="${o.id}">
+  const edadTxt = edad == null ? '—' : edad === 0 ? 'hoy' : edad + ' d';
+  return `<button class="tarjeta ${cerrada?o.estado:(aviso!=null?'estancada':'')}" draggable="true" data-id="${o.id}">
     ${cerrada?`<span class="cierreEst">${o.estado==='ganada'?'Ganada':'Perdida'}</span>`:''}
     <div class="cuenta">${esc(cuentaNombre(o.cuenta))}</div>
     <div class="titulo">${esc(o.nombre)}</div>
-    <div class="pie"><span class="valor num">${eur(o.valor)}</span><span class="dias num">${d===0?'hoy':d+' d'}</span></div>
+    <div class="pie"><span class="valor num">${eur(o.valor)}</span><span class="marcas">${aviso!=null?`<span class="inactiva num" title="${aviso} días sin actividad (umbral de ${etapaNombre(o.etapa)}: ${INACTIVIDAD_ETAPA[o.etapa]} d)">⚠ ${aviso} d</span>`:''}<span class="dias num" title="Días desde el primer presupuesto">${edadTxt}</span></span></div>
   </button>`;
 }
 
