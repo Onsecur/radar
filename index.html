@@ -188,6 +188,12 @@ select,input[type=text],input[type=date],input[type=number],textarea{background:
 .etiqueta{display:inline-block;padding:2px 8px;border-radius:20px;font-size:12px;background:var(--azul-claro);color:var(--azul);font-weight:500}
 .etiqueta.ganada{background:var(--azul);color:#fff}
 .etiqueta.perdida{background:#F1E3E3;color:var(--granate)}
+/* Marca SAT: oportunidades de tipo Avería (van a KPI de SAT, no a resultado comercial) */
+.sat{display:inline-flex;align-items:center;gap:3px;vertical-align:middle;margin-left:6px;
+  padding:1px 7px 1px 5px;border-radius:20px;background:var(--curry-claro);color:#7A5C00;
+  border:1px solid #E8D48F;font-size:10.5px;font-weight:700;letter-spacing:.06em;line-height:16px;white-space:nowrap}
+.sat svg{width:11px;height:11px;flex:none}
+.tarjeta .titulo .sat{margin-left:4px}
 
 /* cajón */
 .velo{position:fixed;inset:0;background:rgba(12,38,58,.4);display:none;z-index:20}
@@ -658,7 +664,7 @@ let SEMILLA = { usuarios:[], cuentas:[], opos:[], acts:[], pres:[] };
 let D = estructuraClonada();
 let vista = 'panel', comoUsuario = 'u1', abierta = null;
 let informe = 'resultados';   // subpantalla activa dentro de Informes
-let filtros = { texto:'', comercial:'', etapa:'', estado:'abierta' };
+let filtros = { texto:'', comercial:'', etapa:'', estado:'abierta', actuacion:'' };
 let radar = { comercial:'', prob:'', vertical:'', proyectista:'', orden:'importe' };
 
 function estructuraClonada(){ return JSON.parse(JSON.stringify(SEMILLA)); }
@@ -783,9 +789,14 @@ function ordenarLista(ops){
   });
 }
 
+/* Marca visual para las averías (SAT). */
+const SAT_ICONO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>';
+const esAveria = o => o && o.tipo === 'Avería';
+const marcaSAT = o => esAveria(o) ? `<span class="sat" title="Avería · cuenta en KPI de SAT">${SAT_ICONO}SAT</span>` : '';
+
 function celda(o, k){
   switch(k){
-    case 'nombre': return `<strong>${esc(o.nombre)}</strong>` +
+    case 'nombre': return `<strong>${esc(o.nombre)}</strong>` + marcaSAT(o) +
       (o.servicio?`<br><span class="sub">${esc(o.servicio)}</span>`:'');
     case 'cuenta': return esc(cuentaNombre(o.cuenta));
     case 'owner':  return esc(usuario(o.owner));
@@ -1781,7 +1792,7 @@ if(document.readyState !== 'loading') arrancarUnaVez();
 
 function entrar(id){
   comoUsuario = id;
-  filtros = { texto:'', comercial:'', etapa:'', estado:'abierta' };
+  filtros = { texto:'', comercial:'', etapa:'', estado:'abierta', actuacion:'' };
   radar = { comercial:'', prob:'', vertical:'', proyectista:'', orden:'importe' };
   vista = 'panel';
   informe = 'resultados';
@@ -1846,7 +1857,7 @@ function tarjeta(o){
   return `<button class="tarjeta ${cerrada?o.estado:(aviso!=null?'estancada':'')}" draggable="true" data-id="${o.id}">
     ${cerrada?`<span class="cierreEst">${o.estado==='ganada'?'Ganada':'Perdida'}</span>`:''}
     <div class="cuenta">${esc(cuentaNombre(o.cuenta))}</div>
-    <div class="titulo">${esc(o.nombre)}</div>
+    <div class="titulo">${esc(o.nombre)}${marcaSAT(o)}</div>
     <div class="pie"><span class="valor num">${eur(o.valor)}</span><span class="marcas">${aviso!=null?`<span class="inactiva num" title="${aviso} días sin actividad (umbral de ${etapaNombre(o.etapa)}: ${INACTIVIDAD_ETAPA[o.etapa]} d)">⚠ ${aviso} d</span>`:''}<span class="dias num" title="Días desde el primer presupuesto">${edadTxt}</span></span></div>
   </button>`;
 }
@@ -1879,7 +1890,7 @@ function activarArrastre(){
 }
 
 /* ═══════ filtros ═══════ */
-function filtrosHTML(conCerradas=true){
+function filtrosHTML(conCerradas=true, conActuacion=false){
   return `<div class="filtros">
     <input type="text" id="fTexto" placeholder="Buscar oportunidad o cuenta" value="${esc(filtros.texto)}">
     ${esManager()?`<select id="fComercial"><option value="">Todos los comerciales</option>
@@ -1892,6 +1903,9 @@ function filtrosHTML(conCerradas=true){
       <option value="perdida" ${filtros.estado==='perdida'?'selected':''}>Solo perdidas</option>
       <option value=""        ${filtros.estado===''       ?'selected':''}>Todas</option>
     </select>`:''}
+    ${conActuacion?`<select id="fActuacion"><option value="">Todos los tipos de actuación</option>
+      ${ACTUACIONES.map(t=>`<option value="${t}" ${filtros.actuacion===t?'selected':''}>${t}</option>`).join('')}
+      <option value="__sin" ${filtros.actuacion==='__sin'?'selected':''}>Sin clasificar</option></select>`:''}
   </div>`;
 }
 function activarFiltros(){
@@ -1900,6 +1914,7 @@ function activarFiltros(){
   if($('#fComercial')) $('#fComercial').onchange = e => { filtros.comercial = e.target.value; pintar(); };
   if($('#fEtapa')) $('#fEtapa').onchange = e => { filtros.etapa = e.target.value; pintar(); };
   if($('#fEstado')) $('#fEstado').onchange = e => { filtros.estado = e.target.value; pintar(); };
+  if($('#fActuacion')) $('#fActuacion').onchange = e => { filtros.actuacion = e.target.value; pintar(); };
 }
 
 /* ═══════ radar · previsiones ═══════ */
@@ -1985,7 +2000,7 @@ function vRadar(c){
 function tarjetaRadar(o, vencida){
   return `<button class="tarjeta ${vencida?'vencida':''}" draggable="true" data-id="${o.id}">
     <div class="cuenta">${esc(cuentaNombre(o.cuenta))} · ${esc(o.vertical||'')}</div>
-    <div class="titulo">${esc(o.nombre)}</div>
+    <div class="titulo">${esc(o.nombre)}${marcaSAT(o)}</div>
     <div class="pie">
       <span class="valor num">${eur(o.valor)}</span>
       <span class="dias num">${o.prob}% · ${etapaNombre(o.etapa)}</span>
@@ -2022,10 +2037,12 @@ function activarRadar(){
 
 /* ═══════ lista ═══════ */
 function vLista(c){
-  const ops = ordenarLista(visibles());
+  const fa = filtros.actuacion;
+  const ops = ordenarLista(visibles().filter(o => !fa ||
+    (fa === '__sin' ? !o.tipo : o.tipo === fa)));
   const cols = COLUMNAS.filter(x => lista.cols.includes(x.k));
 
-  c.innerHTML = filtrosHTML() + `
+  c.innerHTML = filtrosHTML(true, true) + `
   <details class="columnas">
     <summary>Columnas · ${cols.length}</summary>
     <div>${COLUMNAS.map(x=>`<label><input type="checkbox" data-col="${x.k}"
