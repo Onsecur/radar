@@ -189,6 +189,29 @@ select,input[type=text],input[type=date],input[type=number],textarea{background:
 .etiqueta.ganada{background:var(--azul);color:#fff}
 .etiqueta.perdida{background:#F1E3E3;color:var(--granate)}
 
+/* diálogo de pérdida */
+dialog.dlg{border:none;padding:0;border-radius:8px;width:min(460px,calc(100% - 32px));color:var(--azul);box-shadow:0 18px 48px rgba(12,38,58,.28)}
+dialog.dlg::backdrop{background:rgba(12,38,58,.45)}
+dialog.dlg[open]{animation:dlgEntra .16s ease-out}
+@keyframes dlgEntra{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){dialog.dlg[open]{animation:none}}
+.dlg > header{padding:16px 20px 12px;border-bottom:1px solid var(--linea);border-top:3px solid var(--rojo);border-radius:8px 8px 0 0}
+.dlg > header h2{font-size:16px;margin:0}
+.dlg > header p{margin:3px 0 0;font-size:13px;color:var(--gris)}
+.dlg .dlgCuerpo{padding:16px 20px;display:flex;flex-direction:column;gap:14px}
+.dlg .dlgCuerpo label[for],.dlg legend{font-size:12px;font-weight:600;color:var(--gris);margin-bottom:6px;display:block;padding:0}
+.dlg fieldset{border:none;margin:0;padding:0}
+.motivos{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.motivos label{display:flex;align-items:center;gap:8px;border:1px solid var(--linea);border-radius:var(--r);padding:9px 11px;cursor:pointer;font-size:13px;font-weight:500}
+.motivos label:hover{border-color:#BDC6CE}
+.motivos input{accent-color:var(--rojo);margin:0}
+.motivos label:has(input:checked){border-color:var(--rojo);background:var(--rojo-claro)}
+.motivos label:has(input:focus-visible){outline:2px solid var(--azul);outline-offset:1px}
+.motivos kbd{margin-left:auto;font:inherit;font-size:11px;color:var(--gris)}
+.dlg > footer{padding:12px 20px 16px;display:flex;justify-content:flex-end;gap:8px}
+.dlg .btn:disabled{opacity:.45;cursor:not-allowed}
+@media (max-width:420px){.motivos{grid-template-columns:1fr}}
+
 /* cajón */
 .velo{position:fixed;inset:0;background:rgba(12,38,58,.4);display:none;z-index:20}
 .velo.abierto{display:block}
@@ -348,6 +371,18 @@ details.columnas input{width:auto}
   <footer id="cajonPie"></footer>
 </aside>
 
+
+<dialog class="dlg" id="dlgPerdida" aria-labelledby="dlgPerdidaTit">
+  <header><h2 id="dlgPerdidaTit">Marcar como perdida</h2><p id="dlgPerdidaSub"></p></header>
+  <div class="dlgCuerpo">
+    <fieldset><legend>¿Por qué se ha perdido?</legend><div class="motivos" id="dlgMotivos"></div></fieldset>
+    <div><label for="dlgFecha">Fecha de la pérdida</label><input type="date" id="dlgFecha"></div>
+    <div><label for="dlgComentario">Comentario (opcional, queda en el historial)</label>
+      <textarea id="dlgComentario" rows="2" placeholder="La competencia ha ofrecido un 15% menos."></textarea></div>
+  </div>
+  <footer><button class="btn sec" id="dlgCancelar" type="button">Cancelar</button>
+    <button class="btn rojo" id="dlgConfirmar" type="button" disabled>Marcar perdida</button></footer>
+</dialog>
 
 <script src="supabase.js"></script>
 <script src="xlsx.js"></script>
@@ -579,7 +614,15 @@ const VERTICALES = ['Casas','Pisos','Comunidades','Industria','Edificios corpora
 // Proyectistas: personal de ingeniería. Pendiente de sustituir por los nombres reales.
 const PROYECTISTAS = ['Sin asignar','Eloi Lloveras','Miguel Ángel Maza','Raúl Vera','Alejandro Puig','Sergio Martínez','Ramón Palou','Jorge Morera','Miguel Ángel Buñuel','Gustavo Callizo','Jordi Simó'];
 const ACTUACIONES = ['Instalación','Ampliación','Avería','Revisión','Cambio de titularidad','Gestión de cliente'];
-const MOTIVOS = ['Precio','Plazo','Solución','No responde','Pospone la inversión'];
+/* Códigos = radar.motivo_perdida.codigo (la BD tiene FK sobre ellos). */
+const MOTIVOS = [
+  { c:'precio',        n:'Precio' },
+  { c:'plazo',         n:'Plazo' },
+  { c:'solucion',      n:'Solución' },
+  { c:'sin_respuesta', n:'No responde' },
+  { c:'pospone',       n:'Pospone la inversión' }
+];
+const motivoNombre = c => (MOTIVOS.find(m=>m.c===c)||{}).n || c;
 /* Aviso de inactividad: días sin actividad a partir de los cuales la tarjeta
    se marca en naranja, según la etapa. Cerrado no avisa. */
 const INACTIVIDAD_ETAPA = { estudio:15, enviada:15, negociacion:21, standby:70 };
@@ -2340,7 +2383,7 @@ function vPanel(c){
 /* ═══════ cajón ═══════ */
 function cerrarCajon(){ $('#cajon').classList.remove('abierto'); $('#velo').classList.remove('abierto'); abierta = null; }
 $('#velo').onclick = cerrarCajon; $('#btnCerrarCajon').onclick = cerrarCajon;
-document.addEventListener('keydown', e => { if(e.key==='Escape') cerrarCajon(); });
+document.addEventListener('keydown', e => { if(e.key==='Escape' && !document.querySelector('dialog[open]')) cerrarCajon(); });
 
 function abrirCajon(o){
   const nuevo = !o;
@@ -2396,7 +2439,7 @@ function abrirCajon(o){
         <div class="campo"><label>Cierre previsto</label><input id="cCierre" type="date" value="${o.cierre||''}"></div>
         <div class="campo ${o.etapa==='standby'?'':'oculto'}" id="wrapRev"><label>Revisar el</label><input id="cRevision" type="date" value="${o.revision||''}"></div>
         ${o.estado!=='abierta'?`<div class="campo"><label>Cierre real</label><input type="text" value="${o.cierre||'—'}" disabled></div>`:''}
-        ${o.estado==='perdida'?`<div class="campo"><label>Motivo</label><input type="text" value="${esc(o.motivo||'—')}" disabled></div>`:''}
+        ${o.estado==='perdida'?`<div class="campo"><label>Motivo</label><input type="text" value="${esc(o.motivo?motivoNombre(o.motivo):'—')}" disabled></div>`:''}
       </div></div>
 
     ${pres.length?`<div class="seccion"><h3>Presupuestos de Beta10 <span style="font-weight:400;color:var(--gris)">${pres.length}</span></h3>
@@ -2418,16 +2461,70 @@ function abrirCajon(o){
     ${!nuevo&&MI_ROL==='director'?`<button class="btn sec" id="btnEliminar" style="margin-left:auto;color:#b3261e;border-color:#e7bab6">Eliminar</button>`:''}`;
   if($('#btnEliminar')) $('#btnEliminar').onclick = () => eliminar(o);
   $('#btnGuardar').onclick = () => guardar(nuevo?null:o);
-  if($('#btnGanada')) $('#btnGanada').onclick = () => { o.estado='ganada'; o.etapa='cerrado'; o.prob=95; o.tocada=new Date().toISOString(); cerrarCajon(); pintar(); };
-  if($('#btnPerdida')) $('#btnPerdida').onclick = () => {
-    const m = prompt('Motivo de pérdida:\n' + MOTIVOS.map((x,i)=>(i+1)+'. '+x).join('\n'));
-    if(m===null) return;
-    const mm = MOTIVOS[Number(m)-1] || m;
-    o.estado='perdida'; o.etapa='cerrado'; o.prob=0; o.motivo=mm; o.tocada=new Date().toISOString(); cerrarCajon(); pintar();
+  const hoyISO = () => new Date().toISOString().slice(0,10);
+  if($('#btnGanada')) $('#btnGanada').onclick = () => {
+    o.estado='ganada'; o.etapa='cerrado'; o.prob=95; o.motivo=null; o.cierre=hoyISO();
+    o.tocada=new Date().toISOString(); cerrarCajon(); pintar(); sincronizar(o);
   };
-  if($('#btnReabrir')) $('#btnReabrir').onclick = () => { o.estado='abierta'; o.etapa='negociacion'; o.motivo=null; cerrarCajon(); pintar(); };
+  if($('#btnPerdida')) $('#btnPerdida').onclick = async () => {
+    const r = await pedirMotivoPerdida(o);
+    if(!r) return;
+    o.estado='perdida'; o.etapa='cerrado'; o.prob=0; o.motivo=r.motivo; o.cierre=r.fecha;
+    o.tocada=new Date().toISOString(); cerrarCajon(); pintar();
+    await sincronizar(o);
+    if(r.comentario) registrarComentarioPerdida(o, r);
+  };
+  if($('#btnReabrir')) $('#btnReabrir').onclick = () => {
+    o.estado='abierta'; o.etapa='negociacion'; o.motivo=null; o.cierre='';
+    cerrarCajon(); pintar(); sincronizar(o);
+  };
   if(!nuevo) activarActividad(o);
   $('#cajon').classList.add('abierto'); $('#velo').classList.add('abierto'); $('#cNombre').focus();
+}
+
+/* Diálogo de pérdida: devuelve {motivo, fecha, comentario} o null si se cancela. */
+function pedirMotivoPerdida(o){
+  const dlg = $('#dlgPerdida'), ok = $('#dlgConfirmar');
+  $('#dlgPerdidaSub').textContent = o.nombre + ' · ' + eur(o.valor);
+  $('#dlgMotivos').innerHTML = MOTIVOS.map((m,i)=>
+    `<label><input type="radio" name="dlgMotivo" value="${m.c}">${esc(m.n)}<kbd>${i+1}</kbd></label>`).join('');
+  $('#dlgFecha').value = new Date().toISOString().slice(0,10);
+  $('#dlgFecha').max   = $('#dlgFecha').value;
+  $('#dlgComentario').value = '';
+  ok.disabled = true;
+  const elegido = () => (dlg.querySelector('input[name=dlgMotivo]:checked')||{}).value;
+  dlg.querySelectorAll('input[name=dlgMotivo]').forEach(r => r.onchange = () => ok.disabled = !elegido());
+
+  return new Promise(resolve => {
+    const fin = v => { dlg.onkeydown = null; dlg.close(); resolve(v); };
+    ok.onclick = () => {
+      const f = $('#dlgFecha').value;
+      if(!elegido() || !f) return;
+      fin({ motivo:elegido(), fecha:f, comentario:$('#dlgComentario').value.trim() });
+    };
+    $('#dlgCancelar').onclick = () => fin(null);
+    dlg.oncancel = e => { e.preventDefault(); fin(null); };      // Escape
+    dlg.onclick  = e => { if(e.target === dlg) fin(null); };     // clic fuera
+    dlg.onkeydown = e => {                                       // atajos 1–5 y Ctrl+Enter
+      if(e.target.tagName === 'TEXTAREA'){ if(e.key==='Enter' && (e.ctrlKey||e.metaKey)) ok.click(); return; }
+      const n = Number(e.key);
+      if(n>=1 && n<=MOTIVOS.length){ const r = dlg.querySelectorAll('input[name=dlgMotivo]')[n-1]; r.checked = true; r.focus(); ok.disabled = false; }
+      else if(e.key==='Enter' && !ok.disabled && e.target.type!=='date'){ e.preventDefault(); ok.click(); }
+    };
+    dlg.showModal();
+    dlg.querySelector('input[name=dlgMotivo]').focus();
+  });
+}
+
+async function registrarComentarioPerdida(o, r){
+  const texto = 'Perdida (' + motivoNombre(r.motivo) + '): ' + r.comentario;
+  D.acts.push({ id:nuevoId('a'), opo:o.id, tipo:'nota', desc:texto, fecha:new Date().toISOString(),
+                prox:null, proxFecha:null, hecha:false, autor:comoUsuario });
+  const { error } = await SB.from('nota').insert({
+    oportunidad_id: Number(o.id), tipo:'nota', texto, fecha_actividad: r.fecha,
+    autor_nombre: MI_PERFIL ? MI_PERFIL.nombre : 'Radar'
+  });
+  if(error) aviso('La oportunidad se ha guardado, pero el comentario no: ' + error.message);
 }
 
 function actividadHTML(o){
