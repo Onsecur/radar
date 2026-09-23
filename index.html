@@ -585,7 +585,9 @@ const COD = {
                'Raúl Vera':'raulvera', 'Alejandro Puig':'alejandropuig',
                'Sergio Martínez':'sergiomartinez', 'Ramón Palou':'ramonpalou',
                'Jorge Morera':'jorgemorera', 'Miguel Ángel Buñuel':'miguelangel',
-               'Gustavo Callizo':'gustavocallizo', 'Jordi Simó':'jordisimo' }
+               'Gustavo Callizo':'gustavocallizo', 'Jordi Simó':'jordisimo' },
+  motivo   : { 'Precio':'precio', 'Plazo':'plazo', 'Solución':'solucion',
+               'No responde':'sin_respuesta', 'Pospone la inversión':'pospone' }
 };
 /* Solo Obra cuenta en el resultado comercial. Lo decide la actuación. */
 const TIPO_DE_ACTUACION = { instalacion:'obra', ampliacion:'obra', averia:'averia',
@@ -674,7 +676,7 @@ async function cargarDatos(){
          real si está cerrada. */
       cierre     : o.estado === 'abierta' ? (o.cierre_previsto || '') : (o.cierre_real || ''),
       revision   : o.fecha_revision || '',
-      motivo     : o.motivo_perdida || null,
+      motivo     : o.motivo_perdida ? (etq('motivo', o.motivo_perdida) || o.motivo_perdida) : null,
       exclusion  : o.motivo_exclusion || null,
       calle      : o.calle || '', poblacion: o.poblacion || '', provincia: o.provincia || '',
       tipo       : etq('actuacion', o.tipo_actuacion),
@@ -737,7 +739,7 @@ function aFilaBD(o){
     estado        : o.estado,
     probabilidad  : o.prob,
     fecha_revision: o.etapa === 'standby' ? (o.revision || null) : null,
-    motivo_perdida: o.estado === 'perdida' ? (o.motivo || null) : null,
+    motivo_perdida: o.estado === 'perdida' ? (cod('motivo', o.motivo) || null) : null,
     notas         : o.notas || null,
     ultima_actividad: (o.tocada || '').slice(0,10) || null
   };
@@ -2070,7 +2072,7 @@ function activarArrastre(){
   document.querySelectorAll('.columna').forEach(col=>{
     col.ondragover = e => { e.preventDefault(); col.classList.add('encima'); };
     col.ondragleave = () => col.classList.remove('encima');
-    col.ondrop = e => {
+    col.ondrop = async e => {
       e.preventDefault(); col.classList.remove('encima');
       const o = D.opos.find(x=>x.id===e.dataTransfer.getData('text/plain'));
       if(!o || o.etapa===col.dataset.etapa) return;
@@ -2080,8 +2082,7 @@ function activarArrastre(){
       o.tocada = new Date().toISOString();
       if(o.etapa === 'standby' && !o.revision){
         /* Regla: al pasar a Stand By hay que decir cuándo se revisa. */
-        const r = prompt('¿Cuándo se revisa? (aaaa-mm-dd)',
-                          new Date(Date.now()+30*864e5).toISOString().slice(0,10));
+        const r = await dialogoRevision(o, new Date(Date.now()+30*864e5).toISOString().slice(0,10));
         if(r) o.revision = r;
       }
       pintar(); sincronizar(o);
@@ -2230,7 +2231,7 @@ function activarRadar(){
         o.cierre = `${destino}-${String(Math.min(dia,ultimo)).padStart(2,'0')}`;
       }
       o.tocada = new Date().toISOString();
-      pintar();
+      pintar(); sincronizar(o);
     };
   });
 }
@@ -3401,14 +3402,21 @@ function abrirCajon(o){
     ${!nuevo&&MI_ROL==='director'?`<button class="btn sec" id="btnEliminar" style="margin-left:auto;color:#b3261e;border-color:#e7bab6">Eliminar</button>`:''}`;
   if($('#btnEliminar')) $('#btnEliminar').onclick = () => eliminar(o);
   $('#btnGuardar').onclick = () => guardar(nuevo?null:o);
-  if($('#btnGanada')) $('#btnGanada').onclick = () => { o.estado='ganada'; o.etapa='cerrado'; o.prob=95; o.tocada=new Date().toISOString(); cerrarCajon(); pintar(); };
-  if($('#btnPerdida')) $('#btnPerdida').onclick = () => {
-    const m = prompt('Motivo de pérdida:\n' + MOTIVOS.map((x,i)=>(i+1)+'. '+x).join('\n'));
-    if(m===null) return;
-    const mm = MOTIVOS[Number(m)-1] || m;
-    o.estado='perdida'; o.etapa='cerrado'; o.prob=0; o.motivo=mm; o.tocada=new Date().toISOString(); cerrarCajon(); pintar();
+  const hoy = () => new Date().toISOString().slice(0,10);
+  if($('#btnGanada')) $('#btnGanada').onclick = () => {
+    o.estado='ganada'; o.etapa='cerrado'; o.prob=95; o.motivo=null; o.cierre=hoy();
+    o.tocada=new Date().toISOString(); cerrarCajon(); pintar(); sincronizar(o);
   };
-  if($('#btnReabrir')) $('#btnReabrir').onclick = () => { o.estado='abierta'; o.etapa='negociacion'; o.motivo=null; cerrarCajon(); pintar(); };
+  if($('#btnPerdida')) $('#btnPerdida').onclick = async () => {
+    const m = await dialogoPerdida(o);
+    if(!m) return;
+    o.estado='perdida'; o.etapa='cerrado'; o.prob=0; o.motivo=m; o.cierre=hoy();
+    o.tocada=new Date().toISOString(); cerrarCajon(); pintar(); sincronizar(o);
+  };
+  if($('#btnReabrir')) $('#btnReabrir').onclick = () => {
+    o.estado='abierta'; o.etapa='negociacion'; o.motivo=null; o.cierre='';
+    o.tocada=new Date().toISOString(); cerrarCajon(); pintar(); sincronizar(o);
+  };
   if(!nuevo) activarActividad(o);
   $('#cajon').classList.add('abierto'); $('#velo').classList.add('abierto'); $('#cNombre').focus();
 }
@@ -3467,6 +3475,62 @@ async function guardarNota(o){
    borran: quedan sueltos en la tabla. Por eso, antes de borrar, se ofrece
    guardar sus huellas en la lista de ignorados; si no, la próxima
    importación volvería a crear la ficha. */
+function dialogoBase(html){
+  const d = document.createElement('dialog');
+  d.style.cssText = 'border:none;border-radius:10px;padding:20px 22px;max-width:440px;width:92vw;'+
+    'color:var(--azul);box-shadow:0 10px 40px rgba(0,0,0,.3);font:inherit';
+  d.innerHTML = html;
+  document.body.appendChild(d);
+  return d;
+}
+
+/* Motivo de pérdida: solo los del catálogo radar.motivo_perdida. Devuelve la etiqueta o null. */
+function dialogoPerdida(o){
+  return new Promise(resolve => {
+    const d = dialogoBase(`
+      <h3 style="margin:0 0 4px;font-size:16px">Marcar como perdida</h3>
+      <p style="margin:0 0 14px;color:var(--gris);font-size:13px">«${esc(o.nombre)}» · ${eur(o.valor)}</p>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        ${MOTIVOS.map(m=>`<label style="display:flex;gap:10px;align-items:center;padding:9px 12px;
+            border:1px solid #d9dde3;border-radius:8px;cursor:pointer">
+          <input type="radio" name="pdMotivo" value="${esc(m)}"> ${esc(m)}</label>`).join('')}
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+        <button class="btn sec" id="pdNo">Cancelar</button>
+        <button class="btn rojo" id="pdSi" disabled>Marcar perdida</button>
+      </div>`);
+    const si = d.querySelector('#pdSi');
+    const fin = v => { d.close(); d.remove(); resolve(v); };
+    d.querySelectorAll('input[name=pdMotivo]').forEach(r => {
+      r.onchange = () => { si.disabled = false; };
+      r.closest('label').ondblclick = () => fin(r.value);
+    });
+    d.querySelector('#pdNo').onclick = () => fin(null);
+    d.addEventListener('cancel', e => { e.preventDefault(); fin(null); });
+    si.onclick = () => { const r = d.querySelector('input[name=pdMotivo]:checked'); if(r) fin(r.value); };
+    d.showModal();
+  });
+}
+
+/* Fecha de revisión al pasar a Stand By. Devuelve aaaa-mm-dd o null. */
+function dialogoRevision(o, propuesta){
+  return new Promise(resolve => {
+    const d = dialogoBase(`
+      <h3 style="margin:0 0 4px;font-size:16px">Pasar a Stand By</h3>
+      <p style="margin:0 0 14px;color:var(--gris);font-size:13px">«${esc(o.nombre)}». ¿Cuándo se revisa?</p>
+      <input type="date" id="rvFecha" value="${propuesta}" style="width:100%">
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+        <button class="btn sec" id="rvNo">Sin fecha</button>
+        <button class="btn" id="rvSi">Guardar</button>
+      </div>`);
+    const fin = v => { d.close(); d.remove(); resolve(v); };
+    d.querySelector('#rvNo').onclick = () => fin(null);
+    d.addEventListener('cancel', e => { e.preventDefault(); fin(null); });
+    d.querySelector('#rvSi').onclick = () => fin(d.querySelector('#rvFecha').value || null);
+    d.showModal();
+  });
+}
+
 function dialogoEliminar(o){
   const huellas = huellasDe(o);
   return new Promise(resolve => {
