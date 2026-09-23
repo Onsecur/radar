@@ -141,22 +141,27 @@ main{flex:1;min-width:0;display:flex;flex-direction:column}
 .bdWrap{background:var(--blanco);border:1px solid var(--linea);border-radius:8px;padding:6px 14px 12px}
 .bdSec{background:var(--azul);color:#fff;font-size:11px;letter-spacing:.08em;font-weight:700;padding:5px 10px;margin:12px 0 8px}
 .bdG{display:grid;gap:8px;margin-bottom:8px}
-.bdG4{grid-template-columns:minmax(0,1.5fr) repeat(3,minmax(0,1fr))}
+.bdG4{grid-template-columns:minmax(0,1.7fr) repeat(3,minmax(0,1fr))}
 .bdG3{grid-template-columns:repeat(2,minmax(0,1fr)) minmax(0,1.25fr)}
 .bdG21{grid-template-columns:minmax(0,2fr) minmax(0,1fr)}
 .bdG12{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
-.bdG3b{grid-template-columns:minmax(0,1.5fr) minmax(0,1.25fr) minmax(0,1.25fr)}
+.bdG3b{grid-template-columns:minmax(0,1.35fr) minmax(0,1.15fr) minmax(0,1.3fr)}
 @media(max-width:1100px){.bdG4,.bdG3,.bdG3b{grid-template-columns:repeat(2,minmax(0,1fr))}.bdG21,.bdG12{grid-template-columns:1fr}}
 @media(max-width:640px){.bdG4,.bdG3,.bdG3b{grid-template-columns:1fr}}
 .bdBox{border:1px solid var(--linea);display:flex;flex-direction:column;min-width:0;break-inside:avoid}
 .bdHd{background:var(--azul);color:#fff;font-size:10.5px;letter-spacing:.05em;font-weight:600;padding:4px 8px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .bdGauge{display:block;width:100%;max-width:230px;margin:4px auto 0}
-.bdKv{border:0;width:auto;margin:2px auto 8px;font-variant-numeric:tabular-nums}
-.bdKv td{border:0;padding:1px 6px;font-size:12px;white-space:nowrap}
+.bdKv{border:0;width:auto;margin:2px auto 8px;font-variant-numeric:tabular-nums;background:none}
+.bdKv td{border:0;padding:2px 4px;font-size:12px;white-space:nowrap}
+@media(max-width:1400px){.bdKv td{font-size:11.5px;padding:2px 3px}}
 .bdKv td:first-child{color:var(--gris)}
-.bdKv td:last-child{text-align:right;font-weight:600}
-.bdTotalIn{display:grid;grid-template-columns:minmax(150px,1fr) auto;align-items:center;gap:4px;padding:0 8px}
-@media(max-width:640px){.bdTotalIn{grid-template-columns:1fr}}
+.bdKv td:nth-child(2){text-align:right;font-weight:600}
+.bdKv td:nth-child(3){text-align:right;font-size:11.5px}
+.bdTotalIn{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:2px 8px;padding:4px 8px 0;flex:1}
+.bdTotalIn .bdGauge{flex:0 1 210px;max-width:230px;min-width:150px;margin:0}
+.bdKvG{flex:0 0 auto;margin:0 0 6px}
+.bdPieNota{font-size:11px;color:var(--gris);padding:6px 10px 8px;border-top:1px solid #EEF1F3;margin-top:4px}
+.bdPieNota b{color:var(--azul)}
 .bdRings{display:flex;justify-content:space-around;padding:8px 4px;flex:1;align-items:center}
 .bdRings>div{text-align:center;font-size:11px;color:var(--gris);display:flex;flex-direction:column;align-items:center}
 .bdRings b{color:var(--azul);font-weight:600;margin-top:2px}
@@ -170,19 +175,20 @@ main{flex:1;min-width:0;display:flex;flex-direction:column}
 .bdTog button{font-size:10px;padding:1px 7px;border:1px solid #5B7385;color:#C9D4DC;border-radius:3px}
 .bdTog button[aria-pressed="true"]{background:#fff;color:var(--azul);border-color:#fff}
 .bdPieIn{display:flex;align-items:center;gap:10px;padding:8px 10px;flex:1}
-.bdPie{width:112px;height:112px;flex:none}
+.bdPie{width:130px;height:130px;flex:none}
 .bdLey{font-size:11px;line-height:1.55;flex:1;min-width:0}
-.bdLey div{display:grid;grid-template-columns:auto 1fr auto;gap:0 6px;align-items:center}
-.bdLey i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
-.bdLey b{font-weight:600}.bdLey span{color:var(--gris);font-size:10.5px;text-align:right;font-variant-numeric:tabular-nums}
+.bdLey div{display:grid;grid-template-columns:minmax(0,1fr) 34px 56px;gap:0 6px;align-items:center;white-space:nowrap}
+.bdLey .n{overflow:hidden;text-overflow:ellipsis}
+.bdLey i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
+.bdLey b{font-weight:600;text-align:right}.bdLey .v{color:var(--gris);font-size:10.5px;text-align:right;font-variant-numeric:tabular-nums}
 .bdLeyH{font-weight:400;font-size:10px;letter-spacing:0;display:flex;gap:4px;align-items:center;flex-wrap:wrap}
 .bdLeyH i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-left:6px}
 .bdChart{display:block;width:100%;height:auto;padding:4px 4px 2px}
 .bdMini{padding:4px 6px 0}.bdMini small{font-size:10.5px;color:var(--gris)}
 .bdScroll{overflow-x:auto}
 .bdTabla{border:0;font-size:12px;font-variant-numeric:tabular-nums}
-.bdTabla th{font-size:10.5px;color:var(--gris);font-weight:600;padding:4px 6px;text-align:right;background:none;border-bottom:1px solid var(--linea)}
-.bdTabla td{padding:4px 6px;text-align:right;border-bottom:1px solid #EEF1F3}
+.bdTabla th{font-size:10.5px;color:var(--gris);font-weight:600;padding:4px 6px;text-align:right;background:none;border-bottom:1px solid var(--linea);white-space:nowrap}
+.bdTabla td{padding:4px 6px;text-align:right;border-bottom:1px solid #EEF1F3;white-space:nowrap}
 .bdTabla th:first-child,.bdTabla td:first-child{text-align:left;white-space:nowrap}
 .bdTabla .bdSep{border-left:1px solid var(--linea)}
 .bdTabla small{color:var(--gris)}
@@ -2492,7 +2498,7 @@ const COL = { total:'#B8860B', tec:'#1F4E5F', fis:'#3B7D3B', rec:'#5B3A8C', cap:
 const VERTS = [['casas','Casas'],['pisos','Pisos'],['comunidades','Comunidades'],['industria','Industria'],
                ['corporativos','Edif. corp.'],['retail','Retail'],['hoteles','Hoteles'],['otros','Otros']];
 const COL_VERT = ['#B8860B','#E3C77A','#1F4E5F','#6E9CB0','#3B7D3B','#9CC39C','#5B3A8C','#B4B2A9'];
-const RANGOS = [[0,5000,'Menos de 5K€'],[5000,15000,'5K€ – 15K€'],[15000,50000,'15K€ – 50K€'],[50000,100000,'50K€ – 100K€'],[100000,Infinity,'Más de 100K€']];
+const RANGOS = [[0,5000,'< 5K€'],[5000,15000,'5 – 15K€'],[15000,50000,'15 – 50K€'],[50000,100000,'50 – 100K€'],[100000,Infinity,'> 100K€']];
 const rangoDe = v => RANGOS.findIndex(r => v >= r[0] && v < r[1]);
 const vertDe = o => { const c = cod('vertical', o.vertical); return VERTS.some(v => v[0] === c) ? c : 'otros'; };
 
@@ -2525,6 +2531,15 @@ function captacionesTodas(){
     .map(p => { const o = fichas.get(p.opo); return { fecha:String(p.fecha).slice(0,10), imp:p.importe, owner:o.owner, vert:vertDe(o) }; });
 }
 
+/* Ficha grande: velocímetro a la izquierda, cifras a la derecha, nota abajo.
+   filas = [[etiqueta, cifra, desviación?], ...] */
+function cajaGrande(tit, color, gauge, filas, pie){
+  return `<div class="bdBox"><div class="bdHd" style="background:${color}">${tit}</div>
+    <div class="bdTotalIn">${gauge}
+      <table class="bdKv bdKvG">${filas.map(f => `<tr><td>${f[0]}</td><td>${f[1]}</td><td>${f[2] || ''}</td></tr>`).join('')}</table></div>
+    ${pie ? `<div class="bdPieNota">${pie}</div>` : ''}</div>`;
+}
+
 /* ── piezas SVG ── */
 function svgGauge(p, color){
   const P = (r, t) => { const a = Math.PI * (1 - t); return [70 + r*Math.cos(a), 66 - r*Math.sin(a)]; };
@@ -2541,7 +2556,7 @@ function svgGauge(p, color){
 function svgAnillo(v, obj, color){
   const L = 2 * Math.PI * 23, t = v == null ? 0 : Math.max(0, Math.min(v, 60)) / 60;
   const a = (obj || 0) / 60 * 2 * Math.PI - Math.PI/2;
-  return `<svg viewBox="0 0 60 60" width="66" height="66"><circle cx="30" cy="30" r="23" fill="none" stroke="#EEF1F3" stroke-width="7"/>
+  return `<svg viewBox="0 0 60 60" width="86" height="86"><circle cx="30" cy="30" r="23" fill="none" stroke="#EEF1F3" stroke-width="7"/>
     <circle cx="30" cy="30" r="23" fill="none" stroke="${color}" stroke-width="7" stroke-dasharray="${(t*L).toFixed(1)} ${L.toFixed(1)}" transform="rotate(-90 30 30)"/>
     ${obj ? `<line x1="${(30+16*Math.cos(a)).toFixed(1)}" y1="${(30+16*Math.sin(a)).toFixed(1)}" x2="${(30+30*Math.cos(a)).toFixed(1)}" y2="${(30+30*Math.sin(a)).toFixed(1)}" stroke="#0C263A" stroke-width="2"/>` : ''}
     <text x="30" y="34" font-size="11" font-weight="700" text-anchor="middle" fill="#0C263A">${v == null ? '—' : v.toFixed(1).replace('.', ',')}</text></svg>`;
@@ -2561,11 +2576,11 @@ function svgQuesito(valores){
   return `<svg viewBox="0 0 100 100" class="bdPie">${s}</svg>`;
 }
 const leyendaVert = valores => { const tot = sumaDe(valores, x => x) || 1;
-  return `<div class="bdLey">${VERTS.map((v, i) => `<div><i style="background:${COL_VERT[i]}"></i>${v[1]} <b>${Math.round(valores[i]/tot*100)}%</b><span>${eK(valores[i])}</span></div>`).join('')}</div>`; };
+  return `<div class="bdLey">${VERTS.map((v, i) => `<div><span class="n"><i style="background:${COL_VERT[i]}"></i>${v[1]}</span><b>${Math.round(valores[i]/tot*100)}%</b><span class="v">${eK(valores[i])}</span></div>`).join('')}</div>`; };
 
 /* Barras (una o dos series) + línea de objetivo. */
 function svgBarras(etq, series, objetivo){
-  const W = 520, H = 170, x0 = 38, y0 = 146, n = etq.length, paso = (W - x0 - 6) / n;
+  const W = 520, H = 196, x0 = 38, y0 = 172, n = etq.length, paso = (W - x0 - 6) / n;
   const max = Math.max(1, ...series.flatMap(s => s.v), ...(objetivo || []).map(v => v || 0)) * 1.12;
   const h = v => (v || 0) / max * (y0 - 14), ancho = Math.min(22, (paso - 6) / series.length);
   let s = '';
@@ -2583,10 +2598,10 @@ function svgBarras(etq, series, objetivo){
 }
 /* Línea con puntos (valores null = hueco) y objetivo discontinuo. */
 function svgLinea(etq, vals, obj, color, fmt){
-  const W = 260, H = 110, x0 = 8, y0 = 92, paso = (W - 16) / Math.max(1, etq.length - 1);
+  const W = 260, H = 84, x0 = 8, y0 = 68, paso = (W - 16) / Math.max(1, etq.length - 1);
   const vs = vals.filter(v => v != null).concat(obj ? [obj] : []);
-  const max = Math.max(1, ...vs) * 1.18, min = Math.min(...vs, max) * 0.7;
-  const y = v => y0 - (v - min) / (max - min) * (y0 - 14);
+  const max = Math.max(1, ...vs) * 1.12, min = Math.min(...vs, max) * 0.8;
+  const y = v => y0 - (v - min) / (max - min) * (y0 - 8);
   let s = obj ? `<line x1="${x0}" y1="${y(obj).toFixed(1)}" x2="${W-8}" y2="${y(obj).toFixed(1)}" stroke="#CC9B00" stroke-width="1.5" stroke-dasharray="4 3"/>` : '';
   let d = '', abierto = false;
   vals.forEach((v, i) => { if(v == null){ abierto = false; return; } d += (abierto ? 'L' : 'M') + (x0 + paso*i).toFixed(1) + ' ' + y(v).toFixed(1); abierto = true; });
@@ -2629,15 +2644,12 @@ function vBoard(c){
     <table class="bdKv"><tr><td>Mes</td><td>${eK(vMes)} / ${eK(o.mes)} ${desv(vMes, o.mes)}</td></tr>
       <tr><td>Año</td><td>${o.anual ? Math.round(v/o.anual*100) + '% de ' + eK(o.anual) : '—'}</td></tr>${extra || ''}</table></div>`;
   const filaGauges = `<div class="bdG bdG4">
-    <div class="bdBox bdTotal"><div class="bdHd" style="background:${COL.total}">TOTAL INSTALACIONES</div>
-      <div class="bdTotalIn">${svgGauge(pc(sV(obra), oI.fecha), COL.total)}
-      <table class="bdKv">
-        <tr><td>${MESES[M-1]}</td><td>${eK(sV(obraMes))} / ${eK(oI.mes)} ${desv(sV(obraMes), oI.mes)}</td></tr>
-        <tr><td>A fecha</td><td>${eK(sV(obra))} / ${eK(oI.fecha)} ${desv(sV(obra), oI.fecha)}</td></tr>
-        <tr><td>Anual</td><td>${oI.anual ? Math.round(sV(obra)/oI.anual*100) + '% de ' + eK(oI.anual) : '—'}</td></tr>
-        <tr><td>Nuevas mes</td><td>${obraMes.length} · TM ${tm(obraMes) == null ? '—' : eK(tm(obraMes))}</td></tr>
-        <tr><td>Nuevas año</td><td>${obra.length} · TM ${tm(obra) == null ? '—' : eK(tm(obra))}</td></tr>
-      </table></div></div>
+    ${cajaGrande('TOTAL INSTALACIONES', COL.total, svgGauge(pc(sV(obra), oI.fecha), COL.total), [
+        [MESES[M-1], `${eK(sV(obraMes))} / ${eK(oI.mes)}`, desv(sV(obraMes), oI.mes)],
+        ['A fecha', `${eK(sV(obra))} / ${eK(oI.fecha)}`, desv(sV(obra), oI.fecha)],
+        ['Anual', oI.anual ? `${eK(sV(obra))} / ${eK(oI.anual)}` : '—', oI.anual ? `<b style="color:${colPct(sV(obra)/oI.anual)}">${Math.round(sV(obra)/oI.anual*100)}%</b>` : '']],
+      `Nuevas instalaciones: <b>${obraMes.length}</b> en ${MESES[M-1].toLowerCase()} · TM ${tm(obraMes) == null ? '—' : eK(tm(obraMes))}
+       &nbsp;|&nbsp; <b>${obra.length}</b> en el año · TM ${tm(obra) == null ? '—' : eK(tm(obra))}`)}
     ${cajaLinea('S. TECNOLÓGICA', COL.tec, sV(tec(obra)), sV(tec(obraMes)), oT)}
     ${cajaLinea('S. FÍSICA', COL.fis, sV(fis(obra)), sV(fis(obraMes)), oF)}
     ${cajaLinea('MANT. Y CONEXIONES', COL.rec, sumaDe(recur, o => o.cuota), sumaDe(recurMes, o => o.cuota), oR,
@@ -2722,15 +2734,12 @@ function vBoard(c){
   }
   const cvVals = VERTS.map(v => sI(cA.filter(p => p.vert === v[0])));
   const filaCapt = `<div class="bdG bdG3b">
-    <div class="bdBox bdTotal"><div class="bdHd" style="background:${COL.cap}">CAPTACIÓN DE OPORTUNIDADES</div>
-      <div class="bdTotalIn">${svgGauge(pc(sI(cA), oC.fecha), COL.cap)}
-      <table class="bdKv">
-        <tr><td>${MESES[M-1]}</td><td>${eK(sI(cM))} / ${eK(oC.mes)} ${desv(sI(cM), oC.mes)}</td></tr>
-        <tr><td>A fecha</td><td>${eK(sI(cA))} / ${eK(oC.fecha)} ${desv(sI(cA), oC.fecha)}</td></tr>
-        <tr><td>Anual</td><td>${oC.anual ? Math.round(sI(cA)/oC.anual*100) + '% de ' + eK(oC.anual) : '—'}</td></tr>
-        <tr><td>Nº mes</td><td>${cM.length} · TM ${cM.length ? eK(sI(cM)/cM.length) : '—'}</td></tr>
-        <tr><td>Nº año</td><td>${cA.length} · TM ${cA.length ? eK(sI(cA)/cA.length) : '—'}</td></tr>
-      </table></div></div>
+    ${cajaGrande('CAPTACIÓN DE OPORTUNIDADES', COL.cap, svgGauge(pc(sI(cA), oC.fecha), COL.cap), [
+        [MESES[M-1], `${eK(sI(cM))} / ${eK(oC.mes)}`, desv(sI(cM), oC.mes)],
+        ['A fecha', `${eK(sI(cA))} / ${eK(oC.fecha)}`, desv(sI(cA), oC.fecha)],
+        ['Anual', oC.anual ? `${eK(sI(cA))} / ${eK(oC.anual)}` : '—', oC.anual ? `<b style="color:${colPct(sI(cA)/oC.anual)}">${Math.round(sI(cA)/oC.anual*100)}%</b>` : '']],
+      `Presupuestos: <b>${cM.length}</b> en ${MESES[M-1].toLowerCase()} · TM ${cM.length ? eK(sI(cM)/cM.length) : '—'}
+       &nbsp;|&nbsp; <b>${cA.length}</b> en el año · TM ${cA.length ? eK(sI(cA)/cA.length) : '—'}`)}
     <div class="bdBox"><div class="bdHd">CAPTACIÓN · 6 MESES <span class="bdLeyH"><i style="background:#0C263A"></i>Captado <i style="background:#CC9B00"></i>Objetivo</span></div>
       ${svgArea(seis.map(x => x.e), seis.map(x => x.v), seis.map(x => x.o))}</div>
     <div class="bdBox"><div class="bdHd">CAPTACIÓN POR VERTICALES · ${A}</div><div class="bdPieIn">${svgQuesito(cvVals)}${leyendaVert(cvVals)}</div></div>
@@ -2764,22 +2773,20 @@ function vBoard(c){
       <text x="${44 + i*70}" y="156" font-size="8" text-anchor="middle" fill="#6B5200">hot ${eK(m.hot)}</text>
       <text x="${44 + i*70}" y="166" font-size="8" text-anchor="middle" fill="#66757F">cold ${eK(m.cold)}</text>`; }).join('');
   const filaFc = `<div class="bdG bdG3b">
-    <div class="bdBox bdTotal"><div class="bdHd" style="background:${COL.cap}">PREVISIÓN DE CIERRE ${A}</div>
-      <div class="bdTotalIn">${svgGauge(pc(prevista, oI.anual), COL.total).replace('a fecha', 'del año')}
-      <table class="bdKv">
-        <tr><td>Previsión</td><td><b>${eK(prevista)}</b> / ${eK(oI.anual)} ${desv(prevista, oI.anual)}</td></tr>
-        <tr><td>Ganado</td><td>${eK(sV(obra))}</td></tr>
-        <tr><td>Pipeline</td><td>${eK(pipeTot)} · ${pipe.length} fichas</td></tr>
-        <tr><td>Hit rate</td><td>${hrTot == null ? '—' : Math.round(hrTot*100) + '% ponderado'}</td></tr>
-      </table></div></div>
+    ${cajaGrande('PREVISIÓN DE CIERRE ' + A, COL.cap, svgGauge(pc(prevista, oI.anual), COL.total).replace('a fecha', 'del año'), [
+        ['Previsión', `<b>${eK(prevista)}</b> / ${eK(oI.anual)}`, desv(prevista, oI.anual)],
+        ['Ganado', eK(sV(obra)), ''],
+        ['Pipeline', eK(pipeTot), ''],
+        ['Hit rate', hrTot == null ? '—' : Math.round(hrTot*100) + '%', '']],
+      `Pipeline: <b>${pipe.length}</b> fichas abiertas con cierre este año, sin Stand By`)}
     <div class="bdBox"><div class="bdHd">PREVISIÓN DE VENTAS · 4 MESES
       <span class="bdLeyH">${cubos.map(x => `<i style="background:${x[2]}"></i>${x[1]}`).join(' ')}</span></div>
       <svg viewBox="0 0 300 170" class="bdChart">${barras4}</svg></div>
     <div class="bdBox"><div class="bdHd">RANGOS DE IMPORTE · ${A}</div><div class="bdScroll"><table class="bdTabla">
       <thead><tr><th>Rango</th><th>Captado</th><th>Hit rate</th><th>Pipeline</th><th>Previsión</th></tr></thead>
-      <tbody>${porRango.map(r => `<tr><td>${r.n}</td><td>${eK(r.capt)} <small>(${r.nCapt})</small></td>
+      <tbody>${porRango.map(r => `<tr><td>${r.n}</td><td title="${r.nCapt} presupuestos">${eK(r.capt)}</td>
         <td title="${r.nCerr} cerradas en 12 meses">${r.hr == null ? '—' : Math.round(r.hr*100) + '%'}</td><td>${eK(r.pipe)}</td><td>${eK(r.prev)}</td></tr>`).join('')}
-        <tr class="bdTot"><td>Total</td><td>${eK(sI(cA))} <small>(${cA.length})</small></td><td>${hrTot == null ? '—' : Math.round(hrTot*100) + '%'}</td><td>${eK(pipeTot)}</td><td>${eK(sumaDe(porRango, r => r.prev))}</td></tr>
+        <tr class="bdTot"><td>Total</td><td title="${cA.length} presupuestos">${eK(sI(cA))}</td><td>${hrTot == null ? '—' : Math.round(hrTot*100) + '%'}</td><td>${eK(pipeTot)}</td><td>${eK(sumaDe(porRango, r => r.prev))}</td></tr>
       </tbody></table></div></div>
   </div>`;
 
