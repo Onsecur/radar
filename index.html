@@ -128,6 +128,11 @@ main{flex:1;min-width:0;display:flex;flex-direction:column}
 :focus-visible{outline:2px solid var(--curry);outline-offset:1px}
 
 
+/* Informes: pestañas de subpantalla */
+.subnav{display:flex;gap:4px;border-bottom:1px solid var(--linea);margin-bottom:18px;overflow-x:auto}
+.subnav button{padding:9px 14px;font-size:13px;font-weight:500;color:var(--gris);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.subnav button:hover{color:var(--azul)}
+.subnav button[aria-current="true"]{color:var(--azul);font-weight:600;border-bottom-color:var(--azul)}
 .resHead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:16px}
 .resKpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px;margin-bottom:18px}
 .resKpi{background:var(--blanco);border:1px solid var(--linea);border-radius:var(--r);padding:13px 15px}
@@ -317,7 +322,7 @@ details.columnas input{width:auto}
   <nav class="rail">
     <div class="marca"><b>ONSECUR</b><span>Radar</span></div>
     <button data-vista="panel" aria-current="true">Panel</button>
-    <button data-vista="resultados">Resultados</button>
+    <button data-vista="informes">Informes</button>
     <button data-vista="radar">Previsiones</button>
     <button data-vista="pipeline">Etapas</button>
     <button data-vista="agenda">Agenda <span class="chip" id="chipAgenda">0</span></button>
@@ -587,6 +592,7 @@ const haceDias = n => { const d=new Date(); d.setDate(d.getDate()-n); return d.t
 let SEMILLA = { usuarios:[], cuentas:[], opos:[], acts:[], pres:[] };
 let D = estructuraClonada();
 let vista = 'panel', comoUsuario = 'u1', abierta = null;
+let informe = 'resultados';   // subpantalla activa dentro de Informes
 let filtros = { texto:'', comercial:'', etapa:'', estado:'abierta' };
 let radar = { comercial:'', prob:'', vertical:'', proyectista:'', orden:'importe' };
 
@@ -1713,6 +1719,7 @@ function entrar(id){
   filtros = { texto:'', comercial:'', etapa:'', estado:'abierta' };
   radar = { comercial:'', prob:'', vertical:'', proyectista:'', orden:'importe' };
   vista = 'panel';
+  informe = 'resultados';
   $('#usuarioActivo').textContent = yo().nombre;
   $('#rolActivo').textContent = yo().rol;
   $('#navCopia').classList.toggle('oculto', !esManager());
@@ -1724,7 +1731,7 @@ function entrar(id){
 function pintar(){
   document.querySelectorAll('.rail [data-vista]').forEach(b=>b.setAttribute('aria-current',String(b.dataset.vista===vista)));
   pintarCifras();
-  ({pipeline:vPipeline,radar:vRadar,lista:vLista,agenda:vAgenda,panel:vPanel,resultados:vResultados,importar:vImportar,copia:vCopia})[vista]($('#contenido'));
+  ({pipeline:vPipeline,radar:vRadar,lista:vLista,agenda:vAgenda,panel:vPanel,informes:vInformes,importar:vImportar,copia:vCopia})[vista]($('#contenido'));
 }
 
 function pintarCifras(){
@@ -2014,6 +2021,24 @@ function vAgenda(c){
 }
 
 /* ═══════ panel ═══════ */
+
+/* ═══════ Informes: contenedor de subpantallas ═══════
+   Para añadir un informe nuevo: una línea en INFORMES con su función de pintado.
+   soloDireccion:true lo oculta a quien no sea director. */
+const INFORMES = [
+  { id:'resultados', nombre:'Resultados', pintar:c=>vResultados(c) },
+];
+function vInformes(c){
+  const visibles = INFORMES.filter(i => !i.soloDireccion || esManager());
+  if(!visibles.some(i => i.id === informe)) informe = visibles[0].id;
+  c.innerHTML = `
+  <nav class="subnav" aria-label="Informes">
+    ${visibles.map(i=>`<button data-informe="${i.id}" aria-current="${i.id===informe}">${esc(i.nombre)}</button>`).join('')}
+  </nav>
+  <div id="informeCuerpo"></div>`;
+  c.querySelectorAll('[data-informe]').forEach(b => b.onclick = () => { informe = b.dataset.informe; pintar(); });
+  visibles.find(i => i.id === informe).pintar(c.querySelector('#informeCuerpo'));
+}
 
 /* ═══════ Resultados: cierre del ejercicio ═══════ */
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
