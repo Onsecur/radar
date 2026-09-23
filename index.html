@@ -1504,7 +1504,7 @@ const claveCopia = t => COPIA_CLAVE[t] ||
   (['cuenta','prescriptor','prescriptor_contacto','oportunidad','presupuesto','nota',
     'cambio','importacion','import_revision','exportacion'].includes(t) ? ['id'] : ['codigo']);
 
-let copia = { conteo:null, ultima:null, cargando:false, trabajando:'', resultado:null, error:'' };
+let copia = { conteo:null, ultima:null, cargando:false, trabajando:'', resultado:null, error:'', fichero:null };
 
 const nombreTabla = t => COPIA_NOMBRES[t] || t.replace(/_/g,' ');
 const ordenTablas = ts => [...ts].sort((a,b)=>{
@@ -1582,11 +1582,24 @@ async function registrarCopia(formato, r){
   if(error) console.warn('No se ha podido registrar la copia:', error.message);
 }
 
-function descargarBlob(blob, nombre){
-  const url = URL.createObjectURL(blob), a = document.createElement('a');
-  a.href = url; a.download = nombre; document.body.appendChild(a); a.click();
-  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 1000);
+/* La copia tarda varios segundos en leerse y, pasado ese rato, el navegador
+   ya no considera la descarga iniciada por el usuario y puede bloquearla sin
+   avisar (Safari siempre; Chrome y Edge según ajustes). Por eso el fichero se
+   deja preparado con un enlace «Guardar» que el usuario pulsa: un clic real
+   sobre un enlace no lo bloquea ningún navegador. La URL se mantiene viva
+   hasta la siguiente copia para que la descarga no se corte a medias. */
+function prepararFichero(blob, nombre){
+  if(copia.fichero?.url) URL.revokeObjectURL(copia.fichero.url);
+  copia.fichero = { url: URL.createObjectURL(blob), nombre, peso: blob.size };
 }
+function intentarDescarga(){
+  const f = copia.fichero; if(!f) return;
+  const a = document.createElement('a');
+  a.href = f.url; a.download = f.nombre; a.rel = 'noopener';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+const pesoES = b => b > 1048576 ? (b/1048576).toLocaleString('es-ES',{maximumFractionDigits:1}) + ' MB'
+                                : Math.max(1, Math.round(b/1024)) + ' KB';
 
 /* ── Excel legible ── */
 function libroCopia(r){
@@ -1711,17 +1724,23 @@ function jsonCopia(r){
 
 async function hacerCopia(formato){
   if(copia.trabajando) return;
+  if(copia.fichero?.url) URL.revokeObjectURL(copia.fichero.url);
+  copia.fichero = null;
   copia.resultado = null; copia.error = ''; copia.trabajando = 'Preparando…'; pintar();
   try{
     const r = await leerTodo();
     copia.trabajando = 'Generando el fichero…'; pintarTrabajoCopia();
     const base = `Radar_copia_${sello()}`;
-    if(formato === 'excel') XLSX.writeFile(libroCopia(r), base + '.xlsx', { compression:true });
-    else descargarBlob(new Blob([jsonCopia(r)], { type:'application/json' }), base + '.json');
+    if(formato === 'excel'){
+      const bin = XLSX.write(libroCopia(r), { bookType:'xlsx', type:'array', compression:true });
+      prepararFichero(new Blob([bin], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), base + '.xlsx');
+    } else prepararFichero(new Blob([jsonCopia(r)], { type:'application/json' }), base + '.json');
+    intentarDescarga();
     await registrarCopia(formato, r);
     copia.resultado = { formato, total:r.total, tablas:r.tablas.length, faltan:r.faltan };
   }catch(e){ copia.error = e.message || String(e); }
   copia.trabajando = '';
+  pintar();
   await cargarEstadoCopia();
 }
 
@@ -1764,8 +1783,12 @@ function vCopia(c){
           ? `<div class="copiaAviso mal"><b>La copia está incompleta.</b> Se ha descargado,
              pero no coincide con la base en: ${res.faltan.map(f=>esc(`${nombreTabla(f.tabla)} (${f.copia} de ${f.base})`)).join(', ')}.
              No la des por buena.</div>`
-          : `<div class="copiaAviso bien">Copia ${res.formato==='excel'?'en Excel':'completa'} descargada:
+          : `<div class="copiaAviso bien">Copia ${res.formato==='excel'?'en Excel':'completa'} preparada:
              ${numES(res.total)} registros de ${res.tablas} tablas, comprobados contra la base.</div>`) : ''}
+        ${copia.fichero ? `<div class="copiaAviso" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+             <a class="btn" href="${copia.fichero.url}" download="${esc(copia.fichero.nombre)}"
+                style="text-decoration:none">Guardar ${esc(copia.fichero.nombre)}</a>
+             <span>${pesoES(copia.fichero.peso)} · Si no se ha descargado solo, pulsa aquí.</span></div>` : ''}
       </div>
 
       <div class="impResumen">
