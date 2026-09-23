@@ -614,7 +614,7 @@ async function cargarDatos(){
   const [cuentas, opos, notas, presupuestos] = await Promise.all([
     todasLasFilas('cuenta', 'id,nombre'),
     todasLasFilas('v_oportunidad',
-      'id,titulo,cuenta_id,cliente,calle,poblacion,provincia,comercial,proyectista,'+
+      'id,titulo,cuenta_id,cliente,calle,poblacion,provincia,comercial,proyectista,tipo,'+
       'tipo_actuacion,tipo_sistema,vertical,origen,importe,cuota_anual,etapa,estado,'+
       'probabilidad,cierre_previsto,fecha_revision,cierre_real,motivo_perdida,'+
       'motivo_exclusion,ultima_actividad,notas,origen_dato,coste'),
@@ -670,6 +670,7 @@ async function cargarDatos(){
       exclusion  : o.motivo_exclusion || null,
       calle      : o.calle || '', poblacion: o.poblacion || '', provincia: o.provincia || '',
       tipo       : etq('actuacion', o.tipo_actuacion),
+      tipoOp     : o.tipo || 'obra',   // obra · averia · mantenimiento… (lo que decide el KPI)
       servicio   : etq('sistema',   o.tipo_sistema),
       vertical   : etq('vertical',  o.vertical),
       origen     : etq('origen',    o.origen),
@@ -2313,7 +2314,11 @@ function objetivoKpi(kpi, tag, corte){
   return { mes, fecha, anual:sumaDe(filas, o => o.imp), hay:filas.length > 0 };
 }
 
-const esObraInf = o => !o.tipo || TIPO_DE_ACTUACION[cod('actuacion', o.tipo)] === 'obra';
+/* Obra = tipo de oportunidad «obra» y, si tiene actuación, que sea de obra.
+   El tipo es el que decide el KPI; la actuación puede estar vacía. */
+const esObraInf = o => (!o.tipoOp || o.tipoOp === 'obra')
+                    && (!o.tipo || TIPO_DE_ACTUACION[cod('actuacion', o.tipo)] === 'obra');
+const esNueva = o => o.tipo === 'Instalación';   // nueva instalación, no ampliación
 const esFisica  = o => o.servicio === 'Seguridad física';
 
 /* Todo lo que usan los dos informes, del 1 de enero a la fecha de corte. */
@@ -2630,7 +2635,9 @@ function vBoard(c){
   const sV = l => sumaDe(l, o => o.valor);
   const margen = l => { const con = l.filter(o => o.coste != null && o.coste > 0), v = sV(con);
     return v ? (v - sumaDe(con, o => o.coste)) / v * 100 : null; };
-  const tm = l => l.length ? sV(l) / l.length : null;
+  /* Ticket medio como el BOARD: importe de las nuevas instalaciones / cuántas. */
+  const tm = l => { const n = l.filter(esNueva); return n.length ? sV(n) / n.length : null; };
+  const nNuevas = l => l.filter(esNueva).length;
   const recur = d.ganadas.filter(o => o.cuota > 0), recurMes = recur.filter(o => o.cierre >= iniMes);
   const cuotaMedia = l => l.length ? sumaDe(l, o => o.cuota) / l.length : null;
   const ob = k => objetivoKpi(k, null, corte);
@@ -2648,8 +2655,8 @@ function vBoard(c){
         [MESES[M-1], `${eK(sV(obraMes))} / ${eK(oI.mes)}`, desv(sV(obraMes), oI.mes)],
         ['A fecha', `${eK(sV(obra))} / ${eK(oI.fecha)}`, desv(sV(obra), oI.fecha)],
         ['Anual', oI.anual ? `${eK(sV(obra))} / ${eK(oI.anual)}` : '—', oI.anual ? `<b style="color:${colPct(sV(obra)/oI.anual)}">${Math.round(sV(obra)/oI.anual*100)}%</b>` : '']],
-      `Nuevas instalaciones: <b>${obraMes.length}</b> en ${MESES[M-1].toLowerCase()} · TM ${tm(obraMes) == null ? '—' : eK(tm(obraMes))}
-       &nbsp;|&nbsp; <b>${obra.length}</b> en el año · TM ${tm(obra) == null ? '—' : eK(tm(obra))}`)}
+      `Nuevas instalaciones: <b>${nNuevas(obraMes)}</b> en ${MESES[M-1].toLowerCase()} · TM ${tm(obraMes) == null ? '—' : eK(tm(obraMes))}
+       &nbsp;|&nbsp; <b>${nNuevas(obra)}</b> en el año · TM ${tm(obra) == null ? '—' : eK(tm(obra))}`)}
     ${cajaLinea('S. TECNOLÓGICA', COL.tec, sV(tec(obra)), sV(tec(obraMes)), oT)}
     ${cajaLinea('S. FÍSICA', COL.fis, sV(fis(obra)), sV(fis(obraMes)), oF)}
     ${cajaLinea('MANT. Y CONEXIONES', COL.rec, sumaDe(recur, o => o.cuota), sumaDe(recurMes, o => o.cuota), oR,
@@ -2667,7 +2674,7 @@ function vBoard(c){
   const filaMargen = `<div class="bdG bdG3">
     <div class="bdBox"><div class="bdHd">MARGEN ${A} VS OBJETIVO</div><div class="bdRings">
       ${anillo('Global', obra, obraMes, COL.total, 'total')}${anillo('Tecnológica', tec(obra), tec(obraMes), COL.tec, 'tecnologia')}${anillo('Física', fis(obra), fis(obraMes), COL.fis, 'fisica')}</div></div>
-    <div class="bdBox"><div class="bdHd">TICKET MEDIO ${A}</div><div class="bdTks">
+    <div class="bdBox"><div class="bdHd">TICKET MEDIO NUEVAS INSTALACIONES ${A}</div><div class="bdTks">
       ${ticket('Global', obra, COL.total, 'total')}${ticket('Tecnológica', tec(obra), COL.tec, 'tecnologia')}${ticket('Física', fis(obra), COL.fis, 'fisica')}
       <div class="bdTk"><i style="background:${COL.rec}"></i><span>Cuota media</span><b>${cuotaMedia(recur) == null ? '—' : Math.round(cuotaMedia(recur)).toLocaleString('es-ES') + ' €'}</b><em></em><small>${recur.length} abonados</small></div></div></div>
     <div class="bdBox"><div class="bdHd">VERTICALES APROBADAS
@@ -2791,6 +2798,7 @@ function vBoard(c){
   </div>`;
 
   c.innerHTML = cabeceraInforme('Board', `Corte ${fechaEs(corte)} · ${MESES[M-1].toLowerCase()} ${A}`)
+    + (obra.length && !obra.some(o => o.vertical) ? `<p class="infAviso">Las fichas no tienen vertical, línea ni tipo de actuación, así que verticales, seguridad física y ticket medio salen vacíos. Ejecuta <b>radar_v4_clasificacion.sql</b> y recarga.</p>` : '')
     + (REF.length ? '' : `<p class="infAviso">Faltan los datos de referencia (histórico 2025, objetivos por vertical, margen y ticket). Ejecuta <b>radar_v4_board.sql</b> y recarga.</p>`)
     + `<div class="bdWrap">
       <h3 class="bdSec">APROBACIONES</h3>${filaGauges}${filaMargen}${filaEvol}${filaTablas}
