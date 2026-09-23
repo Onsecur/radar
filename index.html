@@ -401,9 +401,9 @@ async function cargarDatos(){
       'id,titulo,cuenta_id,cliente,calle,poblacion,provincia,comercial,proyectista,'+
       'tipo_actuacion,tipo_sistema,vertical,origen,importe,cuota_anual,etapa,estado,'+
       'probabilidad,cierre_previsto,fecha_revision,cierre_real,motivo_perdida,'+
-      'motivo_exclusion,ultima_actividad,notas,origen_dato'),
+      'motivo_exclusion,ultima_actividad,notas,origen_dato,coste'),
     todasLasFilas('nota', 'id,oportunidad_id,tipo,texto,fecha_actividad,proxima_accion,autor_nombre'),
-    todasLasFilas('presupuesto', 'numero,oportunidad_id,importe,estado,fecha,fecha_aceptacion')
+    todasLasFilas('presupuesto', 'numero,version,oportunidad_id,importe,coste,estado,fecha,fecha_aceptacion')
   ]);
 
   /* Los numeros de Beta10 de cada oportunidad, para poder sacarlos como
@@ -434,6 +434,7 @@ async function cargarDatos(){
       estado     : o.estado,
       valor      : Number(o.importe) || 0,
       cuota      : Number(o.cuota_anual) || 0,
+      coste      : o.coste == null ? null : Number(o.coste),
       prob       : o.probabilidad,
       /* La ficha usa un único campo de fecha: prevista si está abierta,
          real si está cerrada. */
@@ -453,7 +454,8 @@ async function cargarDatos(){
       presupuestos: (presPorOpo.get(String(o.id)) || []).sort().join(', ')
     })),
     pres: presupuestos.map(p => ({ numero:p.numero, opo:p.oportunidad_id ? String(p.oportunidad_id) : null,
-      importe:Number(p.importe)||0, estado:p.estado, fecha:p.fecha, fecha_aceptacion:p.fecha_aceptacion })),
+      importe:Number(p.importe)||0, coste:p.coste==null?null:Number(p.coste), version:p.version,
+      estado:p.estado, fecha:p.fecha, fecha_aceptacion:p.fecha_aceptacion })),
     acts: notas.map(n => ({
       id:String(n.id), opo:String(n.oportunidad_id), tipo:n.tipo, desc:n.texto,
       fecha:n.fecha_actividad + 'T09:00:00.000Z',
@@ -792,8 +794,8 @@ function fechaISO(v){
 
 /* ── lectura de los ficheros ────────────────────────────────────────── */
 
-let impFicheros = { cubo:null, presupuestos:null };
-let impPlan = null;
+let impFicheros = { cubo:null, presupuestos:null, margenes:null };
+let impPlan = null, impPlanMargen = null;
 
 async function leerLibro(file){
   const buf = await file.arrayBuffer();
@@ -808,6 +810,7 @@ function queFicheroEs(filas){
   const cols = Object.keys(filas[0]);
   if(cols.includes('Serie/Num') && cols.includes('Fecha aceptación')) return 'cubo';
   if(cols.includes('Nº Presupuesto') && cols.includes('Principal'))   return 'presupuestos';
+  if(cols.includes('PRESUPUESTO') && cols.includes('COSTE') && cols.includes('IMPORTETOTAL')) return 'margenes';
   return null;
 }
 
@@ -823,7 +826,7 @@ async function recibirFicheros(files){
     }
     impFicheros[tipo] = { nombre:f.name, filas };
   }
-  impPlan = null;
+  impPlan = null; impPlanMargen = null;
   pintar();
 }
 
@@ -1092,6 +1095,102 @@ function construirPlan(){
   return plan;
 }
 
+/* ── márgenes ───────────────────────────────────────────────────────
+   Solo interesa el margen de lo ganado: del fichero de márgenes se
+   cogen los presupuestos Aceptados o Totalmente facturados y se ignora
+   todo lo demás. Se escribe el coste; el margen lo calcula la base
+   (importe − coste). El importe no se toca nunca: manda el cubo.
+   El coste sí entra en el histórico cerrado, porque es justo donde
+   hace falta el margen. */
+const GANADO_B10 = ['Aceptado', 'Totalmente facturado'];
+
+function construirPlanMargen(){
+  const filas = impFicheros.margenes ? impFicheros.margenes.filas : [];
+  const plan = { presupuestos:[], fichas:[], incompletas:[], noEnRadar:[],
+                 costeCero:[], difImporte:[], noGanadoRadar:[], excluidas:0,
+                 ignorados:0, yaIgual:0 };
+
+  /* Lo que el fichero dice de cada presupuesto ganado. El fichero repite
+     algunas filas idénticas: se queda una por presupuesto. */
+  const delFichero = new Map();
+  for(const r of filas){
+    if(!GANADO_B10.includes(String(r['ESTADO']||'').trim())){ plan.ignorados++; continue; }
+    if(esExcluido(r['CLIENTE'])){ plan.excluidas++; continue; }
+    const n = sinVersion(r['PRESUPUESTO']);
+    if(!n || delFichero.has(n)) continue;
+    delFichero.set(n, { numero:n, version:String(r['PRESUPUESTO']).trim(), cliente:r['CLIENTE'],
+      coste:Number(r['COSTE']), importe:Number(r['IMPORTETOTAL']) });
+  }
+
+  const presRadar = new Map(D.pres.map(p => [sinVersion(p.numero), p]));
+  const costeNuevo = new Map();          /* numero → coste que queda tras aplicar */
+
+  for(const [n, m] of delFichero){
+    const p = presRadar.get(n);
+    if(!p){ plan.noEnRadar.push(m); continue; }
+    if(!GANADO_B10.includes(p.estado)){ plan.noGanadoRadar.push({ ...m, estadoRadar:p.estado }); continue; }
+    if(isNaN(m.coste) || m.coste <= 0){ plan.costeCero.push(m); continue; }
+    if(Math.abs((p.importe||0) - m.importe) > Math.max(1, Math.abs(m.importe)*0.01)){
+      plan.difImporte.push({ ...m, importeRadar:p.importe }); continue; }
+    costeNuevo.set(n, m.coste);
+    if(p.coste != null && Math.abs(p.coste - m.coste) <= 0.005) plan.yaIgual++;
+    else plan.presupuestos.push({ numero:p.numero, coste:m.coste });
+  }
+
+  /* Coste de la ficha ganada: la suma de sus presupuestos ganados. Si a
+     alguno le falta el coste, la ficha se queda con el margen pendiente
+     en lugar de enseñar un margen inflado. */
+  const porOpo = new Map();
+  for(const p of D.pres){
+    if(!p.opo || !GANADO_B10.includes(p.estado)) continue;
+    if(!porOpo.has(p.opo)) porOpo.set(p.opo, []);
+    porOpo.get(p.opo).push(p);
+  }
+  for(const o of D.opos){
+    if(o.estado !== 'ganada') continue;
+    const ps = porOpo.get(o.id);
+    if(!ps || !ps.length) continue;
+    const costes = ps.map(p => { const n = sinVersion(p.numero);
+      return costeNuevo.has(n) ? costeNuevo.get(n) : p.coste; });
+    if(costes.some(c => c == null)){
+      if(o.coste == null) plan.incompletas.push({ o, faltan:ps.filter((p,i)=>costes[i]==null).map(p=>p.numero) });
+      continue;
+    }
+    const total = Math.round(costes.reduce((s,c)=>s+c,0)*100)/100;
+    if(o.coste != null && Math.abs(o.coste - total) <= 0.005) continue;
+    plan.fichas.push({ o, coste:total, antes:o.coste,
+      margenPct: o.valor ? Math.round((o.valor-total)/o.valor*1000)/10 : null });
+  }
+  return plan;
+}
+
+async function aplicarMargenes(){
+  const p = impPlanMargen;
+  if(!p) return;
+  const b = $('#mrgAplicar');
+  if(b){ b.disabled = true; b.textContent = 'Aplicando…'; }
+  try{
+    for(let i=0; i<p.presupuestos.length; i+=500){
+      const { error } = await SB.from('presupuesto')
+        .upsert(p.presupuestos.slice(i, i+500), { onConflict:'numero' });
+      if(error) throw error;
+    }
+    for(let i=0; i<p.fichas.length; i+=20){
+      const res = await Promise.all(p.fichas.slice(i, i+20).map(f =>
+        SB.from('oportunidad').update({ coste:f.coste }).eq('id', f.o.id)));
+      const mal = res.find(r => r.error);
+      if(mal) throw mal.error;
+    }
+    impFicheros.margenes = null; impPlanMargen = null;
+    await recargar();
+    aviso('Márgenes aplicados.');
+  }catch(e){
+    console.error(e);
+    aviso('Los márgenes han fallado: ' + (e.message || e));
+    if(b){ b.disabled = false; b.textContent = 'Aplicar márgenes'; }
+  }
+}
+
 /* ── aplicar ────────────────────────────────────────────────────────── */
 
 async function aplicarPlan(){
@@ -1161,8 +1260,8 @@ async function aplicarPlan(){
       if(error) throw error;
     }
 
-    impFicheros = { cubo:null, presupuestos:null };
-    impPlan = null;
+    impFicheros.cubo = null; impFicheros.presupuestos = null;
+    impPlan = null; impPlanMargen = null;
     await recargar();
     aviso('Importación aplicada.');
   }catch(e){
@@ -1172,7 +1271,7 @@ async function aplicarPlan(){
   }
 }
 
-let impDetalle = false;
+let impDetalle = false, mrgDetalle = false;
 
 /* ═══════ Copia de seguridad ═══════
    Solo dirección. Descarga todo Radar en dos formatos:
@@ -1967,7 +2066,8 @@ const REGLAS_IMPORT = [
   ['Fecha de cierre','La de aceptación del cubo. Si falta, la del presupuesto.'],
   ['Tipo de oportunidad','Del tipo de actuación de Beta10. Averías y mantenimientos van a sus KPI, fuera de la cifra comercial.'],
   ['Comercial','Manda el propietario de cuenta sobre lo que diga el presupuesto.'],
-  ['Cuentas nacionales','Orona e ICS 360 no entran en Radar.']
+  ['Cuentas nacionales','Orona e ICS 360 no entran en Radar.'],
+  ['Márgenes','Solo de lo ganado (Aceptado o Totalmente facturado). Se escribe el coste; el margen es importe menos coste. Coste 0 se deja como margen pendiente. Entra también en el histórico cerrado.']
 ];
 let impDeposito = 'presupuestos', impCargados = [];
 
@@ -1975,26 +2075,28 @@ function vImportar(c){
   const f = impFicheros, listo = f.cubo || f.presupuestos;
   if(listo && !impPlan) impPlan = construirPlan();
   const p = impPlan;
+  if(f.margenes && !impPlanMargen) impPlanMargen = construirPlanMargen();
+  const pm = impPlanMargen;
 
   c.innerHTML = `
   <div class="resHead"><div>
     <h2 style="font-size:18px">Importar desde Beta10</h2>
     <p style="margin:2px 0 0;color:var(--gris);font-size:13px">
-      Suelta las dos descargas. Nada se escribe hasta que lo confirmes.</p>
+      Suelta las descargas: cubo y presupuestos cada pocos días, márgenes una vez al mes. Nada se escribe hasta que lo confirmes.</p>
   </div></div>
 
   <div class="resCols">
     <section>
       <div class="impZona" id="impZona">
-        <b>Arrastra aquí los dos ficheros</b>
-        <span>El cubo de presupuestos y la descarga de presupuestos</span>
+        <b>Arrastra aquí los ficheros</b>
+        <span>El cubo, la descarga de presupuestos y, si toca, la de márgenes. Se reconocen solos.</span>
         <button class="btn sec" id="impBuscar" style="margin-top:12px">Buscar en el equipo</button>
         <input type="file" id="impFile" multiple accept=".xlsx,.xls,.xlsb" hidden>
       </div>
 
       <div class="impCargados">
-        ${['cubo','presupuestos'].map(k=>`<div class="${f[k]?'ok':''}">
-          <b>${k==='cubo'?'Cubo':'Presupuestos'}</b>
+        ${['cubo','presupuestos','margenes'].map(k=>`<div class="${f[k]?'ok':''}">
+          <b>${{cubo:'Cubo',presupuestos:'Presupuestos',margenes:'Márgenes'}[k]}</b>
           <span>${f[k] ? esc(f[k].nombre)+' · '+f[k].filas.length+' filas' : 'pendiente'}</span>
           ${f[k]?`<button class="btn sec" data-quita="${k}">Quitar</button>`:''}
         </div>`).join('')}
@@ -2048,6 +2150,50 @@ function vImportar(c){
         <table><tbody>${p.excluidas.map(x=>`<tr><td>${esc(x.numero)}</td>
           <td>${esc(x.cliente)}</td></tr>`).join('')}</tbody></table>`:''}
       </div>`}`}
+
+      ${!pm ? '' : `
+      <div class="impResumen">
+        <h3>Márgenes · solo presupuestos ganados</h3>
+        <table><tbody>
+          <tr><td>Presupuestos a los que se pone coste</td><td class="der num">${pm.presupuestos.length}</td></tr>
+          <tr><td>Fichas ganadas que reciben margen</td><td class="der num">${pm.fichas.length}</td></tr>
+          <tr><td>Ya tenían ese coste</td><td class="der num">${pm.yaIgual}</td></tr>
+          <tr><td>Fichas ganadas con algún presupuesto aún sin coste</td><td class="der num">${pm.incompletas.length}</td></tr>
+          <tr><td>Coste 0 en Beta10 (no se escribe)</td><td class="der num">${pm.costeCero.length}</td></tr>
+          <tr><td>Importe distinto del de Radar (no se escribe)</td><td class="der num">${pm.difImporte.length}</td></tr>
+          <tr><td>Ganados en el fichero pero no en Radar</td><td class="der num">${pm.noGanadoRadar.length}</td></tr>
+          <tr><td>No están en Radar</td><td class="der num">${pm.noEnRadar.length}</td></tr>
+          <tr class="totalFila"><td>Ignorados por no estar ganados</td><td class="der num">${pm.ignorados}</td></tr>
+        </tbody></table>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn" id="mrgAplicar" ${pm.presupuestos.length+pm.fichas.length?'':'disabled'}>Aplicar márgenes</button>
+          <button class="btn sec" id="mrgDetalle">${mrgDetalle?'Ocultar':'Ver'} el detalle</button>
+        </div>
+        ${!mrgDetalle ? '' : `<div class="impDetalle">
+          ${pm.fichas.length?`<h3>Reciben margen · ${pm.fichas.length}</h3>
+          <table><tbody>${pm.fichas.map(x=>`<tr><td>${esc(x.o.nombre)}</td>
+            <td class="der num">${eur(x.o.valor)}</td><td class="der num">coste ${eur(x.coste)}</td>
+            <td class="der num">${x.margenPct==null?'—':x.margenPct.toLocaleString('es-ES')+' %'}</td></tr>`).join('')}</tbody></table>`:''}
+          ${pm.costeCero.length?`<h3>Coste 0 en Beta10 · ${pm.costeCero.length}</h3>
+          <p class="sub">Darían un margen del 100 %. Se dejan con el margen pendiente hasta que Beta10 tenga el coste.</p>
+          <table><tbody>${pm.costeCero.map(x=>`<tr><td>${esc(x.version)}</td><td>${esc(x.cliente)}</td>
+            <td class="der num">${eur(x.importe)}</td></tr>`).join('')}</tbody></table>`:''}
+          ${pm.difImporte.length?`<h3>Importe distinto · ${pm.difImporte.length}</h3>
+          <p class="sub">El importe del fichero de márgenes no cuadra con el de Radar. Suele arreglarse importando antes el cubo del mismo día.</p>
+          <table><tbody>${pm.difImporte.map(x=>`<tr><td>${esc(x.version)}</td><td>${esc(x.cliente)}</td>
+            <td class="der num">${eur(x.importe)} / Radar ${eur(x.importeRadar)}</td></tr>`).join('')}</tbody></table>`:''}
+          ${pm.noGanadoRadar.length?`<h3>Ganados en Beta10, no en Radar · ${pm.noGanadoRadar.length}</h3>
+          <p class="sub">Importa primero el cubo para que Radar los tenga como ganados y vuelve a cargar los márgenes.</p>
+          <table><tbody>${pm.noGanadoRadar.map(x=>`<tr><td>${esc(x.version)}</td><td>${esc(x.cliente)}</td>
+            <td>${esc(x.estadoRadar||'')}</td></tr>`).join('')}</tbody></table>`:''}
+          ${pm.incompletas.length?`<h3>Margen pendiente · ${pm.incompletas.length}</h3>
+          <p class="sub">Ganadas con algún presupuesto sin coste. No se les pone un margen parcial.</p>
+          <table><tbody>${pm.incompletas.map(x=>`<tr><td>${esc(x.o.nombre)}</td>
+            <td>${esc(x.faltan.join(', '))}</td></tr>`).join('')}</tbody></table>`:''}
+          ${pm.noEnRadar.length?`<h3>No están en Radar · ${pm.noEnRadar.length}</h3>
+          <table><tbody>${pm.noEnRadar.map(x=>`<tr><td>${esc(x.version)}</td><td>${esc(x.cliente)}</td></tr>`).join('')}</tbody></table>`:''}
+        </div>`}
+      </div>`}
     </section>
 
     <section class="resCaja">
@@ -2067,8 +2213,10 @@ function vImportar(c){
   $('#impBuscar').onclick = () => inp.click();
   inp.onchange = () => recibirFicheros([...inp.files]);
   c.querySelectorAll('[data-quita]').forEach(b => b.onclick = () => {
-    impFicheros[b.dataset.quita] = null; impPlan = null; pintar(); });
+    impFicheros[b.dataset.quita] = null; impPlan = null; impPlanMargen = null; pintar(); });
   if($('#impAplicar')) $('#impAplicar').onclick = aplicarPlan;
+  if($('#mrgAplicar')) $('#mrgAplicar').onclick = aplicarMargenes;
+  if($('#mrgDetalle')) $('#mrgDetalle').onclick = () => { mrgDetalle = !mrgDetalle; pintar(); };
   if($('#impDetalle')) $('#impDetalle').onclick = () => { impDetalle = !impDetalle; pintar(); };
 }
 
