@@ -3408,10 +3408,12 @@ function abrirCajon(o){
     o.tocada=new Date().toISOString(); cerrarCajon(); pintar(); sincronizar(o);
   };
   if($('#btnPerdida')) $('#btnPerdida').onclick = async () => {
-    const m = await dialogoPerdida(o);
-    if(!m) return;
-    o.estado='perdida'; o.etapa='cerrado'; o.prob=0; o.motivo=m; o.cierre=hoy();
-    o.tocada=new Date().toISOString(); cerrarCajon(); pintar(); sincronizar(o);
+    const r = await dialogoPerdida(o);
+    if(!r) return;
+    o.estado='perdida'; o.etapa='cerrado'; o.prob=0; o.motivo=r.motivo; o.cierre=r.fecha;
+    o.tocada=new Date().toISOString(); cerrarCajon(); pintar();
+    await sincronizar(o);
+    if(r.nota) notaDePerdida(o, r);
   };
   if($('#btnReabrir')) $('#btnReabrir').onclick = () => {
     o.estado='abierta'; o.etapa='negociacion'; o.motivo=null; o.cierre='';
@@ -3452,6 +3454,20 @@ function activarActividad(o){
 }
 
 
+/* La nota que se escribe al marcar perdida. Va a la tabla de notas con la
+   fecha de la pérdida, para que salga en el historial de la oportunidad. */
+async function notaDePerdida(o, r){
+  const texto = 'Perdida (' + r.motivo + '): ' + r.nota;
+  const { error } = await SB.from('nota').insert({
+    oportunidad_id : Number(o.id), tipo:'nota', texto,
+    fecha_actividad: r.fecha,
+    autor_nombre   : MI_PERFIL ? MI_PERFIL.nombre : 'Radar'
+  });
+  if(error){ aviso('La nota no se ha guardado: ' + error.message); return; }
+  D.acts.push({ id:nuevoId('a'), opo:o.id, tipo:'nota', desc:texto, fecha:r.fecha + 'T12:00:00',
+                prox:null, proxFecha:null, hecha:false, autor:comoUsuario });
+}
+
 /* La nota se graba aparte: en la base es inmutable y mueve la fecha de
    última actividad de la oportunidad. */
 async function guardarNota(o){
@@ -3484,8 +3500,16 @@ function dialogoBase(html){
   return d;
 }
 
-/* Motivo de pérdida: solo los del catálogo radar.motivo_perdida. Devuelve la etiqueta o null. */
+/* Marcar perdida. Devuelve { motivo, fecha, nota } o null.
+   - motivo: solo los del catálogo radar.motivo_perdida.
+   - fecha: por defecto hoy; se puede llevar atrás, pero no dentro del
+     histórico cerrado (hasta HISTORICO_HASTA) ni al futuro.
+   - nota: opcional; se graba como nota de la oportunidad con esa fecha. */
 function dialogoPerdida(o){
+  const hoy = new Date().toISOString().slice(0,10);
+  const d0 = new Date(HISTORICO_HASTA + 'T12:00:00'); d0.setDate(d0.getDate()+1);
+  const minimo = d0.toISOString().slice(0,10);
+  const dia = f => f.slice(8,10) + '/' + f.slice(5,7) + '/' + f.slice(0,4);
   return new Promise(resolve => {
     const d = dialogoBase(`
       <h3 style="margin:0 0 4px;font-size:16px">Marcar como perdida</h3>
@@ -3495,19 +3519,38 @@ function dialogoPerdida(o){
             border:1px solid #d9dde3;border-radius:8px;cursor:pointer">
           <input type="radio" name="pdMotivo" value="${esc(m)}"> ${esc(m)}</label>`).join('')}
       </div>
+      <div class="campo" style="margin-top:14px">
+        <label for="pdFecha">Fecha de la pérdida</label>
+        <input type="date" id="pdFecha" value="${hoy}" min="${minimo}" max="${hoy}" style="width:100%">
+        <small style="color:var(--gris);font-size:12px">Hasta el ${dia(HISTORICO_HASTA)} es histórico cerrado y no se puede imputar.</small>
+      </div>
+      <div class="campo" style="margin-top:10px">
+        <label for="pdNota">Notas</label>
+        <textarea id="pdNota" rows="3" style="width:100%;resize:vertical"
+          placeholder="Qué ha pasado, con quién se ha ido, si se puede recuperar…"></textarea>
+      </div>
+      <p id="pdError" style="color:#b3261e;font-size:13px;margin:8px 0 0;display:none"></p>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
         <button class="btn sec" id="pdNo">Cancelar</button>
         <button class="btn rojo" id="pdSi" disabled>Marcar perdida</button>
       </div>`);
-    const si = d.querySelector('#pdSi');
+    const si = d.querySelector('#pdSi'), err = d.querySelector('#pdError');
     const fin = v => { d.close(); d.remove(); resolve(v); };
     d.querySelectorAll('input[name=pdMotivo]').forEach(r => {
       r.onchange = () => { si.disabled = false; };
-      r.closest('label').ondblclick = () => fin(r.value);
     });
     d.querySelector('#pdNo').onclick = () => fin(null);
     d.addEventListener('cancel', e => { e.preventDefault(); fin(null); });
-    si.onclick = () => { const r = d.querySelector('input[name=pdMotivo]:checked'); if(r) fin(r.value); };
+    si.onclick = () => {
+      const r = d.querySelector('input[name=pdMotivo]:checked');
+      const fecha = d.querySelector('#pdFecha').value;
+      if(!r) return;
+      if(!fecha || fecha < minimo || fecha > hoy){
+        err.textContent = `La fecha tiene que estar entre el ${dia(minimo)} y hoy.`;
+        err.style.display = 'block'; return;
+      }
+      fin({ motivo:r.value, fecha, nota:d.querySelector('#pdNota').value.trim() });
+    };
     d.showModal();
   });
 }
