@@ -189,29 +189,6 @@ select,input[type=text],input[type=date],input[type=number],textarea{background:
 .etiqueta.ganada{background:var(--azul);color:#fff}
 .etiqueta.perdida{background:#F1E3E3;color:var(--granate)}
 
-/* diálogo de pérdida */
-dialog.dlg{border:none;padding:0;border-radius:8px;width:min(460px,calc(100% - 32px));color:var(--azul);box-shadow:0 18px 48px rgba(12,38,58,.28)}
-dialog.dlg::backdrop{background:rgba(12,38,58,.45)}
-dialog.dlg[open]{animation:dlgEntra .16s ease-out}
-@keyframes dlgEntra{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){dialog.dlg[open]{animation:none}}
-.dlg > header{padding:16px 20px 12px;border-bottom:1px solid var(--linea);border-top:3px solid var(--rojo);border-radius:8px 8px 0 0}
-.dlg > header h2{font-size:16px;margin:0}
-.dlg > header p{margin:3px 0 0;font-size:13px;color:var(--gris)}
-.dlg .dlgCuerpo{padding:16px 20px;display:flex;flex-direction:column;gap:14px}
-.dlg .dlgCuerpo label[for],.dlg legend{font-size:12px;font-weight:600;color:var(--gris);margin-bottom:6px;display:block;padding:0}
-.dlg fieldset{border:none;margin:0;padding:0}
-.motivos{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.motivos label{display:flex;align-items:center;gap:8px;border:1px solid var(--linea);border-radius:var(--r);padding:9px 11px;cursor:pointer;font-size:13px;font-weight:500}
-.motivos label:hover{border-color:#BDC6CE}
-.motivos input{accent-color:var(--rojo);margin:0}
-.motivos label:has(input:checked){border-color:var(--rojo);background:var(--rojo-claro)}
-.motivos label:has(input:focus-visible){outline:2px solid var(--azul);outline-offset:1px}
-.motivos kbd{margin-left:auto;font:inherit;font-size:11px;color:var(--gris)}
-.dlg > footer{padding:12px 20px 16px;display:flex;justify-content:flex-end;gap:8px}
-.dlg .btn:disabled{opacity:.45;cursor:not-allowed}
-@media (max-width:420px){.motivos{grid-template-columns:1fr}}
-
 /* cajón */
 .velo{position:fixed;inset:0;background:rgba(12,38,58,.4);display:none;z-index:20}
 .velo.abierto{display:block}
@@ -327,6 +304,70 @@ details.columnas input{width:auto}
 .impDetalle h3{font-size:14px;margin:14px 0 6px}
 .impDetalle table{font-size:12px}
 .impDetalle p.sub{font-size:12px;color:var(--gris);margin:0 0 6px}
+
+/* ═══════ Forecast mensual por comercial ═══════ */
+.fcHead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.fcHead h2{font-size:18px}
+.fcHead p{margin:2px 0 0;color:var(--gris);font-size:13px}
+.fcAcciones{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.fcAcciones .mes{min-width:140px;text-align:center;font-weight:700}
+.fcAcciones .flecha{padding:8px 12px;font-weight:700}
+.fcKpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.fcKpi{background:var(--blanco);border:1px solid var(--linea);border-radius:8px;padding:12px 14px}
+.fcKpi .et{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--gris);text-transform:uppercase}
+.fcKpi .v{display:block;margin-top:4px;font-size:22px;font-weight:800;letter-spacing:-.02em}
+.fcKpi small{display:block;font-size:11px;color:var(--gris)}
+.fcKpi.oscuro{background:var(--azul);border-color:var(--azul)}
+.fcKpi.oscuro .et,.fcKpi.oscuro small{color:#C9D3DB}
+.fcKpi.oscuro .v{color:#F2C230}
+.fcKpi .verde{color:var(--verde)} .fcKpi .rojo{color:var(--rojo)}
+.fcAviso{background:var(--naranja-claro);color:#8A4210;font-size:12px;padding:8px 12px;border-radius:var(--r);margin-bottom:12px}
+.fcAviso button{text-decoration:underline;font-weight:700;font-size:12px;color:inherit}
+.fcCols{display:flex;gap:18px;align-items:flex-start}
+.fcCol{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:18px}
+.fcCard{background:var(--blanco);border:1px solid var(--linea);border-radius:8px;overflow:hidden;break-inside:avoid}
+.fcCard header{background:var(--azul);display:flex;align-items:center;gap:12px;padding:10px 14px}
+.fcCard h3{flex:1;min-width:0;color:#fff;font-size:13px;letter-spacing:.07em;text-transform:uppercase;font-weight:700}
+.fcCard header small{color:#C9D3DB;font-size:12px;white-space:nowrap}
+.fcFoto{position:relative;width:44px;height:44px;flex:none;border-radius:50%;background:var(--azul-claro);border:2px solid #fff;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.fcFoto b{font-size:13px;font-weight:800;color:var(--azul)}
+.fcFoto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.fcFilas{padding:5px 0}
+.fcFila{display:grid;grid-template-columns:60px 46px minmax(0,1fr);gap:10px;align-items:center;width:100%;padding:4px 14px;text-align:left;font-size:12px}
+button.fcFila:hover{background:var(--papel)}
+.fcFila .imp{text-align:right;font-weight:700;font-size:13px}
+.fcFila .pct{justify-self:start;color:var(--gris);font-weight:600;font-size:11px;padding:2px 6px}
+.fcFila .tit{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#33475A}
+.fcFila.comp{background:var(--curry-claro)}
+button.fcFila.comp:hover{background:#F2E4B8}
+.fcFila.comp .imp{font-weight:800}
+.fcFila.comp .pct{background:var(--curry);color:var(--azul);font-weight:800;border-radius:4px}
+.fcFila.comp .tit{font-weight:700;color:var(--azul)}
+.fcVacio{margin:0;padding:10px 14px;color:var(--gris);font-size:12px}
+.fcCard footer{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--linea)}
+.fcCard footer div{padding:9px 14px}
+.fcCard footer .et{display:block;font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--gris)}
+.fcCard footer .v{display:block;margin-top:1px;font-size:17px;font-weight:800}
+.fcCard footer .c{background:var(--curry-claro)}
+.fcCard footer .c .et{color:#6B5200}
+.fcCard footer .t{background:var(--papel)}
+.fcCargando{color:var(--gris);font-size:13px}
+@media (max-width:1024px){.fcKpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:760px){.fcKpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media print{
+  @page{size:A4 landscape;margin:9mm}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{background:#fff}
+  nav.rail,.cinta,.cifras,.subnav,.fcAcciones,.fcAviso,.velo,.cajon{display:none!important}
+  #app{display:block;min-height:0}
+  main,.contenido{display:block;padding:0!important;overflow:visible!important}
+  .fcKpis{grid-template-columns:repeat(6,minmax(0,1fr))}
+  .fcKpi .v{font-size:18px}
+  .fcCols{gap:10px}.fcCol{gap:10px}
+  .fcFila{padding:2px 10px;font-size:10.5px}
+  .fcFila .imp{font-size:11px}
+  .fcKpi,.fcCard{break-inside:avoid}
+}
 </style>
 </head>
 <body>
@@ -371,18 +412,6 @@ details.columnas input{width:auto}
   <footer id="cajonPie"></footer>
 </aside>
 
-
-<dialog class="dlg" id="dlgPerdida" aria-labelledby="dlgPerdidaTit">
-  <header><h2 id="dlgPerdidaTit">Marcar como perdida</h2><p id="dlgPerdidaSub"></p></header>
-  <div class="dlgCuerpo">
-    <fieldset><legend>¿Por qué se ha perdido?</legend><div class="motivos" id="dlgMotivos"></div></fieldset>
-    <div><label for="dlgFecha">Fecha de la pérdida</label><input type="date" id="dlgFecha"></div>
-    <div><label for="dlgComentario">Comentario (opcional, queda en el historial)</label>
-      <textarea id="dlgComentario" rows="2" placeholder="La competencia ha ofrecido un 15% menos."></textarea></div>
-  </div>
-  <footer><button class="btn sec" id="dlgCancelar" type="button">Cancelar</button>
-    <button class="btn rojo" id="dlgConfirmar" type="button" disabled>Marcar perdida</button></footer>
-</dialog>
 
 <script src="supabase.js"></script>
 <script src="xlsx.js"></script>
@@ -593,7 +622,7 @@ async function sincronizar(o){
 }
 
 async function recargar(){
-  try{ await cargarDatos(); D = estructuraClonada(); cerrarCajon(); pintar(); }
+  try{ await cargarDatos(); D = estructuraClonada(); fcCache = {}; cerrarCajon(); pintar(); }
   catch(e){ aviso('No se han podido cargar los datos: ' + (e.message||e)); }
 }
 </script>
@@ -614,15 +643,7 @@ const VERTICALES = ['Casas','Pisos','Comunidades','Industria','Edificios corpora
 // Proyectistas: personal de ingeniería. Pendiente de sustituir por los nombres reales.
 const PROYECTISTAS = ['Sin asignar','Eloi Lloveras','Miguel Ángel Maza','Raúl Vera','Alejandro Puig','Sergio Martínez','Ramón Palou','Jorge Morera','Miguel Ángel Buñuel','Gustavo Callizo','Jordi Simó'];
 const ACTUACIONES = ['Instalación','Ampliación','Avería','Revisión','Cambio de titularidad','Gestión de cliente'];
-/* Códigos = radar.motivo_perdida.codigo (la BD tiene FK sobre ellos). */
-const MOTIVOS = [
-  { c:'precio',        n:'Precio' },
-  { c:'plazo',         n:'Plazo' },
-  { c:'solucion',      n:'Solución' },
-  { c:'sin_respuesta', n:'No responde' },
-  { c:'pospone',       n:'Pospone la inversión' }
-];
-const motivoNombre = c => (MOTIVOS.find(m=>m.c===c)||{}).n || c;
+const MOTIVOS = ['Precio','Plazo','Solución','No responde','Pospone la inversión'];
 /* Aviso de inactividad: días sin actividad a partir de los cuales la tarjeta
    se marca en naranja, según la etapa. Cerrado no avisa. */
 const INACTIVIDAD_ETAPA = { estudio:15, enviada:15, negociacion:21, standby:70 };
@@ -2070,6 +2091,7 @@ function vAgenda(c){
    soloDireccion:true lo oculta a quien no sea director. */
 const INFORMES = [
   { id:'resultados', nombre:'Resultados', pintar:c=>vResultados(c) },
+  { id:'forecast',   nombre:'Forecast',   pintar:c=>vForecast(c) },
 ];
 function vInformes(c){
   const visibles = INFORMES.filter(i => !i.soloDireccion || esManager());
@@ -2165,6 +2187,159 @@ function vResultados(c){
   const s = c.querySelector('#resMes');
   if(s) s.onchange = e => { resHasta = Number(e.target.value); pintar(); };
 }
+
+
+/* ═══════ Forecast mensual por comercial ═══════
+   Lo ven todos los usuarios, con el equipo completo. La RLS solo deja a cada
+   comercial leer sus fichas, así que los datos llegan por radar.forecast_mes
+   (radar_v4_forecast.sql), que devuelve únicamente título, importe,
+   probabilidad y fecha prevista. Las filas de fichas que el usuario puede
+   leer se abren en el cajón; las de otros comerciales solo se ven.
+   Compromiso = probabilidad >= umbral (80, incluido). Funnel = el resto.
+   Tendencia = aprobado a fecha + compromiso. Objetivo: radar.objetivo. */
+let fcAnio = new Date().getFullYear(), fcMes = new Date().getMonth() + 1;
+let fcCache = {};            // 'aaaa-m' -> { datos, t }
+let fcUltimo = null;         // último cálculo pintado, para reordenar al imprimir
+const FC_VIGENCIA = 60000;   // ms antes de volver a pedir el mismo mes
+
+function kEur(v){
+  const k = (Number(v) || 0) / 1000;
+  if(k > 0 && k < 1) return k.toFixed(1).replace('.', ',') + 'K€';
+  return String(Math.round(k)).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + 'K€';
+}
+
+async function datosForecast(anio, mes, forzar){
+  const k = anio + '-' + mes, c = fcCache[k];
+  if(c && !forzar && Date.now() - c.t < FC_VIGENCIA) return c.datos;
+  const { data, error } = await SB.rpc('forecast_mes', { p_anio:anio, p_mes:mes });
+  if(error) throw error;
+  if(!data) throw new Error('Tu usuario no tiene acceso al forecast.');
+  fcCache[k] = { datos:data, t:Date.now() };
+  return data;
+}
+
+function calcularForecast(d){
+  const umbral = Number(d.umbral) || 80;
+  const lineas = (d.lineas || []).map(l => ({
+    id:String(l.id), comercial:l.comercial, titulo:l.titulo || 'Sin título',
+    importe:Number(l.importe) || 0, prob:Number(l.probabilidad) || 0
+  }));
+  lineas.forEach(l => l.comp = l.prob >= umbral);
+  /* Todos los comerciales salen aunque no tengan nada este mes. Un tag que
+     no esté en COMERCIALES sale con su tag como nombre, para que no se pierda. */
+  const tags = [...new Set([...Object.keys(COMERCIALES), ...lineas.map(l => l.comercial)])];
+  const suma = a => a.reduce((s, l) => s + l.importe, 0);
+  const reps = tags.map(tag => {
+    const ops = lineas.filter(l => l.comercial === tag).sort((a, b) => b.importe - a.importe);
+    const comp = suma(ops.filter(l => l.comp)), fun = suma(ops.filter(l => !l.comp));
+    const nombre = COMERCIALES[tag] || tag;
+    const ini = nombre.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]).join('').toUpperCase();
+    return { tag, nombre, ini, ops, comp, fun, tot:comp + fun };
+  }).sort((a, b) => b.comp - a.comp || b.tot - a.tot || a.nombre.localeCompare(b.nombre, 'es'));
+  const valores = o => Object.values(o || {}).reduce((s, v) => s + (Number(v) || 0), 0);
+  const objetivo = valores(d.objetivo), aprobado = valores(d.aprobado);
+  const comp = reps.reduce((s, r) => s + r.comp, 0), fun = reps.reduce((s, r) => s + r.fun, 0);
+  return { umbral, reps, vencidas:d.vencidas || { n:0, importe:0 },
+    equipo:{ objetivo, aprobado, pendiente:Math.max(0, objetivo - aprobado), comp, fun,
+             tendencia:aprobado + comp, nOps:lineas.length, nComp:lineas.filter(l => l.comp).length } };
+}
+
+/* Reparte las tarjetas en columnas: cada una a la más corta, en orden. */
+function columnasForecast(reps, n){
+  const cols = Array.from({ length:n }, () => ({ h:0, items:[] }));
+  reps.forEach(r => { const c = cols.reduce((a, b) => b.h < a.h ? b : a); c.items.push(r); c.h += Math.max(1, r.ops.length) + 5; });
+  return cols;
+}
+
+function tarjetaForecast(r){
+  const legibles = new Set(D.opos.map(o => o.id));
+  const filas = r.ops.length ? r.ops.map(o => {
+    const el = legibles.has(o.id) ? 'button' : 'div';
+    return `<${el} class="fcFila${o.comp ? ' comp' : ''}"${el === 'button' ? ` type="button" data-opo="${esc(o.id)}"` : ''} title="${esc(o.titulo)}">
+      <span class="imp num">${kEur(o.importe)}</span><span class="pct num">${o.prob}%</span><span class="tit">${esc(o.titulo)}</span></${el}>`;
+  }).join('') : '<p class="fcVacio">Sin oportunidades con cierre este mes</p>';
+  return `<article class="fcCard">
+    <header>
+      <span class="fcFoto"><b>${esc(r.ini)}</b><img src="fotos/${encodeURIComponent(r.tag)}.jpg" alt="" onerror="this.remove()"></span>
+      <h3>${esc(r.nombre)}</h3>
+      <small>${r.ops.length} oport.</small>
+    </header>
+    <div class="fcFilas">${filas}</div>
+    <footer>
+      <div class="c"><span class="et">COMPROMISO</span><span class="v num">${kEur(r.comp)}</span></div>
+      <div><span class="et">FUNNEL</span><span class="v num">${kEur(r.fun)}</span></div>
+      <div class="t"><span class="et">PIPELINE</span><span class="v num">${kEur(r.tot)}</span></div>
+    </footer>
+  </article>`;
+}
+
+function pintarCuerpoForecast(cuerpo, f, nCols){
+  const e = f.equipo, hoy = new Date();
+  const esteMes = fcAnio === hoy.getFullYear() && fcMes === hoy.getMonth() + 1;
+  const n = nCols || (cuerpo.clientWidth < 720 ? 1 : cuerpo.clientWidth < 1150 ? 2 : 3);
+  const sinObj = !e.objetivo;
+  cuerpo.innerHTML = `
+    <div class="fcKpis">
+      <div class="fcKpi"><span class="et">Objetivo</span><span class="v num">${sinObj ? '—' : kEur(e.objetivo)}</span>${sinObj ? '<small>sin objetivo cargado</small>' : ''}</div>
+      <div class="fcKpi"><span class="et">Aprobado a fecha</span><span class="v num verde">${kEur(e.aprobado)}</span></div>
+      <div class="fcKpi"><span class="et">Pendiente</span><span class="v num rojo">${sinObj ? '—' : kEur(e.pendiente)}</span></div>
+      <div class="fcKpi oscuro"><span class="et">Compromiso ≥${f.umbral}%</span><span class="v num">${kEur(e.comp)}</span><small>${e.nComp} oportunidades</small></div>
+      <div class="fcKpi"><span class="et">Tendencia</span><span class="v num">${kEur(e.tendencia)}</span>${sinObj ? '' : `<small>${Math.round(e.tendencia / e.objetivo * 100)}% del objetivo</small>`}</div>
+      <div class="fcKpi"><span class="et">Funnel &lt;${f.umbral}%</span><span class="v num">${kEur(e.fun)}</span><small>${e.nOps - e.nComp} oportunidades</small></div>
+    </div>
+    ${esteMes && f.vencidas.n ? `<div class="fcAviso">${f.vencidas.n} oportunidades abiertas con cierre previsto en meses anteriores (${kEur(f.vencidas.importe)}) no entran en este forecast. <button type="button" id="fcVerVencidas">Revisar en Previsiones</button></div>` : ''}
+    <div class="fcCols">
+      ${columnasForecast(f.reps, n).map(c => `<div class="fcCol">${c.items.map(tarjetaForecast).join('')}</div>`).join('')}
+    </div>`;
+  cuerpo.querySelectorAll('[data-opo]').forEach(b => b.onclick = () => {
+    const o = D.opos.find(x => x.id === b.dataset.opo);
+    if(o) abrirCajon(o);
+  });
+  const v = cuerpo.querySelector('#fcVerVencidas');
+  if(v) v.onclick = () => { vista = 'radar'; pintar(); };
+}
+
+function vForecast(c){
+  const hoy = new Date();
+  c.innerHTML = `
+  <div class="fcHead">
+    <div>
+      <h2>Forecast · ${MESES[fcMes - 1]} ${fcAnio}</h2>
+      <p>Oportunidades abiertas de tipo Obra con cierre previsto en el mes · situación a ${hoy.toLocaleDateString('es-ES')}</p>
+    </div>
+    <div class="fcAcciones">
+      <button class="btn sec flecha" id="fcAnt" type="button" aria-label="Mes anterior">‹</button>
+      <span class="mes">${MESES[fcMes - 1]} ${fcAnio}</span>
+      <button class="btn sec flecha" id="fcSig" type="button" aria-label="Mes siguiente">›</button>
+      <button class="btn sec" id="fcActualizar" type="button">Actualizar</button>
+      <button class="btn" id="fcImprimir" type="button">Imprimir / PDF</button>
+    </div>
+  </div>
+  <div id="fcCuerpo"><p class="fcCargando">Cargando forecast…</p></div>`;
+  const mover = n => { const d = new Date(fcAnio, fcMes - 1 + n, 1); fcAnio = d.getFullYear(); fcMes = d.getMonth() + 1; pintar(); };
+  c.querySelector('#fcAnt').onclick = () => mover(-1);
+  c.querySelector('#fcSig').onclick = () => mover(1);
+  c.querySelector('#fcActualizar').onclick = () => cargarForecast(c, true);
+  c.querySelector('#fcImprimir').onclick = () => window.print();
+  cargarForecast(c, false);
+}
+
+async function cargarForecast(c, forzar){
+  const anio = fcAnio, mes = fcMes;
+  const cuerpo = c.querySelector('#fcCuerpo');
+  try{
+    const f = calcularForecast(await datosForecast(anio, mes, forzar));
+    if(!cuerpo.isConnected || anio !== fcAnio || mes !== fcMes) return;   // el usuario ya cambió de mes
+    fcUltimo = { cuerpo, f };
+    pintarCuerpoForecast(cuerpo, f);
+  }catch(e){
+    if(cuerpo.isConnected) cuerpo.innerHTML = `<p class="fcCargando">No se ha podido cargar el forecast: ${esc(e.message || e)}</p>`;
+  }
+}
+
+/* En papel siempre 3 columnas, sea cual sea el ancho de la pantalla. */
+window.addEventListener('beforeprint', () => { if(fcUltimo && fcUltimo.cuerpo.isConnected) pintarCuerpoForecast(fcUltimo.cuerpo, fcUltimo.f, 3); });
+window.addEventListener('afterprint',  () => { if(fcUltimo && fcUltimo.cuerpo.isConnected) pintarCuerpoForecast(fcUltimo.cuerpo, fcUltimo.f); });
 
 
 /* ═══════ Importar desde Beta10 ═══════ */
@@ -2383,7 +2558,7 @@ function vPanel(c){
 /* ═══════ cajón ═══════ */
 function cerrarCajon(){ $('#cajon').classList.remove('abierto'); $('#velo').classList.remove('abierto'); abierta = null; }
 $('#velo').onclick = cerrarCajon; $('#btnCerrarCajon').onclick = cerrarCajon;
-document.addEventListener('keydown', e => { if(e.key==='Escape' && !document.querySelector('dialog[open]')) cerrarCajon(); });
+document.addEventListener('keydown', e => { if(e.key==='Escape') cerrarCajon(); });
 
 function abrirCajon(o){
   const nuevo = !o;
@@ -2439,7 +2614,7 @@ function abrirCajon(o){
         <div class="campo"><label>Cierre previsto</label><input id="cCierre" type="date" value="${o.cierre||''}"></div>
         <div class="campo ${o.etapa==='standby'?'':'oculto'}" id="wrapRev"><label>Revisar el</label><input id="cRevision" type="date" value="${o.revision||''}"></div>
         ${o.estado!=='abierta'?`<div class="campo"><label>Cierre real</label><input type="text" value="${o.cierre||'—'}" disabled></div>`:''}
-        ${o.estado==='perdida'?`<div class="campo"><label>Motivo</label><input type="text" value="${esc(o.motivo?motivoNombre(o.motivo):'—')}" disabled></div>`:''}
+        ${o.estado==='perdida'?`<div class="campo"><label>Motivo</label><input type="text" value="${esc(o.motivo||'—')}" disabled></div>`:''}
       </div></div>
 
     ${pres.length?`<div class="seccion"><h3>Presupuestos de Beta10 <span style="font-weight:400;color:var(--gris)">${pres.length}</span></h3>
@@ -2461,70 +2636,16 @@ function abrirCajon(o){
     ${!nuevo&&MI_ROL==='director'?`<button class="btn sec" id="btnEliminar" style="margin-left:auto;color:#b3261e;border-color:#e7bab6">Eliminar</button>`:''}`;
   if($('#btnEliminar')) $('#btnEliminar').onclick = () => eliminar(o);
   $('#btnGuardar').onclick = () => guardar(nuevo?null:o);
-  const hoyISO = () => new Date().toISOString().slice(0,10);
-  if($('#btnGanada')) $('#btnGanada').onclick = () => {
-    o.estado='ganada'; o.etapa='cerrado'; o.prob=95; o.motivo=null; o.cierre=hoyISO();
-    o.tocada=new Date().toISOString(); cerrarCajon(); pintar(); sincronizar(o);
+  if($('#btnGanada')) $('#btnGanada').onclick = () => { o.estado='ganada'; o.etapa='cerrado'; o.prob=95; o.tocada=new Date().toISOString(); cerrarCajon(); pintar(); };
+  if($('#btnPerdida')) $('#btnPerdida').onclick = () => {
+    const m = prompt('Motivo de pérdida:\n' + MOTIVOS.map((x,i)=>(i+1)+'. '+x).join('\n'));
+    if(m===null) return;
+    const mm = MOTIVOS[Number(m)-1] || m;
+    o.estado='perdida'; o.etapa='cerrado'; o.prob=0; o.motivo=mm; o.tocada=new Date().toISOString(); cerrarCajon(); pintar();
   };
-  if($('#btnPerdida')) $('#btnPerdida').onclick = async () => {
-    const r = await pedirMotivoPerdida(o);
-    if(!r) return;
-    o.estado='perdida'; o.etapa='cerrado'; o.prob=0; o.motivo=r.motivo; o.cierre=r.fecha;
-    o.tocada=new Date().toISOString(); cerrarCajon(); pintar();
-    await sincronizar(o);
-    if(r.comentario) registrarComentarioPerdida(o, r);
-  };
-  if($('#btnReabrir')) $('#btnReabrir').onclick = () => {
-    o.estado='abierta'; o.etapa='negociacion'; o.motivo=null; o.cierre='';
-    cerrarCajon(); pintar(); sincronizar(o);
-  };
+  if($('#btnReabrir')) $('#btnReabrir').onclick = () => { o.estado='abierta'; o.etapa='negociacion'; o.motivo=null; cerrarCajon(); pintar(); };
   if(!nuevo) activarActividad(o);
   $('#cajon').classList.add('abierto'); $('#velo').classList.add('abierto'); $('#cNombre').focus();
-}
-
-/* Diálogo de pérdida: devuelve {motivo, fecha, comentario} o null si se cancela. */
-function pedirMotivoPerdida(o){
-  const dlg = $('#dlgPerdida'), ok = $('#dlgConfirmar');
-  $('#dlgPerdidaSub').textContent = o.nombre + ' · ' + eur(o.valor);
-  $('#dlgMotivos').innerHTML = MOTIVOS.map((m,i)=>
-    `<label><input type="radio" name="dlgMotivo" value="${m.c}">${esc(m.n)}<kbd>${i+1}</kbd></label>`).join('');
-  $('#dlgFecha').value = new Date().toISOString().slice(0,10);
-  $('#dlgFecha').max   = $('#dlgFecha').value;
-  $('#dlgComentario').value = '';
-  ok.disabled = true;
-  const elegido = () => (dlg.querySelector('input[name=dlgMotivo]:checked')||{}).value;
-  dlg.querySelectorAll('input[name=dlgMotivo]').forEach(r => r.onchange = () => ok.disabled = !elegido());
-
-  return new Promise(resolve => {
-    const fin = v => { dlg.onkeydown = null; dlg.close(); resolve(v); };
-    ok.onclick = () => {
-      const f = $('#dlgFecha').value;
-      if(!elegido() || !f) return;
-      fin({ motivo:elegido(), fecha:f, comentario:$('#dlgComentario').value.trim() });
-    };
-    $('#dlgCancelar').onclick = () => fin(null);
-    dlg.oncancel = e => { e.preventDefault(); fin(null); };      // Escape
-    dlg.onclick  = e => { if(e.target === dlg) fin(null); };     // clic fuera
-    dlg.onkeydown = e => {                                       // atajos 1–5 y Ctrl+Enter
-      if(e.target.tagName === 'TEXTAREA'){ if(e.key==='Enter' && (e.ctrlKey||e.metaKey)) ok.click(); return; }
-      const n = Number(e.key);
-      if(n>=1 && n<=MOTIVOS.length){ const r = dlg.querySelectorAll('input[name=dlgMotivo]')[n-1]; r.checked = true; r.focus(); ok.disabled = false; }
-      else if(e.key==='Enter' && !ok.disabled && e.target.type!=='date'){ e.preventDefault(); ok.click(); }
-    };
-    dlg.showModal();
-    dlg.querySelector('input[name=dlgMotivo]').focus();
-  });
-}
-
-async function registrarComentarioPerdida(o, r){
-  const texto = 'Perdida (' + motivoNombre(r.motivo) + '): ' + r.comentario;
-  D.acts.push({ id:nuevoId('a'), opo:o.id, tipo:'nota', desc:texto, fecha:new Date().toISOString(),
-                prox:null, proxFecha:null, hecha:false, autor:comoUsuario });
-  const { error } = await SB.from('nota').insert({
-    oportunidad_id: Number(o.id), tipo:'nota', texto, fecha_actividad: r.fecha,
-    autor_nombre: MI_PERFIL ? MI_PERFIL.nombre : 'Radar'
-  });
-  if(error) aviso('La oportunidad se ha guardado, pero el comentario no: ' + error.message);
 }
 
 function actividadHTML(o){
