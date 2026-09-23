@@ -137,6 +137,73 @@ main{flex:1;min-width:0;display:flex;flex-direction:column}
 .resCaja h3{font-size:13px;margin-bottom:7px}
 .totalFila td{font-weight:700;background:#FAFAFB;border-top:1px solid var(--linea)}
 .dirFicha{color:var(--gris);font-size:12px;margin-top:2px}
+/* Board */
+.bdWrap{background:var(--blanco);border:1px solid var(--linea);border-radius:8px;padding:6px 14px 12px}
+.bdSec{background:var(--azul);color:#fff;font-size:11px;letter-spacing:.08em;font-weight:700;padding:5px 10px;margin:12px 0 8px}
+.bdG{display:grid;gap:8px;margin-bottom:8px}
+.bdG4{grid-template-columns:minmax(0,1.5fr) repeat(3,minmax(0,1fr))}
+.bdG3{grid-template-columns:repeat(2,minmax(0,1fr)) minmax(0,1.25fr)}
+.bdG21{grid-template-columns:minmax(0,2fr) minmax(0,1fr)}
+.bdG12{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
+.bdG3b{grid-template-columns:minmax(0,1.5fr) minmax(0,1.25fr) minmax(0,1.25fr)}
+@media(max-width:1100px){.bdG4,.bdG3,.bdG3b{grid-template-columns:repeat(2,minmax(0,1fr))}.bdG21,.bdG12{grid-template-columns:1fr}}
+@media(max-width:640px){.bdG4,.bdG3,.bdG3b{grid-template-columns:1fr}}
+.bdBox{border:1px solid var(--linea);display:flex;flex-direction:column;min-width:0;break-inside:avoid}
+.bdHd{background:var(--azul);color:#fff;font-size:10.5px;letter-spacing:.05em;font-weight:600;padding:4px 8px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.bdGauge{display:block;width:100%;max-width:230px;margin:4px auto 0}
+.bdKv{border:0;width:auto;margin:2px auto 8px;font-variant-numeric:tabular-nums}
+.bdKv td{border:0;padding:1px 6px;font-size:12px;white-space:nowrap}
+.bdKv td:first-child{color:var(--gris)}
+.bdKv td:last-child{text-align:right;font-weight:600}
+.bdTotalIn{display:grid;grid-template-columns:minmax(150px,1fr) auto;align-items:center;gap:4px;padding:0 8px}
+@media(max-width:640px){.bdTotalIn{grid-template-columns:1fr}}
+.bdRings{display:flex;justify-content:space-around;padding:8px 4px;flex:1;align-items:center}
+.bdRings>div{text-align:center;font-size:11px;color:var(--gris);display:flex;flex-direction:column;align-items:center}
+.bdRings b{color:var(--azul);font-weight:600;margin-top:2px}
+.bdTks{padding:6px 10px;display:flex;flex-direction:column;justify-content:center;flex:1;gap:4px}
+.bdTk{display:grid;grid-template-columns:4px 1fr auto auto;gap:4px 8px;align-items:center;font-size:12px}
+.bdTk i{align-self:stretch;grid-row:span 2}
+.bdTk b{font-size:15px;font-weight:700;text-align:right}
+.bdTk em{font-style:normal;font-size:11px;font-weight:600;min-width:46px;text-align:right}
+.bdTk small{grid-column:2/-1;font-size:10.5px;color:var(--gris);margin-top:-3px}
+.bdTog{display:flex;gap:2px}
+.bdTog button{font-size:10px;padding:1px 7px;border:1px solid #5B7385;color:#C9D4DC;border-radius:3px}
+.bdTog button[aria-pressed="true"]{background:#fff;color:var(--azul);border-color:#fff}
+.bdPieIn{display:flex;align-items:center;gap:10px;padding:8px 10px;flex:1}
+.bdPie{width:112px;height:112px;flex:none}
+.bdLey{font-size:11px;line-height:1.55;flex:1;min-width:0}
+.bdLey div{display:grid;grid-template-columns:auto 1fr auto;gap:0 6px;align-items:center}
+.bdLey i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
+.bdLey b{font-weight:600}.bdLey span{color:var(--gris);font-size:10.5px;text-align:right;font-variant-numeric:tabular-nums}
+.bdLeyH{font-weight:400;font-size:10px;letter-spacing:0;display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.bdLeyH i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-left:6px}
+.bdChart{display:block;width:100%;height:auto;padding:4px 4px 2px}
+.bdMini{padding:4px 6px 0}.bdMini small{font-size:10.5px;color:var(--gris)}
+.bdScroll{overflow-x:auto}
+.bdTabla{border:0;font-size:12px;font-variant-numeric:tabular-nums}
+.bdTabla th{font-size:10.5px;color:var(--gris);font-weight:600;padding:4px 6px;text-align:right;background:none;border-bottom:1px solid var(--linea)}
+.bdTabla td{padding:4px 6px;text-align:right;border-bottom:1px solid #EEF1F3}
+.bdTabla th:first-child,.bdTabla td:first-child{text-align:left;white-space:nowrap}
+.bdTabla .bdSep{border-left:1px solid var(--linea)}
+.bdTabla small{color:var(--gris)}
+.bdTabla tr.bdTot td{font-weight:700;border-top:2px solid var(--azul);border-bottom:0}
+.bdSw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
+.bdTopCols{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:6px 8px}
+@media(max-width:640px){.bdTopCols{grid-template-columns:1fr}}
+.bdTopCols h4{font-size:11px;margin:0 0 4px;padding-bottom:3px;border-bottom:2px solid}
+.bdTopCols h4.gan{color:var(--verde);border-color:var(--verde)}.bdTopCols h4.per{color:var(--rojo);border-color:var(--rojo)}
+.bdTop{display:grid;grid-template-columns:1fr auto;gap:0 8px;width:100%;text-align:left;padding:4px 0;border-bottom:1px solid #EEF1F3}
+.bdTop:hover .t{text-decoration:underline}
+.bdTop .t{font-size:11.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bdTop b{font-size:12px;font-variant-numeric:tabular-nums}
+.bdTop small{grid-column:1/-1;font-size:10.5px;color:var(--gris);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bdVacio{font-size:11.5px;color:var(--gris);margin:4px 0}
+@media print{
+  .bdWrap{border:0;padding:0}
+  .bdTog{display:none}
+  .bdSec{break-after:avoid}
+  .bdG{break-inside:avoid}
+}
 /* Resultados On · Kam score */
 .infAcc{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
 .infAcc label{font-size:12px;color:var(--gris);display:flex;flex-direction:column;gap:3px}
@@ -555,6 +622,9 @@ async function cargarDatos(){
   try{ OBJ_KPI = (await todasLasFilas('objetivo_kpi', 'kpi,tag_comercial,anio,mes,importe'))
          .map(r => ({ kpi:r.kpi, tag:r.tag_comercial, anio:Number(r.anio), mes:Number(r.mes), imp:Number(r.importe)||0 })); }
   catch(e){ OBJ_KPI = []; console.warn('Sin objetivos por KPI:', e.message || e); }
+  try{ REF = (await todasLasFilas('referencia', 'grupo,clave,anio,mes,valor'))
+         .map(r => ({ grupo:r.grupo, clave:r.clave, anio:Number(r.anio), mes:r.mes == null ? null : Number(r.mes), valor:Number(r.valor) })); }
+  catch(e){ REF = []; console.warn('Sin datos de referencia del Board:', e.message || e); }
 
   /* Los numeros de Beta10 de cada oportunidad, para poder sacarlos como
      columna y buscar por ellos. */
@@ -709,14 +779,7 @@ const VERTICALES = ['Casas','Pisos','Comunidades','Industria','Edificios corpora
 // Proyectistas: personal de ingeniería. Pendiente de sustituir por los nombres reales.
 const PROYECTISTAS = ['Sin asignar','Eloi Lloveras','Miguel Ángel Maza','Raúl Vera','Alejandro Puig','Sergio Martínez','Ramón Palou','Jorge Morera','Miguel Ángel Buñuel','Gustavo Callizo','Jordi Simó'];
 const ACTUACIONES = ['Instalación','Ampliación','Avería','Revisión','Cambio de titularidad','Gestión de cliente'];
-/* Código = radar.motivo_perdida.codigo (clave foránea). En BD se guarda el código, nunca la etiqueta. */
-const MOTIVOS = [ { c:'precio',        n:'Precio' },
-                  { c:'plazo',         n:'Plazo' },
-                  { c:'solucion',      n:'Solución' },
-                  { c:'sin_respuesta', n:'No responde' },
-                  { c:'pospone',       n:'Pospone la inversión' } ];
-const nombreMotivo = c => (MOTIVOS.find(m=>m.c===c)||{}).n || c || '—';
-const hoyLocal = () => { const d=new Date(); return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10); };
+const MOTIVOS = ['Precio','Plazo','Solución','No responde','Pospone la inversión'];
 /* Aviso de inactividad: días sin actividad a partir de los cuales la tarjeta
    se marca en naranja, según la etapa. Cerrado no avisa. */
 const INACTIVIDAD_ETAPA = { estudio:15, enviada:15, negociacion:21, standby:70 };
@@ -728,6 +791,7 @@ const haceDias = n => { const d=new Date(); d.setDate(d.getDate()-n); return d.t
 
 let SEMILLA = { usuarios:[], cuentas:[], opos:[], acts:[], pres:[] };
 let OBJ_KPI = [];   // radar.objetivo_kpi: { kpi, tag, anio, mes, imp }
+let REF = [];       // radar.referencia: { grupo, clave, anio, mes, valor }
 let D = estructuraClonada();
 let vista = 'panel', comoUsuario = 'u1', abierta = null;
 let informe = 'resultados';   // subpantalla activa dentro de Informes
@@ -1484,7 +1548,7 @@ const COPIA_NOMBRES = {
   oportunidad:'Oportunidades', presupuesto:'Presupuestos Beta10', nota:'Notas y actividad',
   cambio:'Historial de cambios', cuenta:'Cuentas', cuenta_alias:'Alias de cuentas',
   prescriptor:'Prescriptores', prescriptor_contacto:'Contactos de prescriptores',
-  perfil:'Usuarios', objetivo:'Objetivos', objetivo_kpi:'Objetivos por KPI', proyectista:'Proyectistas',
+  perfil:'Usuarios', objetivo:'Objetivos', proyectista:'Proyectistas',
   importacion:'Importaciones', import_revision:'Revisiones de importación',
   exportacion:'Copias hechas', etapa:'Etapas', tipo_oportunidad:'Tipos de oportunidad',
   tipo_actuacion:'Tipos de actuación', tipo_sistema:'Tipos de sistema',
@@ -1494,18 +1558,17 @@ const COPIA_NOMBRES = {
 };
 /* Orden en pantalla y en el Excel: primero lo que es trabajo del equipo. */
 const COPIA_ORDEN = ['oportunidad','presupuesto','nota','cambio','cuenta','cuenta_alias',
-  'prescriptor','prescriptor_contacto','perfil','objetivo','objetivo_kpi','proyectista',
+  'prescriptor','prescriptor_contacto','perfil','objetivo','proyectista',
   'importacion','import_revision','exportacion'];
 /* Clave por la que se ordena al paginar. Sin orden fijo, PostgREST puede
    repetir o saltarse filas entre una página y la siguiente. */
 const COPIA_CLAVE = { perfil:['id'], objetivo:['tag_comercial','anio','mes'],
-  objetivo_kpi:['kpi','tag_comercial','anio','mes'],
   vertical_alias:['alias'], cuenta_alias:['alias'], ajuste:['clave'] };
 const claveCopia = t => COPIA_CLAVE[t] ||
   (['cuenta','prescriptor','prescriptor_contacto','oportunidad','presupuesto','nota',
     'cambio','importacion','import_revision','exportacion'].includes(t) ? ['id'] : ['codigo']);
 
-let copia = { conteo:null, ultima:null, cargando:false, trabajando:'', resultado:null, error:'', fichero:null };
+let copia = { conteo:null, ultima:null, cargando:false, trabajando:'', resultado:null, error:'' };
 
 const nombreTabla = t => COPIA_NOMBRES[t] || t.replace(/_/g,' ');
 const ordenTablas = ts => [...ts].sort((a,b)=>{
@@ -1524,22 +1587,12 @@ async function leerConteo(){
   return Object.fromEntries(data.map(r => [r.tabla, Number(r.filas)]));
 }
 
-/* Si una tabla nueva no tiene la clave prevista (pasa cuando se añade una
-   tabla a la base y aún no está en COPIA_CLAVE), se ordena por todas sus
-   columnas: el orden sigue siendo fijo y la copia no se para. */
 async function filasCopia(tabla, claves){
   const filas = []; let desde = 0;
   for(;;){
     let q = SB.from(tabla).select('*');
     claves.forEach(k => q = q.order(k, { ascending:true }));
     const { data, error } = await q.range(desde, desde+999);
-    if(error && desde === 0 && /does not exist/i.test(error.message)){
-      const { data:una, error:e2 } = await SB.from(tabla).select('*').limit(1);
-      if(e2) throw new Error(`${nombreTabla(tabla)}: ${e2.message}`);
-      if(!una.length) return [];
-      console.warn(`Copia: ${tabla} sin clave conocida, se ordena por todas sus columnas.`);
-      return filasCopia(tabla, Object.keys(una[0]));
-    }
     if(error) throw new Error(`${nombreTabla(tabla)}: ${error.message}`);
     filas.push(...data);
     if(data.length < 1000) return filas;
@@ -1593,24 +1646,11 @@ async function registrarCopia(formato, r){
   if(error) console.warn('No se ha podido registrar la copia:', error.message);
 }
 
-/* La copia tarda varios segundos en leerse y, pasado ese rato, el navegador
-   ya no considera la descarga iniciada por el usuario y puede bloquearla sin
-   avisar (Safari siempre; Chrome y Edge según ajustes). Por eso el fichero se
-   deja preparado con un enlace «Guardar» que el usuario pulsa: un clic real
-   sobre un enlace no lo bloquea ningún navegador. La URL se mantiene viva
-   hasta la siguiente copia para que la descarga no se corte a medias. */
-function prepararFichero(blob, nombre){
-  if(copia.fichero?.url) URL.revokeObjectURL(copia.fichero.url);
-  copia.fichero = { url: URL.createObjectURL(blob), nombre, peso: blob.size };
+function descargarBlob(blob, nombre){
+  const url = URL.createObjectURL(blob), a = document.createElement('a');
+  a.href = url; a.download = nombre; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 1000);
 }
-function intentarDescarga(){
-  const f = copia.fichero; if(!f) return;
-  const a = document.createElement('a');
-  a.href = f.url; a.download = f.nombre; a.rel = 'noopener';
-  document.body.appendChild(a); a.click(); a.remove();
-}
-const pesoES = b => b > 1048576 ? (b/1048576).toLocaleString('es-ES',{maximumFractionDigits:1}) + ' MB'
-                                : Math.max(1, Math.round(b/1024)) + ' KB';
 
 /* ── Excel legible ── */
 function libroCopia(r){
@@ -1735,23 +1775,17 @@ function jsonCopia(r){
 
 async function hacerCopia(formato){
   if(copia.trabajando) return;
-  if(copia.fichero?.url) URL.revokeObjectURL(copia.fichero.url);
-  copia.fichero = null;
   copia.resultado = null; copia.error = ''; copia.trabajando = 'Preparando…'; pintar();
   try{
     const r = await leerTodo();
     copia.trabajando = 'Generando el fichero…'; pintarTrabajoCopia();
     const base = `Radar_copia_${sello()}`;
-    if(formato === 'excel'){
-      const bin = XLSX.write(libroCopia(r), { bookType:'xlsx', type:'array', compression:true });
-      prepararFichero(new Blob([bin], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), base + '.xlsx');
-    } else prepararFichero(new Blob([jsonCopia(r)], { type:'application/json' }), base + '.json');
-    intentarDescarga();
+    if(formato === 'excel') XLSX.writeFile(libroCopia(r), base + '.xlsx', { compression:true });
+    else descargarBlob(new Blob([jsonCopia(r)], { type:'application/json' }), base + '.json');
     await registrarCopia(formato, r);
     copia.resultado = { formato, total:r.total, tablas:r.tablas.length, faltan:r.faltan };
   }catch(e){ copia.error = e.message || String(e); }
   copia.trabajando = '';
-  pintar();
   await cargarEstadoCopia();
 }
 
@@ -1794,12 +1828,8 @@ function vCopia(c){
           ? `<div class="copiaAviso mal"><b>La copia está incompleta.</b> Se ha descargado,
              pero no coincide con la base en: ${res.faltan.map(f=>esc(`${nombreTabla(f.tabla)} (${f.copia} de ${f.base})`)).join(', ')}.
              No la des por buena.</div>`
-          : `<div class="copiaAviso bien">Copia ${res.formato==='excel'?'en Excel':'completa'} preparada:
+          : `<div class="copiaAviso bien">Copia ${res.formato==='excel'?'en Excel':'completa'} descargada:
              ${numES(res.total)} registros de ${res.tablas} tablas, comprobados contra la base.</div>`) : ''}
-        ${copia.fichero ? `<div class="copiaAviso" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-             <a class="btn" href="${copia.fichero.url}" download="${esc(copia.fichero.nombre)}"
-                style="text-decoration:none">Guardar ${esc(copia.fichero.nombre)}</a>
-             <span>${pesoES(copia.fichero.peso)} · Si no se ha descargado solo, pulsa aquí.</span></div>` : ''}
       </div>
 
       <div class="impResumen">
@@ -2214,6 +2244,7 @@ const INFORMES = [
      de alta comerciales hará falta una función en la base, como forecast_mes. */
   { id:'resultados', nombre:'Resultados On', pintar:c=>vResultadosOn(c), soloDireccion:true },
   { id:'kamscore',   nombre:'Kam score',     pintar:c=>vKamScore(c),     soloDireccion:true },
+  { id:'board',      nombre:'Board',         pintar:c=>vBoard(c),        soloDireccion:true },
   { id:'forecast',   nombre:'Forecast',   pintar:c=>vForecast(c) },
 ];
 function vInformes(c){
@@ -2438,6 +2469,332 @@ function vKamScore(c){
     <p class="infPie">Aprobaciones: ventas de Instalaciones de cada KAM. Objetivos individuales del BOARD; la flecha compara con la posición de hace una semana.</p>
   </section>`;
   enganchaCabecera(c);
+}
+
+
+/* ═══════ Board ═══════
+   Informe completo de dirección, con el estilo del BOARD (colores por línea:
+   ocre total, petróleo tecnológica, verde física, morado recurrente).
+   Usa las mismas reglas que Resultados On (ver arriba) y además:
+   · radar.referencia (radar_v4_board.sql): objetivos por vertical, histórico
+     2025 y objetivos de margen y ticket medio.
+   · Ticket medio = aprobaciones / nº de fichas ganadas.
+   · Hit rate por rango = ganadas / (ganadas + perdidas) de Obra, por importe,
+     con cierre en los 365 días anteriores al corte.
+   · Pipeline 2026 = abiertas de Obra que cuentan en resultados, sin Stand By,
+     con cierre previsto hasta el 31/12 (las vencidas incluidas).
+   · Previsión de cierre = ganado a fecha + pipeline × hit rate de su rango.
+   · Previsión +4 meses: pipeline por mes de cierre previsto y probabilidad
+     (95 · 80 · 40 · 20; lo de 10 va con 20). Hot = 80 o más. */
+let bdVert = 'anio';   // quesito de verticales: 'mes' o 'anio'
+const refVal = (g, c, a, m) => { const r = REF.find(x => x.grupo === g && x.clave === c && x.anio === a && x.mes === (m ?? null)); return r ? r.valor : null; };
+const COL = { total:'#B8860B', tec:'#1F4E5F', fis:'#3B7D3B', rec:'#5B3A8C', cap:'#0C263A' };
+const VERTS = [['casas','Casas'],['pisos','Pisos'],['comunidades','Comunidades'],['industria','Industria'],
+               ['corporativos','Edif. corp.'],['retail','Retail'],['hoteles','Hoteles'],['otros','Otros']];
+const COL_VERT = ['#B8860B','#E3C77A','#1F4E5F','#6E9CB0','#3B7D3B','#9CC39C','#5B3A8C','#B4B2A9'];
+const RANGOS = [[0,5000,'Menos de 5K€'],[5000,15000,'5K€ – 15K€'],[15000,50000,'15K€ – 50K€'],[50000,100000,'50K€ – 100K€'],[100000,Infinity,'Más de 100K€']];
+const rangoDe = v => RANGOS.findIndex(r => v >= r[0] && v < r[1]);
+const vertDe = o => { const c = cod('vertical', o.vertical); return VERTS.some(v => v[0] === c) ? c : 'otros'; };
+
+/* Importes compactos: 94K€ · 2,09M€ · 850 € */
+function eK(v){
+  v = Number(v) || 0; const a = Math.abs(v);
+  if(a >= 1e6) return (Math.round(v/1e4)/100).toFixed(2).replace('.', ',') + 'M€';
+  if(a >= 9950) return kMil(v) + 'K€';
+  if(a >= 1000) return (Math.round(v/100)/10).toFixed(1).replace('.', ',') + 'K€';
+  return Math.round(v) + ' €';
+}
+const pct1 = v => v == null ? '—' : v.toFixed(1).replace('.', ',') + '%';
+const colPct = p => p == null ? 'var(--gris)' : p >= 1 ? 'var(--verde)' : p >= 0.85 ? '#8A6700' : 'var(--rojo)';
+
+/* Objetivo de un periodo a partir del objetivo de cada mes (misma regla
+   que objetivoKpi: meses cerrados + parte del mes por días laborables). */
+function objPeriodo(deMes, corte){
+  const a = +corte.slice(0,4), m = +corte.slice(5,7), d = +corte.slice(8,10);
+  const lab = laborables(a, m, diasDelMes(a, m));
+  let fecha = 0; for(let mm = 1; mm < m; mm++) fecha += deMes(mm);
+  if(lab) fecha += deMes(m) * laborables(a, m, d) / lab;
+  let anual = 0; for(let mm = 1; mm <= 12; mm++) anual += deMes(mm);
+  return { mes:deMes(m), fecha, anual };
+}
+
+/* Presupuestos de fichas de Obra que cuentan, con su ficha. */
+function captacionesTodas(){
+  const fichas = new Map(D.opos.filter(o => !o.exclusion && esObraInf(o)).map(o => [o.id, o]));
+  return D.pres.filter(p => p.opo && fichas.has(p.opo) && p.fecha)
+    .map(p => { const o = fichas.get(p.opo); return { fecha:String(p.fecha).slice(0,10), imp:p.importe, owner:o.owner, vert:vertDe(o) }; });
+}
+
+/* ── piezas SVG ── */
+function svgGauge(p, color){
+  const P = (r, t) => { const a = Math.PI * (1 - t); return [70 + r*Math.cos(a), 66 - r*Math.sin(a)]; };
+  const arco = (t0, t1, c, w) => { const [a,b] = P(46, t0), [x,y] = P(46, t1);
+    return t1 <= t0 ? '' : `<path d="M${a.toFixed(1)} ${b.toFixed(1)} A46 46 0 0 1 ${x.toFixed(1)} ${y.toFixed(1)}" fill="none" stroke="${c}" stroke-width="${w}"/>`; };
+  const f = p == null ? 0 : Math.max(0, Math.min(p * 100, 150)) / 150, [nx, ny] = P(39, f);
+  const marcas = [0,50,100,150].map(v => { const [x,y] = P(59, v/150); return `<text x="${x.toFixed(1)}" y="${(y+3).toFixed(1)}" font-size="7.5" text-anchor="middle" fill="#888780">${v}</text>`; }).join('');
+  return `<svg viewBox="0 0 140 88" class="bdGauge" role="img" aria-label="${p == null ? 'sin objetivo' : Math.round(p*100) + '% del objetivo'}">
+    ${arco(0,1,'#EEF1F3',12)}${arco(0,.567,'#F6C9C4',4)}${arco(.567,.667,'#F3E2AE',4)}${arco(.667,1,'#CDE7D6',4)}${arco(0,f,color,12)}${marcas}
+    ${p == null ? '' : `<line x1="70" y1="66" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}" stroke="#0C263A" stroke-width="2.5" stroke-linecap="round"/>`}
+    <circle cx="70" cy="66" r="4" fill="#0C263A"/>
+    <text x="70" y="84" text-anchor="middle" font-size="12" font-weight="700" fill="${colPct(p)}">${p == null ? 'sin objetivo' : Math.round(p*100) + '% a fecha'}</text></svg>`;
+}
+function svgAnillo(v, obj, color){
+  const L = 2 * Math.PI * 23, t = v == null ? 0 : Math.max(0, Math.min(v, 60)) / 60;
+  const a = (obj || 0) / 60 * 2 * Math.PI - Math.PI/2;
+  return `<svg viewBox="0 0 60 60" width="66" height="66"><circle cx="30" cy="30" r="23" fill="none" stroke="#EEF1F3" stroke-width="7"/>
+    <circle cx="30" cy="30" r="23" fill="none" stroke="${color}" stroke-width="7" stroke-dasharray="${(t*L).toFixed(1)} ${L.toFixed(1)}" transform="rotate(-90 30 30)"/>
+    ${obj ? `<line x1="${(30+16*Math.cos(a)).toFixed(1)}" y1="${(30+16*Math.sin(a)).toFixed(1)}" x2="${(30+30*Math.cos(a)).toFixed(1)}" y2="${(30+30*Math.sin(a)).toFixed(1)}" stroke="#0C263A" stroke-width="2"/>` : ''}
+    <text x="30" y="34" font-size="11" font-weight="700" text-anchor="middle" fill="#0C263A">${v == null ? '—' : v.toFixed(1).replace('.', ',')}</text></svg>`;
+}
+function svgQuesito(valores){
+  const tot = sumaDe(valores, x => x);
+  if(!tot) return '<svg viewBox="0 0 100 100" class="bdPie"><circle cx="50" cy="50" r="45" fill="#EEF1F3"/></svg>';
+  let o = 0, s = '';
+  valores.forEach((x, i) => {
+    if(!x) return;
+    const f = x / tot;
+    if(f > 0.9999){ s += `<circle cx="50" cy="50" r="45" fill="${COL_VERT[i]}"/>`; return; }
+    const a0 = o*2*Math.PI - Math.PI/2, a1 = (o+f)*2*Math.PI - Math.PI/2;
+    s += `<path d="M50 50 L${(50+45*Math.cos(a0)).toFixed(2)} ${(50+45*Math.sin(a0)).toFixed(2)} A45 45 0 ${f > .5 ? 1 : 0} 1 ${(50+45*Math.cos(a1)).toFixed(2)} ${(50+45*Math.sin(a1)).toFixed(2)} Z" fill="${COL_VERT[i]}" stroke="#fff" stroke-width="1"/>`;
+    o += f;
+  });
+  return `<svg viewBox="0 0 100 100" class="bdPie">${s}</svg>`;
+}
+const leyendaVert = valores => { const tot = sumaDe(valores, x => x) || 1;
+  return `<div class="bdLey">${VERTS.map((v, i) => `<div><i style="background:${COL_VERT[i]}"></i>${v[1]} <b>${Math.round(valores[i]/tot*100)}%</b><span>${eK(valores[i])}</span></div>`).join('')}</div>`; };
+
+/* Barras (una o dos series) + línea de objetivo. */
+function svgBarras(etq, series, objetivo){
+  const W = 520, H = 170, x0 = 38, y0 = 146, n = etq.length, paso = (W - x0 - 6) / n;
+  const max = Math.max(1, ...series.flatMap(s => s.v), ...(objetivo || []).map(v => v || 0)) * 1.12;
+  const h = v => (v || 0) / max * (y0 - 14), ancho = Math.min(22, (paso - 6) / series.length);
+  let s = '';
+  for(let k = 0; k <= 3; k++){ const v = max/1.12 * k/3, y = y0 - h(v);
+    s += `<line x1="${x0}" y1="${y.toFixed(1)}" x2="${W}" y2="${y.toFixed(1)}" stroke="#EEF1F3"/><text x="${x0-4}" y="${(y+3).toFixed(1)}" font-size="8" text-anchor="end" fill="#888780">${eK(v)}</text>`; }
+  etq.forEach((e, i) => {
+    const xc = x0 + paso*i + paso/2, xi = xc - ancho*series.length/2;
+    series.forEach((se, j) => { const v = se.v[i]; if(v == null) return;
+      s += `<rect x="${(xi + j*ancho).toFixed(1)}" y="${(y0 - h(v)).toFixed(1)}" width="${(ancho-1).toFixed(1)}" height="${h(v).toFixed(1)}" fill="${se.c}"><title>${esc(se.n)} ${e}: ${eK(v)}</title></rect>`; });
+    s += `<text x="${xc.toFixed(1)}" y="${y0+12}" font-size="8.5" text-anchor="middle" fill="#66757F">${e}</text>`;
+  });
+  if(objetivo){ const pts = objetivo.map((v, i) => `${(x0 + paso*i + paso/2).toFixed(1)},${(y0 - h(v)).toFixed(1)}`).join(' ');
+    s += `<polyline points="${pts}" fill="none" stroke="#0C263A" stroke-width="2"/>` + objetivo.map((v, i) => `<circle cx="${(x0 + paso*i + paso/2).toFixed(1)}" cy="${(y0 - h(v)).toFixed(1)}" r="2.5" fill="#0C263A"/>`).join(''); }
+  return `<svg viewBox="0 0 ${W} ${H}" class="bdChart">${s}</svg>`;
+}
+/* Línea con puntos (valores null = hueco) y objetivo discontinuo. */
+function svgLinea(etq, vals, obj, color, fmt){
+  const W = 260, H = 110, x0 = 8, y0 = 92, paso = (W - 16) / Math.max(1, etq.length - 1);
+  const vs = vals.filter(v => v != null).concat(obj ? [obj] : []);
+  const max = Math.max(1, ...vs) * 1.18, min = Math.min(...vs, max) * 0.7;
+  const y = v => y0 - (v - min) / (max - min) * (y0 - 14);
+  let s = obj ? `<line x1="${x0}" y1="${y(obj).toFixed(1)}" x2="${W-8}" y2="${y(obj).toFixed(1)}" stroke="#CC9B00" stroke-width="1.5" stroke-dasharray="4 3"/>` : '';
+  let d = '', abierto = false;
+  vals.forEach((v, i) => { if(v == null){ abierto = false; return; } d += (abierto ? 'L' : 'M') + (x0 + paso*i).toFixed(1) + ' ' + y(v).toFixed(1); abierto = true; });
+  s += `<path d="${d}" fill="none" stroke="${color}" stroke-width="2"/>`;
+  vals.forEach((v, i) => { if(v == null) return; const x = x0 + paso*i;
+    s += `<circle cx="${x.toFixed(1)}" cy="${y(v).toFixed(1)}" r="2.6" fill="${i < 3 ? '#B4B2A9' : color}"><title>${etq[i]}: ${fmt(v)}</title></circle>`; });
+  etq.forEach((e, i) => { s += `<text x="${(x0 + paso*i).toFixed(1)}" y="${y0+12}" font-size="7.5" text-anchor="middle" fill="#66757F">${e}</text>`; });
+  return `<svg viewBox="0 0 ${W} ${H}" class="bdChart">${s}</svg>`;
+}
+function svgArea(etq, vals, obj){
+  const W = 300, H = 120, x0 = 16, y0 = 100, paso = (W - 32) / Math.max(1, etq.length - 1);
+  const max = Math.max(1, ...vals, ...obj) * 1.2, y = v => y0 - v / max * (y0 - 12);
+  const pts = vals.map((v, i) => [x0 + paso*i, y(v)]);
+  let s = `<path d="M${x0} ${y0} ${pts.map(p => 'L' + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ')} L${pts[pts.length-1][0].toFixed(1)} ${y0} Z" fill="#E2E8ED"/>`;
+  s += `<path d="${pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ')}" fill="none" stroke="#0C263A" stroke-width="2"/>`;
+  s += `<path d="${obj.map((v, i) => (i ? 'L' : 'M') + (x0 + paso*i).toFixed(1) + ' ' + y(v).toFixed(1)).join(' ')}" fill="none" stroke="#CC9B00" stroke-width="2" stroke-dasharray="4 3"/>`;
+  pts.forEach((p, i) => { s += `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.5" fill="#0C263A"/><text x="${p[0].toFixed(1)}" y="${(p[1]-6).toFixed(1)}" font-size="8" text-anchor="middle" fill="#0C263A">${eK(vals[i])}</text><text x="${p[0].toFixed(1)}" y="${y0+12}" font-size="8" text-anchor="middle" fill="#66757F">${etq[i]}</text>`; });
+  return `<svg viewBox="0 0 ${W} ${H}" class="bdChart">${s}</svg>`;
+}
+
+function vBoard(c){
+  const corte = corteInf, A = +corte.slice(0,4), M = +corte.slice(5,7);
+  const d = datosInforme(corte), iniMes = d.iniMes;
+  const obra = d.obra, obraMes = obra.filter(o => o.cierre >= iniMes);
+  const tec = l => l.filter(o => !esFisica(o)), fis = l => l.filter(esFisica);
+  const sV = l => sumaDe(l, o => o.valor);
+  const margen = l => { const con = l.filter(o => o.coste != null && o.coste > 0), v = sV(con);
+    return v ? (v - sumaDe(con, o => o.coste)) / v * 100 : null; };
+  const tm = l => l.length ? sV(l) / l.length : null;
+  const recur = d.ganadas.filter(o => o.cuota > 0), recurMes = recur.filter(o => o.cierre >= iniMes);
+  const cuotaMedia = l => l.length ? sumaDe(l, o => o.cuota) / l.length : null;
+  const ob = k => objetivoKpi(k, null, corte);
+  const oI = ob('instalaciones'), oT = ob('tecnologia'), oF = ob('fisica'), oR = ob('recurrente'), oC = ob('captacion');
+  const pc = (v, o) => o ? v / o : null;
+  const desv = (v, o) => o ? `<b style="color:${colPct(v/o)}">${conSigno(Math.round((v/o - 1)*100))}%</b>` : '';
+
+  /* ── fila de velocímetros ── */
+  const cajaLinea = (tit, color, v, vMes, o, extra) => `<div class="bdBox"><div class="bdHd" style="background:${color}">${tit}</div>
+    ${svgGauge(pc(v, o.fecha), color)}
+    <table class="bdKv"><tr><td>Mes</td><td>${eK(vMes)} / ${eK(o.mes)} ${desv(vMes, o.mes)}</td></tr>
+      <tr><td>Año</td><td>${o.anual ? Math.round(v/o.anual*100) + '% de ' + eK(o.anual) : '—'}</td></tr>${extra || ''}</table></div>`;
+  const filaGauges = `<div class="bdG bdG4">
+    <div class="bdBox bdTotal"><div class="bdHd" style="background:${COL.total}">TOTAL INSTALACIONES</div>
+      <div class="bdTotalIn">${svgGauge(pc(sV(obra), oI.fecha), COL.total)}
+      <table class="bdKv">
+        <tr><td>${MESES[M-1]}</td><td>${eK(sV(obraMes))} / ${eK(oI.mes)} ${desv(sV(obraMes), oI.mes)}</td></tr>
+        <tr><td>A fecha</td><td>${eK(sV(obra))} / ${eK(oI.fecha)} ${desv(sV(obra), oI.fecha)}</td></tr>
+        <tr><td>Anual</td><td>${oI.anual ? Math.round(sV(obra)/oI.anual*100) + '% de ' + eK(oI.anual) : '—'}</td></tr>
+        <tr><td>Nuevas mes</td><td>${obraMes.length} · TM ${tm(obraMes) == null ? '—' : eK(tm(obraMes))}</td></tr>
+        <tr><td>Nuevas año</td><td>${obra.length} · TM ${tm(obra) == null ? '—' : eK(tm(obra))}</td></tr>
+      </table></div></div>
+    ${cajaLinea('S. TECNOLÓGICA', COL.tec, sV(tec(obra)), sV(tec(obraMes)), oT)}
+    ${cajaLinea('S. FÍSICA', COL.fis, sV(fis(obra)), sV(fis(obraMes)), oF)}
+    ${cajaLinea('MANT. Y CONEXIONES', COL.rec, sumaDe(recur, o => o.cuota), sumaDe(recurMes, o => o.cuota), oR,
+       `<tr><td>Abonados</td><td>${recur.length} · ${cuotaMedia(recur) == null ? '—' : Math.round(cuotaMedia(recur)).toLocaleString('es-ES') + ' €'}</td></tr>`)}
+  </div>`;
+
+  /* ── margen, ticket medio, verticales ── */
+  const oM = k => refVal('objetivo', 'margen_' + k, A), oTk = k => refVal('objetivo', 'ticket_' + k, A);
+  const anillo = (tit, l, lMes, color, k) => `<div>${svgAnillo(margen(l), oM(k), color)}<b>${tit}</b><span>obj. ${pct1(oM(k))}</span><span>mes ${pct1(margen(lMes))}</span></div>`;
+  const ticket = (tit, l, color, k) => { const t = tm(l), o = oTk(k);
+    return `<div class="bdTk"><i style="background:${color}"></i><span>${tit}</span><b>${t == null ? '—' : eK(t)}</b>
+      <em style="color:${t == null || !o ? 'var(--gris)' : t >= o ? 'var(--verde)' : 'var(--rojo)'}">${t == null || !o ? '' : (t >= o ? '+' : '−') + eK(Math.abs(t - o))}</em><small>obj. ${o ? eK(o) : '—'}</small></div>`; };
+  const vertLista = bdVert === 'mes' ? obraMes : obra;
+  const vertVals = VERTS.map(v => sV(vertLista.filter(o => vertDe(o) === v[0])));
+  const filaMargen = `<div class="bdG bdG3">
+    <div class="bdBox"><div class="bdHd">MARGEN ${A} VS OBJETIVO</div><div class="bdRings">
+      ${anillo('Global', obra, obraMes, COL.total, 'total')}${anillo('Tecnológica', tec(obra), tec(obraMes), COL.tec, 'tecnologia')}${anillo('Física', fis(obra), fis(obraMes), COL.fis, 'fisica')}</div></div>
+    <div class="bdBox"><div class="bdHd">TICKET MEDIO ${A}</div><div class="bdTks">
+      ${ticket('Global', obra, COL.total, 'total')}${ticket('Tecnológica', tec(obra), COL.tec, 'tecnologia')}${ticket('Física', fis(obra), COL.fis, 'fisica')}
+      <div class="bdTk"><i style="background:${COL.rec}"></i><span>Cuota media</span><b>${cuotaMedia(recur) == null ? '—' : Math.round(cuotaMedia(recur)).toLocaleString('es-ES') + ' €'}</b><em></em><small>${recur.length} abonados</small></div></div></div>
+    <div class="bdBox"><div class="bdHd">VERTICALES APROBADAS
+      <span class="bdTog"><button type="button" data-bdvert="mes" aria-pressed="${bdVert==='mes'}">${MESES[M-1]}</button><button type="button" data-bdvert="anio" aria-pressed="${bdVert==='anio'}">${A}</button></span></div>
+      <div class="bdPieIn">${svgQuesito(vertVals)}${leyendaVert(vertVals)}</div></div>
+  </div>`;
+
+  /* ── evolución ── */
+  const etqM = MESES.map(m => m.slice(0,3));
+  const ventasMes = etqM.map((_, i) => i + 1 > M ? null : sV(obra.filter(o => +o.cierre.slice(5,7) === i + 1)));
+  const hist = etqM.map((_, i) => refVal('historico', 'aprobaciones', A - 1, i + 1));
+  const objMes = etqM.map((_, i) => sumaDe(OBJ_KPI.filter(o => o.kpi === 'instalaciones' && o.anio === A && o.mes === i + 1), o => o.imp));
+  const series = [];
+  if(hist.some(v => v != null)) series.push({ n:String(A-1), c:'#C9C6BC', v:hist });
+  series.push({ n:String(A), c:COL.total, v:ventasMes });
+  const hAnios = [A-3, A-2, A-1];
+  const etqEv = hAnios.map(String).concat(etqM.slice(0, M));
+  const tmEv = hAnios.map(a => refVal('historico', 'ticket_medio', a)).concat(etqM.slice(0, M).map((_, i) => tm(obra.filter(o => +o.cierre.slice(5,7) === i + 1))));
+  const mgEv = hAnios.map(a => refVal('historico', 'margen_pct', a)).concat(etqM.slice(0, M).map((_, i) => margen(obra.filter(o => +o.cierre.slice(5,7) === i + 1))));
+  const filaEvol = `<div class="bdG bdG21">
+    <div class="bdBox"><div class="bdHd">EVOLUCIÓN APROBACIONES VS OBJETIVO
+      <span class="bdLeyH">${series.map(s => `<i style="background:${s.c}"></i>${s.n}`).join(' ')} <i style="background:#0C263A;height:2px;vertical-align:3px"></i>Objetivo</span></div>
+      ${svgBarras(etqM, series, objMes)}</div>
+    <div class="bdBox"><div class="bdHd">TICKET MEDIO Y MARGEN <span class="bdLeyH">gris = años anteriores</span></div>
+      <div class="bdMini"><small>Ticket medio · obj. ${oTk('total') ? eK(oTk('total')) : '—'}</small>${svgLinea(etqEv, tmEv, oTk('total'), COL.total, eK)}</div>
+      <div class="bdMini"><small>Margen · obj. ${pct1(oM('total'))}</small>${svgLinea(etqEv, mgEv, oM('total'), COL.tec, pct1)}</div></div>
+  </div>`;
+
+  /* ── tabla de verticales y top del mes ── */
+  const filasVert = VERTS.map(([k, n], i) => {
+    const oV = objPeriodo(m => refVal('objetivo_vertical', k, A, m) || 0, corte);
+    const lA = obra.filter(o => vertDe(o) === k), lM = lA.filter(o => o.cierre >= iniMes);
+    const cons = (v, o) => o ? `<span style="color:${colPct(v/o)}">${Math.round(v/o*100)}%</span>` : '—';
+    return `<tr><td><i class="bdSw" style="background:${COL_VERT[i]}"></i>${n}</td>
+      <td>${oV.mes ? eK(oV.mes) : '—'}</td><td>${eK(sV(lM))}</td><td>${cons(sV(lM), oV.mes)}</td>
+      <td class="bdSep">${oV.fecha ? eK(oV.fecha) : '—'}</td><td>${eK(sV(lA))}</td><td>${cons(sV(lA), oV.fecha)}</td><td>${pct1(margen(lA))}</td></tr>`;
+  }).join('');
+  const nombreCom = t => COMERCIALES[t] || (t === 'sinasignar' ? 'Sin asignar' : t);
+  const topGan = obraMes.slice().sort((a, b) => b.valor - a.valor).slice(0, 5);
+  const topPer = D.opos.filter(o => o.estado === 'perdida' && !o.exclusion && esObraInf(o) && o.cierre >= iniMes && o.cierre <= corte)
+                   .sort((a, b) => b.valor - a.valor).slice(0, 5);
+  const itemTop = (o, perdida) => `<button type="button" class="bdTop" data-opo="${esc(o.id)}">
+      <span class="t">${esc(o.nombre || 'Sin título')}</span><b>${eK(o.valor)}</b>
+      <small>${esc(nombreCom(o.owner))} · ${esc(o.vertical || 'sin vertical')}${perdida ? ' · ' + esc(o.motivo || 'sin motivo') : ''}</small></button>`;
+  const filaTablas = `<div class="bdG bdG12">
+    <div class="bdBox"><div class="bdHd">VERTICALES · OBJETIVO Y CONSECUCIÓN</div><div class="bdScroll"><table class="bdTabla">
+      <thead><tr><th></th><th colspan="3">${MESES[M-1]}</th><th colspan="4" class="bdSep">A fecha ${fechaEs(corte).slice(0,5)}</th></tr>
+        <tr><th>Vertical</th><th>Obj.</th><th>Aprob.</th><th>Cons.</th><th class="bdSep">Obj.</th><th>Aprob.</th><th>Cons.</th><th>Margen</th></tr></thead>
+      <tbody>${filasVert}</tbody></table></div></div>
+    <div class="bdBox"><div class="bdHd">TOP OPORTUNIDADES DEL MES</div>
+      <div class="bdTopCols"><div><h4 class="gan">Ganadas</h4>${topGan.map(o => itemTop(o)).join('') || '<p class="bdVacio">Ninguna este mes</p>'}</div>
+      <div><h4 class="per">Perdidas</h4>${topPer.map(o => itemTop(o, true)).join('') || '<p class="bdVacio">Ninguna este mes</p>'}</div></div></div>
+  </div>`;
+
+  /* ── captación ── */
+  const capt = captacionesTodas();
+  const cA = capt.filter(p => p.fecha >= A + '-01-01' && p.fecha <= corte), cM = cA.filter(p => p.fecha >= iniMes);
+  const sI = l => sumaDe(l, p => p.imp);
+  const seis = [];
+  for(let k = 5; k >= 0; k--){
+    const f = new Date(A, M - 1 - k, 1), a = f.getFullYear(), m = f.getMonth() + 1, pre = a + '-' + String(m).padStart(2,'0');
+    seis.push({ e:MESES[m-1].slice(0,3), v:sI(capt.filter(p => p.fecha.slice(0,7) === pre && p.fecha <= corte)),
+      o:sumaDe(OBJ_KPI.filter(o => o.kpi === 'captacion' && o.anio === a && o.mes === m), o => o.imp) });
+  }
+  const cvVals = VERTS.map(v => sI(cA.filter(p => p.vert === v[0])));
+  const filaCapt = `<div class="bdG bdG3b">
+    <div class="bdBox bdTotal"><div class="bdHd" style="background:${COL.cap}">CAPTACIÓN DE OPORTUNIDADES</div>
+      <div class="bdTotalIn">${svgGauge(pc(sI(cA), oC.fecha), COL.cap)}
+      <table class="bdKv">
+        <tr><td>${MESES[M-1]}</td><td>${eK(sI(cM))} / ${eK(oC.mes)} ${desv(sI(cM), oC.mes)}</td></tr>
+        <tr><td>A fecha</td><td>${eK(sI(cA))} / ${eK(oC.fecha)} ${desv(sI(cA), oC.fecha)}</td></tr>
+        <tr><td>Anual</td><td>${oC.anual ? Math.round(sI(cA)/oC.anual*100) + '% de ' + eK(oC.anual) : '—'}</td></tr>
+        <tr><td>Nº mes</td><td>${cM.length} · TM ${cM.length ? eK(sI(cM)/cM.length) : '—'}</td></tr>
+        <tr><td>Nº año</td><td>${cA.length} · TM ${cA.length ? eK(sI(cA)/cA.length) : '—'}</td></tr>
+      </table></div></div>
+    <div class="bdBox"><div class="bdHd">CAPTACIÓN · 6 MESES <span class="bdLeyH"><i style="background:#0C263A"></i>Captado <i style="background:#CC9B00"></i>Objetivo</span></div>
+      ${svgArea(seis.map(x => x.e), seis.map(x => x.v), seis.map(x => x.o))}</div>
+    <div class="bdBox"><div class="bdHd">CAPTACIÓN POR VERTICALES · ${A}</div><div class="bdPieIn">${svgQuesito(cvVals)}${leyendaVert(cvVals)}</div></div>
+  </div>`;
+
+  /* ── forecast ── */
+  const hace = new Date(A, M - 1, +corte.slice(8,10) - 365), desdeHR = fechaLocal(hace);
+  const cerradas = D.opos.filter(o => (o.estado === 'ganada' || o.estado === 'perdida') && !o.exclusion && esObraInf(o)
+                                   && o.cierre && o.cierre >= desdeHR && o.cierre <= corte);
+  const finAnio = A + '-12-31';
+  const pipe = D.opos.filter(o => o.estado === 'abierta' && o.etapa !== 'standby' && !o.exclusion && esObraInf(o) && o.cierre && o.cierre <= finAnio);
+  const porRango = RANGOS.map((r, i) => {
+    const cr = cerradas.filter(o => rangoDe(o.valor) === i), g = cr.filter(o => o.estado === 'ganada').length;
+    const hr = cr.length ? g / cr.length : null, pr = pipe.filter(o => rangoDe(o.valor) === i);
+    const ca = cA.filter(p => rangoDe(p.imp) === i);
+    return { n:r[2], hr, nCerr:cr.length, pipe:sV(pr), prev:sV(pr) * (hr || 0), nCapt:ca.length, capt:sI(ca) };
+  });
+  const prevista = sV(obra) + sumaDe(porRango, r => r.prev);
+  const pipeTot = sV(pipe), hrTot = pipeTot ? sumaDe(porRango, r => r.prev) / pipeTot : null;
+  const cubos = [[95,'95%','#6B5200'],[80,'80%','#CC9B00'],[40,'40%','#6E9CB0'],[20,'20% o menos','#C9D6DE']];
+  const cubo = p => p >= 95 ? 0 : p >= 80 ? 1 : p >= 40 ? 2 : 3;
+  const meses4 = [0,1,2,3].map(k => { const f = new Date(A, M - 1 + k, 1), pre = f.getFullYear() + '-' + String(f.getMonth()+1).padStart(2,'0');
+    const l = D.opos.filter(o => o.estado === 'abierta' && o.etapa !== 'standby' && !o.exclusion && esObraInf(o) && (o.cierre || '').slice(0,7) === pre);
+    const v = [0,0,0,0], n = [0,0,0,0]; l.forEach(o => { const b = cubo(Number(o.prob) || 0); v[b] += o.valor; n[b]++; });
+    return { e:MESES[f.getMonth()].slice(0,3), v, n, hot:v[0] + v[1], cold:v[2] + v[3] }; });
+  const max4 = Math.max(1, ...meses4.map(m => m.hot + m.cold)) * 1.1;
+  const barras4 = meses4.map((m, i) => { let y = 132, s = '';
+    m.v.forEach((v, b) => { const h = v / max4 * 118; y -= h; if(h > 0) s += `<rect x="${24 + i*70}" y="${y.toFixed(1)}" width="40" height="${h.toFixed(1)}" fill="${cubos[b][2]}"><title>${cubos[b][1]}: ${eK(v)} (${m.n[b]})</title></rect>`; });
+    return s + `<text x="${44 + i*70}" y="${(y-4).toFixed(1)}" font-size="8.5" text-anchor="middle" fill="#0C263A">${eK(m.hot + m.cold)}</text>
+      <text x="${44 + i*70}" y="144" font-size="8.5" text-anchor="middle" fill="#66757F">${m.e}</text>
+      <text x="${44 + i*70}" y="156" font-size="8" text-anchor="middle" fill="#6B5200">hot ${eK(m.hot)}</text>
+      <text x="${44 + i*70}" y="166" font-size="8" text-anchor="middle" fill="#66757F">cold ${eK(m.cold)}</text>`; }).join('');
+  const filaFc = `<div class="bdG bdG3b">
+    <div class="bdBox bdTotal"><div class="bdHd" style="background:${COL.cap}">PREVISIÓN DE CIERRE ${A}</div>
+      <div class="bdTotalIn">${svgGauge(pc(prevista, oI.anual), COL.total).replace('a fecha', 'del año')}
+      <table class="bdKv">
+        <tr><td>Previsión</td><td><b>${eK(prevista)}</b> / ${eK(oI.anual)} ${desv(prevista, oI.anual)}</td></tr>
+        <tr><td>Ganado</td><td>${eK(sV(obra))}</td></tr>
+        <tr><td>Pipeline</td><td>${eK(pipeTot)} · ${pipe.length} fichas</td></tr>
+        <tr><td>Hit rate</td><td>${hrTot == null ? '—' : Math.round(hrTot*100) + '% ponderado'}</td></tr>
+      </table></div></div>
+    <div class="bdBox"><div class="bdHd">PREVISIÓN DE VENTAS · 4 MESES
+      <span class="bdLeyH">${cubos.map(x => `<i style="background:${x[2]}"></i>${x[1]}`).join(' ')}</span></div>
+      <svg viewBox="0 0 300 170" class="bdChart">${barras4}</svg></div>
+    <div class="bdBox"><div class="bdHd">RANGOS DE IMPORTE · ${A}</div><div class="bdScroll"><table class="bdTabla">
+      <thead><tr><th>Rango</th><th>Captado</th><th>Hit rate</th><th>Pipeline</th><th>Previsión</th></tr></thead>
+      <tbody>${porRango.map(r => `<tr><td>${r.n}</td><td>${eK(r.capt)} <small>(${r.nCapt})</small></td>
+        <td title="${r.nCerr} cerradas en 12 meses">${r.hr == null ? '—' : Math.round(r.hr*100) + '%'}</td><td>${eK(r.pipe)}</td><td>${eK(r.prev)}</td></tr>`).join('')}
+        <tr class="bdTot"><td>Total</td><td>${eK(sI(cA))} <small>(${cA.length})</small></td><td>${hrTot == null ? '—' : Math.round(hrTot*100) + '%'}</td><td>${eK(pipeTot)}</td><td>${eK(sumaDe(porRango, r => r.prev))}</td></tr>
+      </tbody></table></div></div>
+  </div>`;
+
+  c.innerHTML = cabeceraInforme('Board', `Corte ${fechaEs(corte)} · ${MESES[M-1].toLowerCase()} ${A}`)
+    + (REF.length ? '' : `<p class="infAviso">Faltan los datos de referencia (histórico 2025, objetivos por vertical, margen y ticket). Ejecuta <b>radar_v4_board.sql</b> y recarga.</p>`)
+    + `<div class="bdWrap">
+      <h3 class="bdSec">APROBACIONES</h3>${filaGauges}${filaMargen}${filaEvol}${filaTablas}
+      <h3 class="bdSec">CAPTACIÓN DE OPORTUNIDADES</h3>${filaCapt}
+      <h3 class="bdSec">FORECAST Y PREVISIONES DE VENTA</h3>${filaFc}
+      <p class="infPie">Hit rate: ganadas / cerradas de Obra por rango, con cierre en los últimos 12 meses. Previsión de cierre: ganado a fecha más el pipeline sin Stand By
+        con cierre previsto este año, multiplicado por el hit rate de su rango. Hot: probabilidad de 80% o más.</p>
+    </div>`;
+  enganchaCabecera(c);
+  c.querySelectorAll('[data-bdvert]').forEach(b => b.onclick = () => { bdVert = b.dataset.bdvert; pintar(); });
+  c.querySelectorAll('[data-opo]').forEach(b => b.onclick = () => { const o = D.opos.find(x => x.id === b.dataset.opo); if(o) abrirCajon(o); });
 }
 
 
@@ -2874,7 +3231,7 @@ function abrirCajon(o){
         <div class="campo"><label>Cierre previsto</label><input id="cCierre" type="date" value="${o.cierre||''}"></div>
         <div class="campo ${o.etapa==='standby'?'':'oculto'}" id="wrapRev"><label>Revisar el</label><input id="cRevision" type="date" value="${o.revision||''}"></div>
         ${o.estado!=='abierta'?`<div class="campo"><label>Cierre real</label><input type="text" value="${o.cierre||'—'}" disabled></div>`:''}
-        ${o.estado==='perdida'?`<div class="campo"><label>Motivo</label><input type="text" value="${esc(nombreMotivo(o.motivo))}" disabled></div>`:''}
+        ${o.estado==='perdida'?`<div class="campo"><label>Motivo</label><input type="text" value="${esc(o.motivo||'—')}" disabled></div>`:''}
       </div></div>
 
     ${pres.length?`<div class="seccion"><h3>Presupuestos de Beta10 <span style="font-weight:400;color:var(--gris)">${pres.length}</span></h3>
@@ -2896,45 +3253,16 @@ function abrirCajon(o){
     ${!nuevo&&MI_ROL==='director'?`<button class="btn sec" id="btnEliminar" style="margin-left:auto;color:#b3261e;border-color:#e7bab6">Eliminar</button>`:''}`;
   if($('#btnEliminar')) $('#btnEliminar').onclick = () => eliminar(o);
   $('#btnGuardar').onclick = () => guardar(nuevo?null:o);
-  if($('#btnGanada'))  $('#btnGanada').onclick  = () => pedirCierre(o, 'ganada');
-  if($('#btnPerdida')) $('#btnPerdida').onclick = () => pedirCierre(o, 'perdida');
-  if($('#btnReabrir')) $('#btnReabrir').onclick = () => {
-    o.estado='abierta'; o.etapa='negociacion'; o.motivo=null; o.tocada=new Date().toISOString();
-    cerrarCajon(); pintar(); sincronizar(o);
+  if($('#btnGanada')) $('#btnGanada').onclick = () => { o.estado='ganada'; o.etapa='cerrado'; o.prob=95; o.tocada=new Date().toISOString(); cerrarCajon(); pintar(); };
+  if($('#btnPerdida')) $('#btnPerdida').onclick = () => {
+    const m = prompt('Motivo de pérdida:\n' + MOTIVOS.map((x,i)=>(i+1)+'. '+x).join('\n'));
+    if(m===null) return;
+    const mm = MOTIVOS[Number(m)-1] || m;
+    o.estado='perdida'; o.etapa='cerrado'; o.prob=0; o.motivo=mm; o.tocada=new Date().toISOString(); cerrarCajon(); pintar();
   };
+  if($('#btnReabrir')) $('#btnReabrir').onclick = () => { o.estado='abierta'; o.etapa='negociacion'; o.motivo=null; cerrarCajon(); pintar(); };
   if(!nuevo) activarActividad(o);
   $('#cajon').classList.add('abierto'); $('#velo').classList.add('abierto'); $('#cNombre').focus();
-}
-
-/* Cierre de una oportunidad: se pide en el pie del cajón (motivo obligatorio si es pérdida,
-   fecha de cierre real, por defecto hoy) y se guarda en Supabase. */
-function pedirCierre(o, tipo){
-  const perdida = tipo === 'perdida', hoy = hoyLocal();
-  $('#cajonPie').innerHTML = `<div class="campos" style="flex:1">
-      ${perdida?`<div class="campo"><label>Motivo de pérdida</label>
-        <select id="cMotivo"><option value="">Elige un motivo…</option>
-        ${MOTIVOS.map(m=>`<option value="${m.c}">${m.n}</option>`).join('')}</select></div>`:''}
-      <div class="campo ${perdida?'':'ancho'}"><label>Fecha de cierre real</label>
-        <input id="cFechaCierre" type="date" value="${hoy}" max="${hoy}"></div>
-      <div class="campo ancho" style="flex-direction:row;gap:8px">
-        <button class="btn ${perdida?'rojo':'verde'}" id="btnConfirmar">${perdida?'Confirmar pérdida':'Confirmar ganada'}</button>
-        <button class="btn sec" id="btnVolver">Cancelar</button></div>
-    </div>`;
-  $('#btnVolver').onclick = () => abrirCajon(o);
-  $('#btnConfirmar').onclick = () => {
-    const f = $('#cFechaCierre').value;
-    if(!f) return alert('Indica la fecha de cierre.');
-    if(perdida){
-      const m = $('#cMotivo').value;
-      if(!m) return alert('Elige el motivo de pérdida.');
-      o.estado='perdida'; o.prob=0; o.motivo=m;
-    } else {
-      o.estado='ganada'; o.prob=95; o.motivo=null;
-    }
-    o.etapa='cerrado'; o.cierre=f; o.tocada=new Date().toISOString();
-    cerrarCajon(); pintar(); sincronizar(o);
-  };
-  (perdida ? $('#cMotivo') : $('#cFechaCierre')).focus();
 }
 
 function actividadHTML(o){
