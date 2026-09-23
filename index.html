@@ -614,6 +614,7 @@ async function sincronizar(o){
       const { error } = await SB.from('oportunidad').update(aFilaBD(o)).eq('id', o.id);
       if(error) throw error;
     }
+    forecastCambiado();
   }catch(e){
     console.error(e);
     aviso('No se ha podido guardar: ' + (e.message || e) + '. Recargando.');
@@ -2202,6 +2203,14 @@ let fcCache = {};            // 'aaaa-m' -> { datos, t }
 let fcUltimo = null;         // último cálculo pintado, para reordenar al imprimir
 const FC_VIGENCIA = 60000;   // ms antes de volver a pedir el mismo mes
 
+/* Una ficha guardada o eliminada deja viejos todos los meses en caché (puede
+   haber cambiado de mes). Se llama cuando la base ya ha confirmado la
+   escritura, así que si el Forecast está en pantalla se vuelve a pedir. */
+function forecastCambiado(){
+  fcCache = {};
+  if(vista === 'informes' && informe === 'forecast' && !abierta) pintar();
+}
+
 function kEur(v){
   const k = (Number(v) || 0) / 1000;
   if(k > 0 && k < 1) return k.toFixed(1).replace('.', ',') + 'K€';
@@ -2707,7 +2716,8 @@ async function eliminar(o){
   cerrarCajon(); pintar();
   if(String(o.id).startsWith('nuevo:')) return;
   const { error } = await SB.from('oportunidad').delete().eq('id', o.id);
-  if(error){ D.opos = antes; pintar(); aviso('No se ha podido eliminar: ' + error.message); }
+  if(error){ D.opos = antes; pintar(); aviso('No se ha podido eliminar: ' + error.message); return; }
+  forecastCambiado();
 }
 
 async function guardar(existente){
