@@ -3,7 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Onsecur · Oportunidades (maqueta)</title>
+<title>Radar · Onsecur</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%230C263A'/%3E%3Cg fill='%23FFFFFF' transform='translate(98,414)'%3E%3Ccircle cx='48' cy='-48' r='48'/%3E%3Cpath d='M48,-206 A158,158 0 0 1 206,-48 L136,-48 A88,88 0 0 0 48,-136 Z'/%3E%3Cpath d='M48,-316 A268,268 0 0 1 316,-48 L246,-48 A198,198 0 0 0 48,-246 Z'/%3E%3C/g%3E%3C/svg%3E">
+<meta name="theme-color" content="#0C263A">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet">
@@ -42,8 +44,7 @@ h1,h2,h3{margin:0;font-weight:700;letter-spacing:-0.01em}
 #app{display:flex;min-height:calc(100vh - 30px)}
 nav.rail{width:186px;flex:none;background:var(--azul);color:#A9B8C2;display:flex;flex-direction:column;padding:16px 10px;gap:2px}
 .marca{padding:2px 10px 20px;line-height:1}
-.marca b{display:block;color:#fff;font-size:19px;font-weight:800;letter-spacing:-0.03em}
-.marca span{font-size:10px;color:#7C8E9A;letter-spacing:.02em}
+.marca svg{display:block;width:124px;height:45px;color:#fff}
 .rail button{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:8px 10px;border-radius:var(--r);color:#A9B8C2;text-align:left;font-weight:500}
 .rail button:hover{background:#17364E;color:#fff}
 .rail button[aria-current="true"]{background:var(--blanco);color:var(--azul);font-weight:600}
@@ -95,8 +96,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column}
 .tarjeta .inactiva{background:var(--naranja-claro);color:var(--naranja);font-weight:700;font-size:11px;padding:1px 6px;border-radius:10px;white-space:nowrap}
 #acceso{min-height:calc(100vh - 30px);display:grid;place-items:center;padding:20px;background:var(--azul)}
 #acceso .ficha{background:var(--blanco);border-radius:6px;padding:30px 28px;width:min(380px,100%)}
-#acceso .logo b{display:block;font-size:26px;font-weight:800;letter-spacing:-0.035em;line-height:1}
-#acceso .logo span{font-size:12px;color:var(--gris);letter-spacing:.14em;text-transform:uppercase}
+#acceso .logo svg{display:block;width:190px;height:69px;color:var(--azul)}
 #acceso .lema{margin:14px 0 20px;color:var(--gris);font-size:13px}
 #acceso .campo{margin-bottom:12px}
 #acceso .demo{margin-top:22px;padding-top:16px;border-top:1px solid var(--linea)}
@@ -362,8 +362,7 @@ ul.chequeo li{margin-bottom:6px}
   #app{flex-direction:column}
   nav.rail{width:100%;flex-direction:row;align-items:center;gap:4px;padding:8px 10px;overflow-x:auto}
   .marca{padding:0 10px 0 2px;flex:none}
-  .marca b{font-size:16px}
-  .marca span{font-size:9px}
+  .marca svg{width:88px;height:32px}
   .rail button{width:auto;flex:none;padding:7px 11px;font-size:13px}
   .rail .pie{margin-left:auto;border:none;padding:0 4px;flex:none;display:flex;gap:8px;align-items:center}
   .rail .pie span{display:none}
@@ -491,10 +490,11 @@ button.fcFila.comp:hover{background:#F2E4B8}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="radarLogo" viewBox="0 0 934 339" fill="currentColor"><clipPath id="radarClipR"><path d="M92.9,0 H5000 V5000 H92.9 Z M0,0 H92.9 V204.6 H0 Z"/></clipPath><path clip-path="url(#radarClipR)" d="M20.0 318.6V108.6H118.1Q166.4 108.6 191.6 129.9Q216.8 151.2 216.8 187.8Q216.8 212.1 205.1 229.6Q193.4 247.2 171.9 256.5Q150.5 265.8 121.1 265.8H59.3L90.8 236.7V318.6ZM145.7 318.6 94.1 242.1H169.1L221.3 318.6ZM90.8 244.5 59.3 212.4H116.6Q131.3 212.4 138.3 205.8Q145.4 199.2 145.4 187.8Q145.4 176.4 138.3 169.8Q131.3 163.2 116.6 163.2H59.3L90.8 131.1Z"/><circle cx="34.4" cy="304.2" r="14.4"/><path d="M34.4,256.8 A47.4,47.4 0 0 1 81.8,304.2 L60.8,304.2 A26.4,26.4 0 0 0 34.4,277.8 Z"/><path d="M34.4,223.8 A80.4,80.4 0 0 1 114.8,304.2 L93.8,304.2 A59.4,59.4 0 0 0 34.4,244.8 Z"/><path d="M330.7 318.6V289.5L325.9 281.7V226.5Q325.9 214.5 318.5 208.2Q311.2 201.9 294.7 201.9Q283.6 201.9 272.2 205.3Q260.8 208.8 252.7 214.8L231.1 170.1Q245.5 161.1 265.6 156.3Q285.7 151.5 304.9 151.5Q347.2 151.5 370.4 170.4Q393.7 189.3 393.7 230.4V318.6ZM284.2 321.6Q264.1 321.6 250.6 314.7Q237.1 307.8 230.2 296.2Q223.3 284.7 223.3 270.6Q223.3 254.7 231.4 243.6Q239.5 232.5 256.1 226.8Q272.8 221.1 298.3 221.1H332.5V253.8H309.1Q298.3 253.8 293.3 257.2Q288.4 260.7 288.4 267.6Q288.4 273.3 292.7 277.0Q297.1 280.8 304.6 280.8Q311.5 280.8 317.3 277.0Q323.2 273.3 325.9 265.2L334.6 285.3Q330.7 303.6 318.1 312.6Q305.5 321.6 284.2 321.6Z"/><path d="M485.1 321.6Q463.8 321.6 445.6 311.2Q427.5 300.9 416.7 281.8Q405.9 262.8 405.9 236.4Q405.9 210.0 416.7 190.9Q427.5 171.9 445.6 161.7Q463.8 151.5 485.1 151.5Q506.7 151.5 520.5 160.6Q534.3 169.8 540.9 188.5Q547.5 207.3 547.5 236.4Q547.5 265.8 541.3 284.7Q535.2 303.6 521.5 312.6Q507.9 321.6 485.1 321.6ZM501.3 268.8Q508.8 268.8 514.8 265.2Q520.8 261.6 524.4 254.2Q528.0 246.9 528.0 236.4Q528.0 225.6 524.4 218.5Q520.8 211.5 514.8 207.9Q508.8 204.3 501.3 204.3Q493.8 204.3 487.8 207.9Q481.8 211.5 478.2 218.5Q474.6 225.6 474.6 236.4Q474.6 246.9 478.2 254.2Q481.8 261.6 487.8 265.2Q493.8 268.8 501.3 268.8ZM530.1 318.6V296.4L529.8 236.4L526.8 176.4V96.0H594.6V318.6Z"/><path d="M713.9 318.6V289.5L709.1 281.7V226.5Q709.1 214.5 701.7 208.2Q694.4 201.9 677.9 201.9Q666.8 201.9 655.4 205.3Q644.0 208.8 635.9 214.8L614.3 170.1Q628.7 161.1 648.8 156.3Q668.9 151.5 688.1 151.5Q730.4 151.5 753.6 170.4Q776.9 189.3 776.9 230.4V318.6ZM667.4 321.6Q647.3 321.6 633.8 314.7Q620.3 307.8 613.4 296.2Q606.5 284.7 606.5 270.6Q606.5 254.7 614.6 243.6Q622.7 232.5 639.3 226.8Q656.0 221.1 681.5 221.1H715.7V253.8H692.3Q681.5 253.8 676.5 257.2Q671.6 260.7 671.6 267.6Q671.6 273.3 675.9 277.0Q680.3 280.8 687.8 280.8Q694.7 280.8 700.5 277.0Q706.4 273.3 709.1 265.2L717.8 285.3Q713.9 303.6 701.3 312.6Q688.7 321.6 667.4 321.6Z"/><path d="M796.3 318.6V154.5H860.8V204.0L850.3 189.9Q857.8 170.7 874.3 161.1Q890.8 151.5 913.9 151.5V211.5Q909.4 210.9 905.9 210.6Q902.5 210.3 898.9 210.3Q883.5 210.3 873.8 218.2Q864.0 226.2 864.0 245.7V318.6Z"/><path d="M50.3 89.6Q43.7 89.6 38.2 87.5Q32.7 85.4 28.6 81.6Q24.5 77.7 22.2 72.6Q20.0 67.4 20.0 61.3Q20.0 55.1 22.2 49.9Q24.5 44.8 28.6 40.9Q32.7 37.1 38.2 35.0Q43.7 32.9 50.3 32.9Q56.9 32.9 62.4 35.0Q67.9 37.1 72.0 40.9Q76.0 44.8 78.3 49.9Q80.6 55.1 80.6 61.3Q80.6 67.4 78.3 72.6Q76.0 77.8 72.0 81.6Q67.9 85.4 62.4 87.5Q56.9 89.6 50.3 89.6ZM50.3 76.9Q53.4 76.9 56.1 75.8Q58.8 74.7 60.8 72.6Q62.8 70.5 63.9 67.6Q65.0 64.8 65.0 61.3Q65.0 57.7 63.9 54.8Q62.8 52.0 60.8 49.9Q58.8 47.8 56.1 46.7Q53.4 45.7 50.3 45.7Q47.2 45.7 44.5 46.7Q41.8 47.8 39.8 49.9Q37.8 52.0 36.7 54.8Q35.5 57.7 35.5 61.3Q35.5 64.8 36.7 67.6Q37.8 70.5 39.8 72.6Q41.8 74.7 44.5 75.8Q47.2 76.9 50.3 76.9Z"/><path d="M93.7 88.6V34.0H106.5L136.6 70.3H130.6V34.0H145.7V88.6H133.0L102.9 52.2H108.9V88.6Z"/><path d="M180.8 89.6Q174.1 89.6 167.9 88.0Q161.7 86.3 157.8 83.6L162.9 72.2Q166.5 74.6 171.3 76.1Q176.1 77.6 180.9 77.6Q184.1 77.6 186.0 77.0Q188.0 76.5 188.9 75.5Q189.8 74.5 189.8 73.2Q189.8 71.3 188.1 70.2Q186.3 69.1 183.6 68.4Q180.9 67.7 177.6 67.0Q174.3 66.3 170.9 65.2Q167.6 64.1 164.9 62.4Q162.2 60.6 160.4 57.8Q158.7 54.9 158.7 50.6Q158.7 45.7 161.4 41.7Q164.1 37.7 169.5 35.3Q174.9 32.9 182.9 32.9Q188.3 32.9 193.5 34.1Q198.7 35.3 202.7 37.6L198.0 49.1Q194.1 47.0 190.2 45.9Q186.4 44.9 182.8 44.9Q179.6 44.9 177.7 45.5Q175.7 46.2 174.9 47.3Q174.0 48.4 174.0 49.8Q174.0 51.6 175.7 52.6Q177.4 53.7 180.1 54.3Q182.9 55.0 186.2 55.7Q189.5 56.4 192.9 57.5Q196.2 58.5 198.9 60.3Q201.6 62.0 203.3 64.9Q205.0 67.7 205.0 72.0Q205.0 76.8 202.3 80.8Q199.6 84.8 194.3 87.2Q188.9 89.6 180.8 89.6Z"/><path d="M217.1 88.6V34.0H259.9V45.9H232.4V76.6H260.9V88.6ZM231.3 66.6V55.1H256.6V66.6Z"/><path d="M301.7 89.6Q295.2 89.6 289.7 87.6Q284.2 85.5 280.2 81.7Q276.2 77.9 274.0 72.7Q271.7 67.5 271.7 61.3Q271.7 55.0 274.0 49.8Q276.2 44.6 280.2 40.8Q284.2 37.0 289.7 34.9Q295.2 32.9 301.7 32.9Q309.3 32.9 315.3 35.5Q321.2 38.2 325.2 43.2L315.4 52.0Q312.7 48.9 309.6 47.3Q306.4 45.7 302.5 45.7Q299.1 45.7 296.3 46.7Q293.5 47.8 291.5 49.9Q289.6 52.0 288.4 54.9Q287.3 57.7 287.3 61.3Q287.3 64.8 288.4 67.6Q289.6 70.5 291.5 72.6Q293.5 74.7 296.3 75.8Q299.1 76.9 302.5 76.9Q306.4 76.9 309.6 75.2Q312.7 73.6 315.4 70.5L325.2 79.3Q321.2 84.3 315.3 87.0Q309.3 89.6 301.7 89.6Z"/><path d="M361.6 89.6Q349.5 89.6 342.8 83.0Q336.0 76.4 336.0 64.2V34.0H351.4V63.7Q351.4 70.8 354.2 73.8Q357.0 76.9 361.8 76.9Q366.6 76.9 369.4 73.8Q372.1 70.8 372.1 63.7V34.0H387.3V64.2Q387.3 76.4 380.5 83.0Q373.7 89.6 361.6 89.6Z"/><path d="M402.7 88.6V34.0H427.2Q439.1 34.0 445.5 39.4Q452.0 44.8 452.0 54.2Q452.0 60.3 449.0 64.8Q446.0 69.3 440.6 71.7Q435.2 74.0 427.7 74.0H411.3L418.2 67.6V88.6ZM436.5 88.6 422.9 68.7H439.4L453.1 88.6ZM418.2 69.2 411.3 62.1H426.8Q431.6 62.1 434.0 60.0Q436.4 57.9 436.4 54.2Q436.4 50.3 434.0 48.2Q431.6 46.1 426.8 46.1H411.3L418.2 39.0Z"/></symbol></svg>
 
 <div id="acceso">
   <div class="ficha">
-    <div class="logo"><b>ONSECUR</b><span>Radar</span></div>
+    <div class="logo"><svg role="img" aria-label="Onsecur Radar"><use href="#radarLogo"/></svg></div>
     <p class="lema">Seguimiento comercial</p>
     <div class="campo"><label for="lEmail">Correo</label><input id="lEmail" type="email" placeholder="nombre@onsecur.com"></div>
     <div class="campo"><label for="lClave">Contraseña</label><input id="lClave" type="password" placeholder="••••••••"></div>
@@ -504,7 +504,7 @@ button.fcFila.comp:hover{background:#F2E4B8}
 
 <div id="app" class="oculto">
   <nav class="rail">
-    <div class="marca"><b>ONSECUR</b><span>Radar</span></div>
+    <div class="marca"><svg role="img" aria-label="Onsecur Radar"><use href="#radarLogo"/></svg></div>
     <button data-vista="panel" aria-current="true">Panel</button>
     <button data-vista="informes">Informes</button>
     <button data-vista="radar">Previsiones</button>
