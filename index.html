@@ -1728,7 +1728,7 @@ async function claveCopia(t){
   return cols;
 }
 
-let copia = { conteo:null, ultima:null, cargando:false, trabajando:'', resultado:null, error:'' };
+let copia = { conteo:null, ultima:null, cargando:false, trabajando:'', resultado:null, error:'', errorEstado:'', archivo:null };
 
 const nombreTabla = t => COPIA_NOMBRES[t] || t.replace(/_/g,' ');
 const ordenTablas = ts => [...ts].sort((a,b)=>{
@@ -1761,14 +1761,16 @@ async function filasCopia(tabla, claves){
 }
 
 async function cargarEstadoCopia(){
-  copia.cargando = true; copia.error = '';
+  /* Error propio: no debe borrar el de la última copia, que es el que
+     el usuario necesita ver. */
+  copia.cargando = true; copia.errorEstado = '';
   try{
     copia.conteo = await leerConteo();
     const { data } = await SB.from('exportacion')
       .select('hecha_en,autor_nombre,formato,total_filas,completa')
       .order('hecha_en', { ascending:false }).limit(5);
     copia.ultima = data || [];
-  }catch(e){ copia.error = e.message || String(e); }
+  }catch(e){ copia.errorEstado = e.message || String(e); console.error('Copia (estado):', e); }
   copia.cargando = false;
   if(vista === 'copia') pintar();
 }
@@ -1935,16 +1937,26 @@ function jsonCopia(r){
 
 async function hacerCopia(formato){
   if(copia.trabajando) return;
+  if(copia.archivo){ URL.revokeObjectURL(copia.archivo.url); copia.archivo = null; }
   copia.resultado = null; copia.error = ''; copia.trabajando = 'Preparando…'; pintar();
   try{
     const r = await leerTodo();
     copia.trabajando = 'Generando el fichero…'; pintarTrabajoCopia();
     const base = `Radar_copia_${sello()}`;
-    if(formato === 'excel') XLSX.writeFile(libroCopia(r), base + '.xlsx', { compression:true });
-    else descargarBlob(new Blob([jsonCopia(r)], { type:'application/json' }), base + '.json');
+    const blob = formato === 'excel'
+      ? new Blob([XLSX.write(libroCopia(r), { bookType:'xlsx', type:'array', compression:true })],
+          { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+      : new Blob([jsonCopia(r)], { type:'application/json' });
+    const nombre = base + (formato === 'excel' ? '.xlsx' : '.json');
+    /* El archivo queda guardado en memoria con su propio botón: la descarga
+       automática llega segundos después del clic y algunos navegadores la
+       bloquean sin avisar. */
+    copia.archivo = { url:URL.createObjectURL(blob), nombre };
+    const a = document.createElement('a');
+    a.href = copia.archivo.url; a.download = nombre; document.body.appendChild(a); a.click(); a.remove();
     await registrarCopia(formato, r);
     copia.resultado = { formato, total:r.total, tablas:r.tablas.length, faltan:r.faltan };
-  }catch(e){ copia.error = e.message || String(e); }
+  }catch(e){ copia.error = e.message || String(e); console.error('Copia:', e); }
   copia.trabajando = '';
   await cargarEstadoCopia();
 }
@@ -1988,8 +2000,11 @@ function vCopia(c){
           ? `<div class="copiaAviso mal"><b>La copia está incompleta.</b> Se ha descargado,
              pero no coincide con la base en: ${res.faltan.map(f=>esc(`${nombreTabla(f.tabla)} (${f.copia} de ${f.base})`)).join(', ')}.
              No la des por buena.</div>`
-          : `<div class="copiaAviso bien">Copia ${res.formato==='excel'?'en Excel':'completa'} descargada:
+          : `<div class="copiaAviso bien">Copia ${res.formato==='excel'?'en Excel':'completa'} preparada:
              ${numES(res.total)} registros de ${res.tablas} tablas, comprobados contra la base.</div>`) : ''}
+        ${res && copia.archivo ? `<p class="copiaPasos">¿No se ha descargado solo?
+          <a class="btn sec" style="margin-left:6px" href="${copia.archivo.url}" download="${esc(copia.archivo.nombre)}">Guardar ${esc(copia.archivo.nombre)}</a></p>` : ''}
+        ${copia.errorEstado ? `<div class="copiaAviso mal">No se ha podido leer el estado de la base: ${esc(copia.errorEstado)}</div>` : ''}
       </div>
 
       <div class="impResumen">
@@ -2008,7 +2023,7 @@ function vCopia(c){
 
     <section class="impResumen" style="margin-top:0">
       <h3>Qué entra</h3>
-      ${!k ? `<p class="copiaPasos" style="margin:0">${copia.error?'—':'Contando registros…'}</p>` : `
+      ${!k ? `<p class="copiaPasos" style="margin:0">${copia.errorEstado?'—':'Contando registros…'}</p>` : `
       <table><tbody>
         ${tablas.map(t=>`<tr><td>${esc(nombreTabla(t))}</td><td class="der num">${numES(k[t])}</td></tr>`).join('')}
         <tr class="totalFila"><td>Total</td><td class="der num">${numES(total)}</td></tr>
