@@ -309,6 +309,61 @@ select,input[type=text],input[type=date],input[type=number],textarea{background:
 .sat svg{width:11px;height:11px;flex:none}
 .tarjeta .titulo .sat{margin-left:4px}
 
+/* prescriptores */
+.prChips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.prChips button{padding:5px 12px;border-radius:20px;border:1px solid var(--linea);background:var(--blanco);font-size:12px;font-weight:600;color:var(--azul)}
+.prChips button:hover{border-color:#BDC6CE}
+.prChips button[aria-pressed="true"]{background:var(--azul);color:#fff;border-color:var(--azul)}
+.prCheck{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--azul);cursor:pointer}
+.prCheck input{width:auto}
+.prCheck span{color:var(--gris)}
+.prTablero{display:grid;grid-template-columns:repeat(var(--n),minmax(230px,1fr));gap:12px;align-items:start;overflow-x:auto;padding-bottom:10px}
+.prCol{background:#E9ECEF;border-radius:var(--r);border-top:4px solid var(--c);display:flex;flex-direction:column;min-height:160px;max-height:calc(100vh - 210px)}
+.prCol.encima{box-shadow:0 0 0 2px var(--curry)}
+.prCol header{padding:10px 12px;display:flex;gap:10px;align-items:center}
+.prCol header h3{font-size:13px}
+.prCol header small{display:block;font-size:11px;color:var(--gris);font-weight:400}
+.prCol header .n{margin-left:auto;text-align:right;font-weight:700;font-size:15px;line-height:1.2}
+.prCol header .n small{color:var(--granate);font-weight:600}
+.prLetra{width:24px;height:24px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex:none}
+.prCol .lista{overflow-y:auto;padding:0 8px 10px;display:flex;flex-direction:column;gap:7px}
+.prGrupo{display:flex;justify-content:space-between;gap:8px;font-size:11px;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:.04em;padding:8px 2px 0}
+.prGrupo .v{color:var(--granate)}
+.prTarjeta{background:var(--blanco);border:1px solid transparent;border-radius:4px;padding:9px 10px;text-align:left;width:100%;box-shadow:0 1px 2px rgba(12,38,58,.08);cursor:pointer;color:var(--azul)}
+.prTarjeta[draggable="true"]{cursor:grab}
+.prTarjeta:hover{border-color:#BDC6CE}
+.prTarjeta .cab{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.prTarjeta .cab b{font-size:13px;line-height:1.25}
+.prTarjeta .cod{font-size:11px;color:var(--gris);font-weight:600;white-space:nowrap}
+.prTarjeta .tipo{font-size:11px;color:var(--gris);margin-top:1px}
+.prTarjeta .pie{display:flex;justify-content:space-between;gap:8px;margin-top:7px;font-size:11px;color:var(--gris)}
+.prTarjeta .pie b{color:var(--azul)}
+.prTarjeta.est-inactivo{opacity:.75}
+.prContacto{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:11px;font-weight:700;white-space:nowrap}
+.prContacto .barra{flex:1;height:5px;background:var(--azul-claro);border-radius:3px;overflow:hidden}
+.prContacto .barra i{display:block;height:100%}
+.est-aldia .prContacto{color:var(--verde)} .est-aldia .barra i{background:var(--verde)}
+.est-pronto .prContacto{color:var(--naranja)} .est-pronto .barra i{background:#E0A060}
+.est-vencido .prContacto{color:var(--granate)} .est-vencido .barra i{background:var(--granate)}
+.prRev{display:inline-block;margin-top:6px;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:10px;background:var(--curry-claro);color:#7A5C00;border:1px solid #E8D48F}
+.cajon.ancho{width:min(760px,100%)}
+.prAvisoRev{background:var(--curry-claro);border-left:3px solid var(--curry);padding:10px 12px;border-radius:4px;margin-bottom:14px;font-size:13px}
+.prAvisoRev p{margin:4px 0 8px}
+.prEtiquetas{display:flex;flex-wrap:wrap;gap:6px}
+.prEtq{padding:3px 9px;border-radius:4px;font-size:12px;font-weight:700;background:var(--azul-claro);color:var(--azul)}
+.prEtq.vencido{background:var(--rojo-claro);color:var(--granate)}
+.prEtq.pronto{background:var(--naranja-claro);color:var(--naranja)}
+.prEtq.aldia{background:var(--verde-claro);color:var(--verde)}
+.prKpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:12px 0 0}
+.prKpis div{border:1px solid var(--linea);border-radius:var(--r);padding:8px 10px}
+.prKpis dt{font-size:10.5px;color:var(--gris);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.prKpis dd{margin:2px 0 0;font-size:16px;font-weight:700}
+.prNota{white-space:pre-wrap;word-break:break-word;margin:3px 0 0!important;font-size:13px}
+.prBorrar{flex:none;width:26px;height:26px;border-radius:4px;color:var(--gris);font-size:16px;line-height:1}
+.prBorrar:hover{background:var(--rojo-claro);color:var(--rojo)}
+.prNuevoContacto{display:grid;grid-template-columns:1.2fr 1fr 1.2fr 1fr auto;gap:6px;margin-top:8px}
+@media (max-width:760px){.prKpis{grid-template-columns:repeat(2,minmax(0,1fr))}.prCol{max-height:none}.prNuevoContacto{grid-template-columns:1fr 1fr}}
+
 /* cajón */
 .velo{position:fixed;inset:0;background:rgba(12,38,58,.4);display:none;z-index:20}
 .velo.abierto{display:block}
@@ -511,6 +566,7 @@ button.fcFila.comp:hover{background:#F2E4B8}
     <button data-vista="pipeline">Etapas</button>
     <button data-vista="agenda">Agenda <span class="chip" id="chipAgenda">0</span></button>
     <button data-vista="lista">Oportunidades <span class="chip" id="chipLista">0</span></button>
+    <button data-vista="prescriptores">Prescriptores</button>
     <button data-vista="importar">Importar</button>
     <button data-vista="copia" id="navCopia" class="oculto">Copia de seguridad</button>
     <div class="pie">
@@ -642,6 +698,19 @@ async function cargarDatos(){
   catch(e){ IGNORADOS = []; IGNORADOS_ERROR = e.message || String(e);
             console.warn('Sin lista de ignorados:', IGNORADOS_ERROR); }
 
+  /* Prescriptores (radar_v4_prescriptores.sql). Si el módulo aún no está en
+     la base, la pantalla lo dice y el resto de Radar sigue funcionando. */
+  try{ await cargarPrescriptores(); PRESC_ERROR = ''; }
+  catch(e){ PRESC = []; PRESC_ERROR = e.message || String(e); console.warn('Sin prescriptores:', PRESC_ERROR); }
+  /* Prescriptor de cada oportunidad. Se lee de la tabla porque la vista no
+     lo trae. Si no se puede leer, la ficha no toca el campo al guardar. */
+  const prescDeOpo = new Map();
+  try{
+    (await todasLasFilas('oportunidad', 'id,prescriptor_id'))
+      .forEach(r => { if(r.prescriptor_id) prescDeOpo.set(String(r.id), String(r.prescriptor_id)); });
+    PRESC_OPO_OK = true;
+  } catch(e){ PRESC_OPO_OK = false; console.warn('Sin prescriptor en oportunidades:', e.message || e); }
+
   /* Los numeros de Beta10 de cada oportunidad, para poder sacarlos como
      columna y buscar por ellos. */
   const presPorOpo = new Map();
@@ -688,7 +757,8 @@ async function cargarDatos(){
       notas      : o.notas || '',
       tocada     : o.ultima_actividad ? o.ultima_actividad + 'T09:00:00.000Z' : null,
       origenDato : o.origen_dato === 'beta10' ? 'Beta10' : 'Holded',
-      presupuestos: (presPorOpo.get(String(o.id)) || []).sort().join(', ')
+      presupuestos: (presPorOpo.get(String(o.id)) || []).sort().join(', '),
+      prescId    : prescDeOpo.get(String(o.id)) || ''
     })),
     pres: presupuestos.map(p => ({ numero:p.numero, opo:p.oportunidad_id ? String(p.oportunidad_id) : null,
       importe:Number(p.importe)||0, coste:p.coste==null?null:Number(p.coste), version:p.version,
@@ -743,6 +813,10 @@ function aFilaBD(o){
     notas         : o.notas || null,
     ultima_actividad: (o.tocada || '').slice(0,10) || null
   };
+  /* Solo con origen Prescriptor (la base no admite otro caso). Si no se pudo
+     leer el enlace al arrancar, no se toca para no borrarlo. */
+  if(PRESC_OPO_OK)
+    f.prescriptor_id = (f.origen === 'prescriptor' && o.prescId) ? Number(o.prescId) : null;
   /* Stand By no lleva fecha prevista, por regla. */
   if(o.estado === 'abierta'){
     f.cierre_previsto = o.etapa === 'standby' ? null : (o.cierre || null);
@@ -1619,6 +1693,8 @@ const COPIA_NOMBRES = {
   nota:'Notas y actividad',
   cambio:'Historial de cambios', cuenta:'Cuentas', cuenta_alias:'Alias de cuentas',
   prescriptor:'Prescriptores', prescriptor_contacto:'Contactos de prescriptores',
+  prescriptor_actividad:'Actividad con prescriptores', prescriptor_categoria_hist:'Cambios de categoría de prescriptores',
+  categoria_prescriptor:'Categorías de prescriptor',
   perfil:'Usuarios', objetivo:'Objetivos', proyectista:'Proyectistas',
   importacion:'Importaciones', import_revision:'Revisiones de importación',
   exportacion:'Copias hechas', etapa:'Etapas', tipo_oportunidad:'Tipos de oportunidad',
@@ -1629,14 +1705,14 @@ const COPIA_NOMBRES = {
 };
 /* Orden en pantalla y en el Excel: primero lo que es trabajo del equipo. */
 const COPIA_ORDEN = ['oportunidad','presupuesto','presupuesto_ignorado','nota','cambio','cuenta','cuenta_alias',
-  'prescriptor','prescriptor_contacto','perfil','objetivo','proyectista',
+  'prescriptor','prescriptor_contacto','prescriptor_actividad','prescriptor_categoria_hist','perfil','objetivo','proyectista',
   'importacion','import_revision','exportacion'];
 /* Clave por la que se ordena al paginar. Sin orden fijo, PostgREST puede
    repetir o saltarse filas entre una página y la siguiente. */
 const COPIA_CLAVE = { perfil:['id'], objetivo:['tag_comercial','anio','mes'],
   vertical_alias:['alias'], cuenta_alias:['alias'], ajuste:['clave'] };
 const claveCopia = t => COPIA_CLAVE[t] ||
-  (['cuenta','prescriptor','prescriptor_contacto','oportunidad','presupuesto','presupuesto_ignorado','nota',
+  (['cuenta','prescriptor','prescriptor_contacto','prescriptor_actividad','prescriptor_categoria_hist','oportunidad','presupuesto','presupuesto_ignorado','nota',
     'cambio','importacion','import_revision','exportacion'].includes(t) ? ['id'] : ['codigo']);
 
 let copia = { conteo:null, ultima:null, cargando:false, trabajando:'', resultado:null, error:'' };
@@ -1998,6 +2074,7 @@ function entrar(id){
   radar = { comercial:'', prob:'', vertical:'', proyectista:'', orden:'importe' };
   vista = 'panel';
   informe = 'resultados';
+  pf = { comercial:'', tipo:'', texto:'', revisar:false, descartados:false };
   $('#usuarioActivo').textContent = yo().nombre;
   $('#rolActivo').textContent = yo().rol;
   $('#navCopia').classList.toggle('oculto', !esManager());
@@ -2009,7 +2086,7 @@ function entrar(id){
 function pintar(){
   document.querySelectorAll('.rail [data-vista]').forEach(b=>b.setAttribute('aria-current',String(b.dataset.vista===vista)));
   pintarCifras();
-  ({pipeline:vPipeline,radar:vRadar,lista:vLista,agenda:vAgenda,panel:vPanel,informes:vInformes,importar:vImportar,copia:vCopia})[vista]($('#contenido'));
+  ({pipeline:vPipeline,radar:vRadar,lista:vLista,agenda:vAgenda,panel:vPanel,informes:vInformes,importar:vImportar,copia:vCopia,prescriptores:vPrescriptores})[vista]($('#contenido'));
 }
 
 function pintarCifras(){
@@ -2022,6 +2099,7 @@ function pintarCifras(){
   const vencidas = pendientes().filter(a=>dias(a.proxFecha)>0).length;
   $('#chipLista').textContent = ab.length;
   $('#chipAgenda').textContent = pendientes().length;
+  if(vista === 'prescriptores') return cifrasPresc();
   $('#cifras').innerHTML = `
     <div class="cifra"><dt>Pipeline abierto</dt><dd class="num">${eur(ab.reduce((s,o)=>s+o.valor,0))}</dd></div>
     <div class="cifra"><dt>Ponderado</dt><dd class="num">${eur(pond)}</dd></div>
@@ -3322,13 +3400,14 @@ function vPanel(c){
 }
 
 /* ═══════ cajón ═══════ */
-function cerrarCajon(){ $('#cajon').classList.remove('abierto'); $('#velo').classList.remove('abierto'); abierta = null; }
+function cerrarCajon(){ $('#cajon').classList.remove('abierto','ancho'); $('#velo').classList.remove('abierto'); abierta = null; }
 $('#velo').onclick = cerrarCajon; $('#btnCerrarCajon').onclick = cerrarCajon;
 document.addEventListener('keydown', e => { if(e.key==='Escape') cerrarCajon(); });
 
 function abrirCajon(o){
   const nuevo = !o;
   abierta = o;
+  $('#cajon').classList.remove('ancho');
   o = o || { nombre:'',cuenta:'',owner:comoUsuario,etapa:'estudio',estado:'abierta',valor:0,prob:10,cierre:'',servicio:'',origen:'',vertical:'',proyectista:'Sin asignar',notas:'' };
   $('#cajonTitulo').textContent = nuevo ? 'Nueva oportunidad' : o.nombre;
   const pres = o.pres || [];
@@ -3355,7 +3434,7 @@ function abrirCajon(o){
         <div class="campo"><label>Tipo de sistema</label><select id="cServicio">${SERVICIOS.map(x=>`<option ${o.servicio===x?'selected':''}>${x}</option>`).join('')}</select></div>
         <div class="campo"><label>Vertical</label><select id="cVertical"><option value="">Sin clasificar</option>${VERTICALES.map(x=>`<option ${o.vertical===x?'selected':''}>${x}</option>`).join('')}</select></div>
         <div class="campo"><label>Origen</label><select id="cOrigen"><option value="">Sin indicar</option>${ORIGENES.map(x=>`<option ${o.origen===x?'selected':''}>${x}</option>`).join('')}</select></div>
-        <div class="campo ancho ${['Prescriptor','Referido de cliente'].includes(o.origen)?'':'oculto'}" id="wrapPresc"><label>Prescriptor o quien lo refiere</label><input id="cPrescriptor" type="text" value="${esc(o.prescriptor||'')}"></div>
+        <div class="campo ancho ${o.origen==='Prescriptor'?'':'oculto'}" id="wrapPresc"><label for="cPresc">Prescriptor</label><select id="cPresc"${PRESC_OPO_OK&&!PRESC_ERROR?'':' disabled title="El módulo de prescriptores no está disponible"'}>${selectorPresc(o)}</select></div>
       </div></div>
 
     <div class="seccion"><h3>Equipo</h3>
@@ -3392,7 +3471,7 @@ function abrirCajon(o){
       <div class="campo ancho"><textarea id="cNotas" rows="3">${esc(o.notas||'')}</textarea></div></div></div>
     ${nuevo?'':actividadHTML(o)}`;
 
-  $('#cOrigen').onchange = e => $('#wrapPresc').classList.toggle('oculto', !['Prescriptor','Referido de cliente'].includes(e.target.value));
+  $('#cOrigen').onchange = e => $('#wrapPresc').classList.toggle('oculto', e.target.value !== 'Prescriptor');
   $('#cEtapa').onchange = e => { const w=$('#wrapRev'); if(w) w.classList.toggle('oculto', e.target.value!=='standby'); };
   $('#cCuenta').onchange = e => $('#cCuentaNueva').classList.toggle('oculto', e.target.value!=='__n');
 
@@ -3663,7 +3742,7 @@ async function guardar(existente){
   if(!cuenta) return alert('Elige una cuenta para la oportunidad.');
   const nombre = $('#cNombre').value.trim();
   if(!nombre) return alert('La oportunidad necesita un nombre.');
-  const datos = { nombre, cuenta, calle:$('#cCalle').value.trim(), poblacion:$('#cPoblacion').value.trim(), provincia:$('#cProvincia').value.trim(), tipo:$('#cActuacion').value, prescriptor:(($('#cPrescriptor')||{}).value||'').trim(), revision:(($('#cRevision')||{}).value||''), valor:Number($('#cValor').value)||0,
+  const datos = { nombre, cuenta, calle:$('#cCalle').value.trim(), poblacion:$('#cPoblacion').value.trim(), provincia:$('#cProvincia').value.trim(), tipo:$('#cActuacion').value, prescId:$('#cOrigen').value==='Prescriptor' ? (($('#cPresc')||{}).value||'') : '', revision:(($('#cRevision')||{}).value||''), valor:Number($('#cValor').value)||0,
     prob:Number($('#cProb').value)||0, etapa:$('#cEtapa').value, cierre:$('#cCierre').value||'',
     servicio:$('#cServicio').value, origen:$('#cOrigen').value, owner:$('#cOwner').value,
     vertical:$('#cVertical').value, proyectista:$('#cProyectista').value,
@@ -3674,6 +3753,435 @@ async function guardar(existente){
   cerrarCajon(); pintar(); sincronizar(o);
 }
 
+
+
+/* ═══════ Prescriptores ═══════ */
+/* Tablero por categoría. Cada categoría lleva una cadencia de contacto: si
+   pasan más días que la cadencia sin actividad, el prescriptor sale vencido.
+   El valor (oportunidades, pipeline, ganado) se calcula aquí con las
+   oportunidades cargadas, así refleja al momento lo que se enlaza. */
+const CAT_PRESC = [
+  { k:'A', n:'Clave',        d:30,  c:'#CC9B00', fg:'#0C263A' },
+  { k:'N', n:'En conquista', d:15,  c:'#D5DDE3', fg:'#0C263A' },
+  { k:'B', n:'Mantener',     d:60,  c:'#9FAFBC', fg:'#0C263A' },
+  { k:'C', n:'Ocasional',    d:120, c:'#66757F', fg:'#FFFFFF' }
+];
+const COL_DESCARTADOS = { k:'X', n:'Descartados', d:0, c:'#C9CFD5', fg:'#0C263A' };
+const TIPOS_PRESC = ['Arquitectura + interiorismo + paisajismo', 'Inmobiliaria + promotora + gestora',
+  'Seguridad + domótica', 'Ingenierías + constructoras', 'Sector lujo', 'Fondo de inversión', 'Otros'];
+const ACT_PRESC = { llamada:'Llamada', visita:'Visita', comida:'Comida', email:'Email', evento:'Evento', nota:'Nota', trello:'Trello' };
+
+let PRESC = [], PRESC_ERROR = '', PRESC_OPO_OK = false;
+let pf = { comercial:'', tipo:'', texto:'', revisar:false, descartados:false };
+
+async function cargarPrescriptores(){
+  const filas = await todasLasFilas('v_prescriptor',
+    'id,codigo,nombre,tipo,comercial,categoria,activo,notas,revisar,ultimo_contacto,creado_en');
+  PRESC = filas.map(filaPresc);
+}
+const filaPresc = r => ({
+  id:String(r.id), codigo:r.codigo || '', nombre:r.nombre, tipo:r.tipo || '', comercial:r.comercial || '',
+  categoria:r.categoria || '', activo:r.activo !== false, notas:r.notas || '', revisar:r.revisar || '',
+  ultimo:r.ultimo_contacto || '', alta:String(r.creado_en || '').slice(0,10) || fechaLocal(new Date())
+});
+
+const catPresc = k => CAT_PRESC.find(c => c.k === k);
+const prescNombre = id => (PRESC.find(p => p.id === id) || {}).nombre || '';
+/* Dirección y lectura ven todos; el comercial, los suyos. */
+const veTodosPresc = () => MI_ROL !== 'comercial';
+const puedeEditarPresc = p => esManager() || (MI_ROL === 'comercial' && (!p || p.comercial === comoUsuario));
+
+function contactoPresc(p){
+  const d = dias(p.ultimo || p.alta);
+  const cad = (catPresc(p.categoria) || {}).d || 0;
+  if(!p.activo) return { estado:'inactivo', d, cad, r:0 };
+  if(!cad || d == null) return { estado:'aldia', d, cad, r:0 };
+  const r = d / cad;
+  return { estado: r > 1 ? 'vencido' : r > 0.8 ? 'pronto' : 'aldia', d, cad, r };
+}
+const TXT_ESTADO = { vencido:'Vencido', pronto:'Toca esta semana', aldia:'Al día', inactivo:'Descartado' };
+
+/* Oportunidades por prescriptor, calculadas una vez por pintado. */
+function valoresPresc(){
+  const hace = fechaLocal(new Date(Date.now() - 365*864e5));
+  const m = new Map();
+  for(const o of D.opos){
+    if(!o.prescId) continue;
+    let v = m.get(o.prescId);
+    if(!v) m.set(o.prescId, v = { ops:[], abiertas:0, pipeline:0, ganadas:0, perdidas:0, ganado12:0, ultima:'' });
+    v.ops.push(o);
+    if(o.estado === 'abierta'){ v.abiertas++; v.pipeline += o.valor; }
+    if(o.estado === 'ganada'){ v.ganadas++; if((o.cierre || '') >= hace) v.ganado12 += o.valor; }
+    if(o.estado === 'perdida') v.perdidas++;
+    const f = fechaCreacion(o) || '';
+    if(f > v.ultima) v.ultima = f;
+  }
+  return m;
+}
+const VACIO_PRESC = { ops:[], abiertas:0, pipeline:0, ganadas:0, perdidas:0, ganado12:0, ultima:'' };
+
+/* Los que le tocan a quien mira, sin contar búsqueda ni filtros finos. */
+function prescAlcance(){
+  return PRESC.filter(p => veTodosPresc()
+    ? (!pf.comercial || (pf.comercial === 'sinasignar' ? !p.comercial : p.comercial === pf.comercial))
+    : p.comercial === comoUsuario);
+}
+function prescVisibles(){
+  const t = pf.texto.trim().toLowerCase();
+  return prescAlcance().filter(p =>
+    (!pf.tipo || p.tipo === pf.tipo) && (!pf.revisar || p.revisar) &&
+    (!t || (p.nombre + ' ' + p.codigo).toLowerCase().includes(t)));
+}
+
+const ORDEN_ESTADO = { vencido:0, pronto:1, aldia:2, inactivo:3 };
+function ordenPresc(a, b){
+  const ca = contactoPresc(a), cb = contactoPresc(b);
+  return ORDEN_ESTADO[ca.estado] - ORDEN_ESTADO[cb.estado] || cb.r - ca.r || a.nombre.localeCompare(b.nombre, 'es');
+}
+
+function vPrescriptores(c){
+  if(PRESC_ERROR){
+    c.innerHTML = `<div class="copiaAviso mal">No se han podido leer los prescriptores: ${esc(PRESC_ERROR)}.
+      Comprueba que se han lanzado <b>radar_v4_prescriptores.sql</b> y <b>radar_v4_prescriptores_carga.sql</b>.</div>`;
+    return;
+  }
+  const vis = prescVisibles();
+  const val = valoresPresc();
+  const nRev = prescAlcance().filter(p => p.revisar).length;
+  const agrupar = veTodosPresc() && !pf.comercial;
+  const cols = pf.descartados ? [...CAT_PRESC, COL_DESCARTADOS] : CAT_PRESC;
+  const chips = veTodosPresc()
+    ? [['', 'Todos'], ...Object.entries(COMERCIALES), ['sinasignar', 'Sin asignar']]
+        .map(([id, n]) => `<button type="button" data-com="${id}" aria-pressed="${pf.comercial === id}">${esc(n)}</button>`).join('')
+    : '';
+
+  const tarjetaP = p => {
+    const k = contactoPresc(p), v = val.get(p.id) || VACIO_PRESC;
+    const txt = !p.activo ? 'Descartado'
+      : k.estado === 'vencido' ? `Vencido · ${k.d} d` : `${k.d ?? 0} / ${k.cad} d`;
+    return `<button type="button" class="prTarjeta est-${k.estado}" data-id="${p.id}" draggable="${puedeEditarPresc(p)}">
+      <div class="cab"><b>${esc(p.nombre)}</b>${p.codigo ? `<span class="cod">${esc(p.codigo)}</span>` : ''}</div>
+      <div class="tipo">${esc(p.tipo || 'Sin tipo')}</div>
+      ${p.activo ? `<div class="prContacto" title="${p.ultimo ? 'Último contacto: ' + esc(p.ultimo) : 'Sin actividad registrada: cuenta desde el alta'}">
+        <span class="barra"><i style="width:${Math.min(100, Math.round(k.r*100))}%"></i></span><span class="num">${txt}</span></div>` : ''}
+      <div class="pie"><span>${v.abiertas ? v.abiertas + (v.abiertas === 1 ? ' oport. abierta' : ' oport. abiertas') : v.ops.length ? v.ops.length + ' oport. en total' : 'Sin oportunidades'}</span>
+        <b class="num">${v.pipeline ? eur(v.pipeline) : ''}</b></div>
+      ${p.revisar ? '<span class="prRev">Por revisar</span>' : ''}
+    </button>`;
+  };
+
+  const columna = col => {
+    const l = vis.filter(p => col.k === 'X' ? !p.activo : p.activo && (p.categoria || 'C') === col.k).sort(ordenPresc);
+    const venc = col.k === 'X' ? 0 : l.filter(p => contactoPresc(p).estado === 'vencido').length;
+    let cuerpo;
+    if(!l.length) cuerpo = '<p class="vacio">Nadie en esta categoría.</p>';
+    else if(agrupar){
+      const grupos = [...Object.keys(COMERCIALES), ''];
+      cuerpo = grupos.map(g => {
+        const gl = l.filter(p => (p.comercial || '') === g);
+        if(!gl.length) return '';
+        const gv = col.k === 'X' ? 0 : gl.filter(p => contactoPresc(p).estado === 'vencido').length;
+        return `<div class="prGrupo"><span>${esc(g ? COMERCIALES[g] || g : 'Sin asignar')}</span>
+          <span>${gl.length}${gv ? ` · <span class="v">${gv} vencidos</span>` : ''}</span></div>` + gl.map(tarjetaP).join('');
+      }).join('');
+    } else cuerpo = l.map(tarjetaP).join('');
+    return `<section class="prCol" data-cat="${col.k}" style="--c:${col.c}">
+      <header><span class="prLetra" style="background:${col.c};color:${col.fg}">${col.k === 'X' ? '—' : col.k}</span>
+        <div><h3>${col.n}</h3><small>${col.d ? 'Contacto cada ' + col.d + ' días' : 'No aparecen en el seguimiento'}</small></div>
+        <div class="n num">${l.length}${venc ? `<small>${venc} vencidos</small>` : ''}</div></header>
+      <div class="lista">${cuerpo}</div></section>`;
+  };
+
+  c.innerHTML = `
+    ${chips ? `<div class="prChips">${chips}</div>` : ''}
+    <div class="filtros">
+      <input type="text" id="pfTexto" placeholder="Buscar prescriptor o código" value="${esc(pf.texto)}">
+      <select id="pfTipo"><option value="">Todos los tipos</option>
+        ${TIPOS_PRESC.map(t => `<option ${pf.tipo === t ? 'selected' : ''}>${t}</option>`).join('')}</select>
+      <label class="prCheck"><input type="checkbox" id="pfRevisar" ${pf.revisar ? 'checked' : ''}> Solo por revisar <span class="num">(${nRev})</span></label>
+      <label class="prCheck"><input type="checkbox" id="pfDesc" ${pf.descartados ? 'checked' : ''}> Ver descartados</label>
+    </div>
+    <div class="prTablero" style="--n:${cols.length}">${cols.map(columna).join('')}</div>`;
+
+  c.querySelectorAll('.prChips [data-com]').forEach(b => b.onclick = () => { pf.comercial = b.dataset.com; pintar(); });
+  const t = $('#pfTexto');
+  t.oninput = () => { pf.texto = t.value; const pos = t.selectionStart; pintar(); const n = $('#pfTexto'); n.focus(); n.setSelectionRange(pos, pos); };
+  $('#pfTipo').onchange = e => { pf.tipo = e.target.value; pintar(); };
+  $('#pfRevisar').onchange = e => { pf.revisar = e.target.checked; pintar(); };
+  $('#pfDesc').onchange = e => { pf.descartados = e.target.checked; pintar(); };
+  activarArrastrePresc(c);
+}
+
+function activarArrastrePresc(c){
+  c.querySelectorAll('.prTarjeta').forEach(t => {
+    t.onclick = () => abrirPresc(PRESC.find(p => p.id === t.dataset.id));
+    t.ondragstart = e => e.dataTransfer.setData('text/plain', 'presc:' + t.dataset.id);
+  });
+  c.querySelectorAll('.prCol').forEach(col => {
+    col.ondragover = e => { e.preventDefault(); col.classList.add('encima'); };
+    col.ondragleave = () => col.classList.remove('encima');
+    col.ondrop = async e => {
+      e.preventDefault(); col.classList.remove('encima');
+      const dato = e.dataTransfer.getData('text/plain');
+      if(!dato.startsWith('presc:')) return;
+      const p = PRESC.find(x => x.id === dato.slice(6));
+      if(!p || !puedeEditarPresc(p)) return;
+      const k = col.dataset.cat;
+      if(k === 'X' ? !p.activo : (p.activo && p.categoria === k)) return;
+      const cat = catPresc(k);
+      const ok = await confirmar(
+        k === 'X' ? 'Descartar prescriptor' : 'Cambiar categoría',
+        k === 'X' ? `«${esc(p.nombre)}» deja de aparecer en el seguimiento. Conserva su historial.`
+                  : `«${esc(p.nombre)}» pasa a <b>${k} · ${cat.n}</b>: contacto cada ${cat.d} días.`,
+        k === 'X' ? 'Descartar' : 'Cambiar');
+      if(!ok) return;
+      const cambios = k === 'X' ? { activo:false } : { activo:true, categoria:k };
+      await actualizarPresc(p, cambios);
+    };
+  });
+}
+
+/* Guarda y pinta; si falla, deja la ficha como estaba. */
+async function actualizarPresc(p, cambios){
+  const antes = { ...p };
+  const local = { ...cambios };
+  if('ultimo_contacto' in local){ local.ultimo = local.ultimo_contacto; delete local.ultimo_contacto; }
+  Object.assign(p, local); pintar();
+  const { error } = await SB.from('prescriptor').update(cambios).eq('id', Number(p.id));
+  if(error){ Object.assign(p, antes); pintar(); aviso('No se ha podido guardar: ' + error.message); return false; }
+  return true;
+}
+
+function confirmar(titulo, textoHTML, si = 'Confirmar'){
+  return new Promise(resolve => {
+    const d = dialogoBase(`
+      <h3 style="margin:0 0 6px;font-size:16px">${esc(titulo)}</h3>
+      <p style="margin:0;color:var(--gris);font-size:13px">${textoHTML}</p>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+        <button class="btn sec" data-r="0">Cancelar</button><button class="btn" data-r="1">${esc(si)}</button>
+      </div>`);
+    const fin = v => { d.close(); d.remove(); resolve(v); };
+    d.querySelectorAll('[data-r]').forEach(b => b.onclick = () => fin(b.dataset.r === '1'));
+    d.addEventListener('cancel', e => { e.preventDefault(); fin(false); });
+    d.showModal();
+  });
+}
+
+function cifrasPresc(){
+  const base = prescAlcance().filter(p => p.activo);
+  const est = base.map(contactoPresc);
+  const venc = est.filter(k => k.estado === 'vencido').length;
+  const pronto = est.filter(k => k.estado === 'pronto').length;
+  const vencA = base.filter(p => p.categoria === 'A' && contactoPresc(p).estado === 'vencido').length;
+  const rev = prescAlcance().filter(p => p.revisar).length;
+  $('#cifras').innerHTML = `
+    <div class="cifra"><dt>Prescriptores activos</dt><dd class="num">${base.length}</dd></div>
+    <div class="cifra ${venc ? 'aviso' : ''}"><dt>Vencidos</dt><dd class="num">${venc}${vencA ? ` <small style="font-size:12px;font-weight:600">· ${vencA} clave</small>` : ''}</dd></div>
+    <div class="cifra"><dt>Toca esta semana</dt><dd class="num">${pronto}</dd></div>
+    <div class="cifra"><dt>En conquista</dt><dd class="num">${base.filter(p => p.categoria === 'N').length}</dd></div>
+    <div class="cifra"><dt>Por revisar</dt><dd class="num">${rev}</dd></div>
+    <div class="acciones">${puedeEditarPresc(null) && !PRESC_ERROR ? '<button class="btn" id="btnNuevoPresc">Nuevo prescriptor</button>' : ''}</div>`;
+  if($('#btnNuevoPresc')) $('#btnNuevoPresc').onclick = () => abrirPresc(null);
+}
+
+/* ═══════ Ficha del prescriptor ═══════ */
+const fechaPresc = f => f ? new Date(f).toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit', year:'2-digit' }) : '—';
+
+function abrirPresc(p){
+  const nuevo = !p;
+  const edita = puedeEditarPresc(p);
+  p = p || { id:'', codigo:'', nombre:'', tipo:'', comercial: esManager() ? (pf.comercial !== 'sinasignar' ? pf.comercial : '') : comoUsuario,
+             categoria:'N', activo:true, notas:'', revisar:'', ultimo:'', alta:fechaLocal(new Date()) };
+  abierta = null;
+  $('#cajon').classList.add('ancho');
+  $('#cajonTitulo').textContent = nuevo ? 'Nuevo prescriptor' : p.nombre;
+  const v = nuevo ? VACIO_PRESC : (valoresPresc().get(p.id) || VACIO_PRESC);
+  const k = contactoPresc(p), cat = catPresc(p.categoria);
+  const dis = edita ? '' : ' disabled';
+  const hit = v.ganadas + v.perdidas ? Math.round(100 * v.ganadas / (v.ganadas + v.perdidas)) + ' %' : '—';
+  const ops = [...v.ops].sort((a, b) => (fechaCreacion(b) || '').localeCompare(fechaCreacion(a) || ''));
+
+  $('#cajonCuerpo').innerHTML = `
+    ${p.revisar ? `<div class="prAvisoRev"><b>Por revisar</b><p>${esc(p.revisar)}</p>
+      ${edita ? '<button class="btn sec" id="pRevisado">Marcar como revisado</button>' : ''}</div>` : ''}
+    ${nuevo ? '' : `<div class="prEtiquetas">
+      ${cat ? `<span class="prEtq" style="background:${cat.c};color:${cat.fg}">${cat.k} · ${cat.n}</span>` : ''}
+      <span class="prEtq">${esc(COMERCIALES[p.comercial] || 'Sin asignar')}</span>
+      <span class="prEtq ${k.estado}">${TXT_ESTADO[k.estado]}${p.activo ? ` · ${k.d ?? 0} d sin contacto${k.cad ? ` (cada ${k.cad} d)` : ''}` : ''}</span>
+    </div>
+    <dl class="prKpis">
+      <div><dt>Oportunidades</dt><dd class="num">${v.ops.length}</dd></div>
+      <div><dt>Ganado 12 m</dt><dd class="num">${eur(v.ganado12)}</dd></div>
+      <div><dt>Pipeline abierto</dt><dd class="num">${eur(v.pipeline)}</dd></div>
+      <div><dt>Hit rate</dt><dd class="num">${hit}</dd></div>
+      <div><dt>Última oport.</dt><dd class="num">${v.ultima ? 'hace ' + dias(v.ultima) + ' d' : '—'}</dd></div>
+    </dl>`}
+
+    ${!nuevo && edita && p.activo ? `<div class="seccion"><h3>Registrar actividad</h3>
+      <div class="campos">
+        <div class="campo"><label for="paTipo">Tipo</label><select id="paTipo">
+          ${Object.entries(ACT_PRESC).filter(([t]) => t !== 'trello').map(([t, n]) => `<option value="${t}">${n}</option>`).join('')}</select></div>
+        <div class="campo"><label for="paFecha">Fecha</label><input type="date" id="paFecha" value="${fechaLocal(new Date())}" max="${fechaLocal(new Date())}"></div>
+        <div class="campo ancho"><label for="paNota">Qué se habló</label><textarea id="paNota" rows="2" placeholder="Visita al estudio, preparan dos promociones para 2027…"></textarea></div>
+      </div>
+      <div style="margin-top:8px"><button class="btn" id="paGuardar">Registrar</button></div></div>` : ''}
+
+    <div class="seccion"><h3>Datos</h3><div class="campos">
+      <div class="campo ancho"><label for="pNombre">Nombre</label><input type="text" id="pNombre" value="${esc(p.nombre)}"${dis}></div>
+      <div class="campo"><label for="pCodigo">Código</label><input type="text" id="pCodigo" value="${esc(p.codigo)}" placeholder="Z123"${dis}></div>
+      <div class="campo"><label for="pTipo">Tipo</label><select id="pTipo"${dis}><option value="">Sin tipo</option>
+        ${TIPOS_PRESC.map(t => `<option ${p.tipo === t ? 'selected' : ''}>${t}</option>`).join('')}
+        ${p.tipo && !TIPOS_PRESC.includes(p.tipo) ? `<option selected>${esc(p.tipo)}</option>` : ''}</select></div>
+      <div class="campo"><label for="pCategoria">Categoría</label><select id="pCategoria"${dis}>
+        ${CAT_PRESC.map(c => `<option value="${c.k}" ${p.categoria === c.k ? 'selected' : ''}>${c.k} · ${c.n} (cada ${c.d} d)</option>`).join('')}</select></div>
+      <div class="campo"><label for="pComercial">Comercial</label><select id="pComercial"${esManager() ? '' : ' disabled title="Solo dirección reasigna prescriptores"'}>
+        <option value="">Sin asignar</option>
+        ${Object.entries(COMERCIALES).map(([id, n]) => `<option value="${id}" ${p.comercial === id ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></div>
+      ${nuevo ? '' : `<div class="campo"><label for="pActivo">En seguimiento</label><select id="pActivo"${dis}>
+        <option value="1" ${p.activo ? 'selected' : ''}>Sí</option><option value="0" ${p.activo ? '' : 'selected'}>No, descartado</option></select></div>`}
+      <div class="campo ancho"><label for="pNotas">Notas</label><textarea id="pNotas" rows="4"${dis}>${esc(p.notas)}</textarea></div>
+    </div></div>
+
+    ${nuevo ? '' : `
+    <div class="seccion"><h3>Oportunidades <span style="font-weight:400;color:var(--gris)">${ops.length}</span></h3>
+      ${ops.length ? `<table><thead><tr><th>Oportunidad</th><th>Estado</th><th class="der">Importe</th></tr></thead><tbody>
+        ${ops.map(o => `<tr data-opo="${o.id}"><td><b>${esc(o.nombre)}</b><br><span style="font-size:12px;color:var(--gris)">${esc(cuentaNombre(o.cuenta))} · ${esc(usuario(o.owner))}</span></td>
+          <td><span class="etiqueta ${o.estado === 'abierta' ? '' : o.estado}">${o.estado === 'abierta' ? esc(etapaNombre(o.etapa)) : o.estado === 'ganada' ? 'Ganada' : 'Perdida'}</span></td>
+          <td class="der num">${eur(o.valor)}</td></tr>`).join('')}</tbody></table>`
+        : `<p class="vacio" style="padding:0">Todavía no tiene oportunidades enlazadas. Se enlazan desde la ficha de la oportunidad, con origen «Prescriptor».</p>`}
+    </div>
+    <div class="seccion"><h3>Actividad</h3><div id="pActs"><p class="vacio" style="padding:0">Cargando…</p></div></div>
+    <div class="seccion"><h3>Contactos</h3><div id="pContactos"><p class="vacio" style="padding:0">Cargando…</p></div></div>`}`;
+
+  $('#cajonPie').innerHTML = edita
+    ? `<button class="btn" id="pGuardar">${nuevo ? 'Crear prescriptor' : 'Guardar cambios'}</button>`
+    : '<span style="font-size:12px;color:var(--gris)">Solo lectura: lo edita su comercial o dirección.</span>';
+  if($('#pGuardar')) $('#pGuardar').onclick = () => guardarPresc(nuevo ? null : p);
+  if($('#pRevisado')) $('#pRevisado').onclick = async () => {
+    if(await actualizarPresc(p, { revisar:null })){ p.revisar = ''; abrirPresc(p); }
+  };
+  if($('#paGuardar')) $('#paGuardar').onclick = () => registrarActPresc(p);
+  document.querySelectorAll('#cajonCuerpo tr[data-opo]').forEach(tr =>
+    tr.onclick = () => abrirCajon(D.opos.find(o => o.id === tr.dataset.opo)));
+
+  $('#cajon').classList.add('abierto'); $('#velo').classList.add('abierto');
+  if(nuevo) $('#pNombre').focus();
+  else { pintarActsPresc(p); pintarContactosPresc(p); }
+}
+
+async function guardarPresc(p){
+  const nombre = $('#pNombre').value.trim();
+  if(!nombre) return alert('El prescriptor necesita un nombre.');
+  const codigo = $('#pCodigo').value.trim().toUpperCase().replace(/\s+/g, '');
+  const f = { nombre, codigo: codigo || null, tipo: $('#pTipo').value || null,
+              categoria: $('#pCategoria').value, notas: $('#pNotas').value.trim() || null };
+  if($('#pActivo')) f.activo = $('#pActivo').value === '1';
+  if(esManager()) f.comercial = $('#pComercial').value || null;
+  else if(!p) f.comercial = comoUsuario;
+  const duplicado = e => e.code === '23505' ? 'Ya hay un prescriptor con ese nombre o ese código.' : e.message;
+
+  if(!p){
+    const { data, error } = await SB.from('prescriptor').insert(f).select('id').single();
+    if(error) return alert('No se ha podido crear: ' + duplicado(error));
+    const nuevoP = filaPresc({ ...f, id:data.id, activo:true, creado_en:new Date().toISOString() });
+    PRESC.push(nuevoP); pintar(); abrirPresc(nuevoP);
+    aviso('Prescriptor creado.', true);
+    return;
+  }
+  const antes = { ...p };
+  Object.assign(p, { nombre, codigo:codigo, tipo:f.tipo || '', categoria:f.categoria, notas:f.notas || '',
+                     ...('activo' in f ? { activo:f.activo } : {}), ...('comercial' in f ? { comercial:f.comercial || '' } : {}) });
+  const { error } = await SB.from('prescriptor').update(f).eq('id', Number(p.id));
+  if(error){ Object.assign(p, antes); return alert('No se ha podido guardar: ' + duplicado(error)); }
+  cerrarCajon(); pintar(); aviso('Cambios guardados.', true);
+}
+
+async function registrarActPresc(p){
+  const fecha = $('#paFecha').value, tipo = $('#paTipo').value, nota = $('#paNota').value.trim();
+  const hoy = fechaLocal(new Date());
+  if(!fecha || fecha > hoy) return alert('La fecha no puede ser futura.');
+  $('#paGuardar').disabled = true;
+  const { error } = await SB.from('prescriptor_actividad').insert({
+    prescriptor_id:Number(p.id), fecha, tipo, nota: nota || null, autor: MI_PERFIL.nombre, creado_por: MI_PERFIL.id });
+  if(error){ $('#paGuardar').disabled = false; return alert('No se ha podido registrar: ' + error.message); }
+  if(!p.ultimo || fecha > p.ultimo) p.ultimo = fecha;
+  pintar(); abrirPresc(p);
+  aviso('Actividad registrada.', true);
+}
+
+async function pintarActsPresc(p){
+  const zona = $('#pActs');
+  const { data, error } = await SB.from('prescriptor_actividad')
+    .select('id,fecha,tipo,nota,autor,creado_por').eq('prescriptor_id', Number(p.id))
+    .order('fecha', { ascending:false }).order('id', { ascending:false }).limit(300);
+  if(!zona.isConnected) return;
+  if(error){ zona.innerHTML = `<p class="vacio" style="padding:0">No se ha podido leer la actividad: ${esc(error.message)}</p>`; return; }
+  if(!data.length){ zona.innerHTML = '<p class="vacio" style="padding:0">Sin actividad registrada.</p>'; return; }
+  zona.innerHTML = data.map(a => `<div class="hito">
+      <div class="cuando num">${fechaPresc(a.fecha)}</div>
+      <div style="flex:1;min-width:0"><span class="tipo">${ACT_PRESC[a.tipo] || esc(a.tipo)}</span>
+        <span style="font-size:12px;color:var(--gris)"> · ${esc(a.autor || '—')}</span>
+        ${a.nota ? `<p class="prNota">${esc(a.nota)}</p>` : ''}</div>
+      ${(esManager() || (a.creado_por === MI_PERFIL.id && a.tipo !== 'trello'))
+        ? `<button class="prBorrar" data-act="${a.id}" title="Borrar esta actividad" aria-label="Borrar esta actividad">×</button>` : ''}
+    </div>`).join('');
+  zona.querySelectorAll('[data-act]').forEach(b => b.onclick = async () => {
+    if(!await confirmar('Borrar actividad', 'Se quita del historial del prescriptor.', 'Borrar')) return;
+    const { error } = await SB.from('prescriptor_actividad').delete().eq('id', Number(b.dataset.act));
+    if(error) return aviso('No se ha podido borrar: ' + error.message);
+    /* El último contacto se recalcula en la base: se vuelve a leer. */
+    const { data:fila } = await SB.from('v_prescriptor').select('ultimo_contacto').eq('id', Number(p.id)).maybeSingle();
+    if(fila) p.ultimo = fila.ultimo_contacto || '';
+    pintar(); pintarActsPresc(p);
+  });
+}
+
+async function pintarContactosPresc(p){
+  const zona = $('#pContactos');
+  const { data, error } = await SB.from('prescriptor_contacto')
+    .select('id,nombre,cargo,email,telefono').eq('prescriptor_id', Number(p.id)).order('id');
+  if(!zona.isConnected) return;
+  if(error){ zona.innerHTML = `<p class="vacio" style="padding:0">No se han podido leer los contactos: ${esc(error.message)}</p>`; return; }
+  const edita = puedeEditarPresc(p);
+  zona.innerHTML = (data.length ? `<table><thead><tr><th>Nombre</th><th>Cargo</th><th>Email</th><th>Teléfono</th>${edita ? '<th></th>' : ''}</tr></thead><tbody>
+      ${data.map(x => `<tr style="cursor:default"><td>${esc(x.nombre)}</td><td>${esc(x.cargo || '')}</td>
+        <td>${x.email ? `<a href="mailto:${esc(x.email)}">${esc(x.email)}</a>` : ''}</td>
+        <td>${x.telefono ? `<a href="tel:${esc(x.telefono.replace(/\s+/g, ''))}">${esc(x.telefono)}</a>` : ''}</td>
+        ${edita ? `<td class="der"><button class="prBorrar" data-con="${x.id}" title="Quitar contacto" aria-label="Quitar contacto">×</button></td>` : ''}</tr>`).join('')}
+      </tbody></table>` : '<p class="vacio" style="padding:0">Sin contactos.</p>')
+    + (edita ? `<div class="prNuevoContacto">
+        <input type="text" id="pcNombre" placeholder="Nombre" aria-label="Nombre del contacto">
+        <input type="text" id="pcCargo" placeholder="Cargo" aria-label="Cargo">
+        <input type="text" id="pcEmail" placeholder="Email" aria-label="Email">
+        <input type="text" id="pcTel" placeholder="Teléfono" aria-label="Teléfono">
+        <button class="btn sec" id="pcAnadir">Añadir</button></div>` : '');
+  zona.querySelectorAll('[data-con]').forEach(b => b.onclick = async () => {
+    if(!await confirmar('Quitar contacto', 'Se borra de la ficha del prescriptor.', 'Quitar')) return;
+    const { error } = await SB.from('prescriptor_contacto').delete().eq('id', Number(b.dataset.con));
+    if(error) return aviso('No se ha podido quitar: ' + error.message);
+    pintarContactosPresc(p);
+  });
+  if($('#pcAnadir')) $('#pcAnadir').onclick = async () => {
+    const nombre = $('#pcNombre').value.trim();
+    if(!nombre) return alert('Escribe el nombre del contacto.');
+    const { error } = await SB.from('prescriptor_contacto').insert({ prescriptor_id:Number(p.id), nombre,
+      cargo:$('#pcCargo').value.trim() || null, email:$('#pcEmail').value.trim() || null, telefono:$('#pcTel').value.trim() || null });
+    if(error) return aviso('No se ha podido añadir: ' + error.message);
+    pintarContactosPresc(p);
+  };
+}
+
+/* Selector de prescriptor en la ficha de la oportunidad: primero los del
+   comercial de la oportunidad, luego el resto. */
+function selectorPresc(o){
+  const actual = o.prescId || '';
+  const ops = PRESC.filter(p => p.activo || p.id === actual).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+  const suyos = ops.filter(p => p.comercial && p.comercial === o.owner), resto = ops.filter(p => !suyos.includes(p));
+  const opt = p => `<option value="${p.id}" ${p.id === actual ? 'selected' : ''}>${esc(p.nombre)}${p.codigo ? ' · ' + esc(p.codigo) : ''}</option>`;
+  return `<option value="">Sin prescriptor</option>
+    ${suyos.length ? `<optgroup label="De ${esc(usuario(o.owner))}">${suyos.map(opt).join('')}</optgroup>` : ''}
+    ${resto.length ? `<optgroup label="${suyos.length ? 'Resto' : 'Prescriptores'}">${resto.map(opt).join('')}</optgroup>` : ''}`;
+}
 
 </script>
 </body>
