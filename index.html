@@ -1701,7 +1701,8 @@ const COPIA_NOMBRES = {
   tipo_actuacion:'Tipos de actuación', tipo_sistema:'Tipos de sistema',
   vertical:'Verticales', vertical_alias:'Alias de verticales', origen:'Orígenes',
   motivo_perdida:'Motivos de pérdida', motivo_exclusion:'Motivos de exclusión',
-  tramo_importe:'Tramos de importe', ajuste:'Ajustes'
+  tramo_importe:'Tramos de importe', ajuste:'Ajustes',
+  objetivo_kpi:'Objetivos por KPI', referencia:'Referencias del Board'
 };
 /* Orden en pantalla y en el Excel: primero lo que es trabajo del equipo. */
 const COPIA_ORDEN = ['oportunidad','presupuesto','presupuesto_ignorado','nota','cambio','cuenta','cuenta_alias',
@@ -1710,10 +1711,22 @@ const COPIA_ORDEN = ['oportunidad','presupuesto','presupuesto_ignorado','nota','
 /* Clave por la que se ordena al paginar. Sin orden fijo, PostgREST puede
    repetir o saltarse filas entre una página y la siguiente. */
 const COPIA_CLAVE = { perfil:['id'], objetivo:['tag_comercial','anio','mes'],
-  vertical_alias:['alias'], cuenta_alias:['alias'], ajuste:['clave'] };
-const claveCopia = t => COPIA_CLAVE[t] ||
-  (['cuenta','prescriptor','prescriptor_contacto','prescriptor_actividad','prescriptor_categoria_hist','oportunidad','presupuesto','presupuesto_ignorado','nota',
-    'cambio','importacion','import_revision','exportacion'].includes(t) ? ['id'] : ['codigo']);
+  vertical_alias:['alias'], cuenta_alias:['alias'], ajuste:['clave'],
+  objetivo_kpi:['kpi','tag_comercial','anio','mes'], referencia:['grupo','clave','anio','mes'] };
+const COPIA_CON_ID = ['cuenta','prescriptor','prescriptor_contacto','prescriptor_actividad','prescriptor_categoria_hist',
+  'oportunidad','presupuesto','presupuesto_ignorado','nota','cambio','importacion','import_revision','exportacion'];
+/* Si aparece una tabla que la copia no conoce, mira sus columnas en vez de
+   suponer "codigo": ordena por id o codigo si los tiene, y si no, por todas. */
+async function claveCopia(t){
+  if(COPIA_CLAVE[t]) return COPIA_CLAVE[t];
+  if(COPIA_CON_ID.includes(t)) return ['id'];
+  const { data, error } = await SB.from(t).select('*').limit(1);
+  if(error) throw new Error(`${nombreTabla(t)}: ${error.message}`);
+  const cols = data && data[0] ? Object.keys(data[0]) : [];
+  if(cols.includes('id')) return ['id'];
+  if(cols.includes('codigo')) return ['codigo'];
+  return cols;
+}
 
 let copia = { conteo:null, ultima:null, cargando:false, trabajando:'', resultado:null, error:'' };
 
@@ -1768,7 +1781,7 @@ async function leerTodo(){
   for(const [i,t] of tablas.entries()){
     copia.trabajando = `Leyendo ${nombreTabla(t).toLowerCase()} (${i+1} de ${tablas.length})…`;
     pintarTrabajoCopia();
-    datos[t] = await filasCopia(t, claveCopia(t));
+    datos[t] = await filasCopia(t, await claveCopia(t));
   }
   copia.trabajando = 'Leyendo las fichas completas…'; pintarTrabajoCopia();
   const fichas = await filasCopia('v_oportunidad', ['id']);
