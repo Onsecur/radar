@@ -210,6 +210,35 @@ main{flex:1;min-width:0;display:flex;flex-direction:column}
   .bdSec{break-after:avoid}
   .bdG{break-inside:avoid}
 }
+/* COMEX */
+.cxWrap{background:var(--blanco);border:1px solid var(--linea);border-radius:8px;padding:6px 16px 14px}
+.cxBloque{break-inside:avoid}
+.cxBloque + .cxBloque{margin-top:22px}
+.cxSec{color:#fff;font-size:12px;letter-spacing:.08em;font-weight:700;padding:6px 10px;margin:12px 0 10px;text-align:center}
+.cxScroll{overflow-x:auto}
+.cxTabla{width:100%;min-width:760px;table-layout:fixed;border-collapse:collapse;font-size:12px;margin-bottom:12px}
+.cxTabla th,.cxTabla td{border:1px solid var(--linea);padding:4px 2px;text-align:center;vertical-align:middle;font-variant-numeric:tabular-nums}
+.cxTabla col.lab{width:178px}
+.cxTabla th.tit{font-size:12.5px;font-weight:700;letter-spacing:.04em;color:var(--azul)}
+.cxTabla th.mes{background:var(--papel);color:var(--gris);font-weight:600;font-size:11px}
+.cxTabla td.lab{font-weight:700;text-align:center;white-space:nowrap}
+.cxTabla td.ok{background:var(--verde-claro);color:#1F5A38;font-weight:600}
+.cxTabla td.ko{background:var(--rojo-claro);color:#8C1D17;font-weight:600}
+.cxTabla td.cur{font-style:italic;color:var(--gris)}
+.cxGraf{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media(max-width:900px){.cxGraf{grid-template-columns:1fr}}
+.cxCaja{border:1px solid var(--linea);border-radius:6px;padding:10px 12px 8px;min-width:0;break-inside:avoid;text-align:center}
+.cxCaja h4{font-size:13px;font-weight:600;color:var(--azul);margin:0 0 6px;text-align:center}
+.cxCaja svg{width:100%;height:auto;display:block}
+.cxLey{display:flex;justify-content:center;gap:18px;font-size:11.5px;color:var(--gris);margin-top:4px}
+.cxLey i{display:inline-block;width:12px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.cxLey i.dash{height:0;border-top:2px dashed;border-radius:0;vertical-align:3px;background:none!important}
+@media print{
+  .cxWrap{border:0;padding:0}
+  .cxScroll{overflow:visible}
+  .cxTabla{min-width:0}
+  .cxBloque + .cxBloque{break-before:page;margin-top:0}
+}
 /* Resultados On · Kam score */
 .infAcc{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
 .infAcc label{font-size:12px;color:var(--gris);display:flex;flex-direction:column;gap:3px}
@@ -2421,6 +2450,7 @@ const INFORMES = [
   { id:'resultados', nombre:'Resultados On', pintar:c=>vResultadosOn(c), soloDireccion:true },
   { id:'kamscore',   nombre:'Kam score',     pintar:c=>vKamScore(c),     soloDireccion:true },
   { id:'board',      nombre:'Board',         pintar:c=>vBoard(c),        soloDireccion:true },
+  { id:'comex',      nombre:'COMEX',         pintar:c=>vComex(c),        soloDireccion:true },
   { id:'forecast',   nombre:'Forecast',   pintar:c=>vForecast(c) },
 ];
 function vInformes(c){
@@ -2979,6 +3009,126 @@ function vBoard(c){
   enganchaCabecera(c);
   c.querySelectorAll('[data-bdvert]').forEach(b => b.onclick = () => { bdVert = b.dataset.bdvert; pintar(); });
   c.querySelectorAll('[data-opo]').forEach(b => b.onclick = () => { const o = D.opos.find(x => x.id === b.dataset.opo); if(o) abrirCajon(o); });
+}
+
+
+/* ═══════ COMEX ═══════
+   Réplica de la hoja DATOS COMEX del BOARD: venta y captación de
+   instalaciones, mensual y acumulada, contra objetivo.
+   · Venta: fichas ganadas de Obra por mes de cierre real (lo mismo que
+     «Total instalaciones» del Board), con el importe del cubo.
+   · Captación: presupuestos Beta10 de fichas de Obra por su fecha.
+   · Objetivos: radar.objetivo_kpi, KPIs «instalaciones» y «captacion».
+   El mes de la fecha de corte, si no ha terminado, sale en cursiva y sin
+   semáforo: compararlo con el objetivo del mes entero no dice nada. */
+const COL_CX = {
+  venta:{ sec:'#2E7D4F', real:'#2E7D4F', obj:'#0C263A', objLin:'#8A96A0', claro:'var(--verde-claro)' },
+  capt: { sec:'#C8601A', real:'#F0A27F', obj:'#C8601A', objLin:'#C8601A', claro:'var(--naranja-claro)' }
+};
+const MESES_CX = MESES.map(m => m.toUpperCase());
+const kCx = v => v == null ? '' : kMil(v).replace('-', '−');
+
+/* Escala «redonda» para el eje: 1, 2, 2,5 o 5 × 10^n. */
+function pasoEje(max, marcas){
+  const bruto = Math.max(1, max) / marcas, e = Math.pow(10, Math.floor(Math.log10(bruto)));
+  const f = [1, 2, 2.5, 5, 10].find(x => x * e >= bruto);
+  return f * e;
+}
+function ejeCx(max, W, x0, y0, alto){
+  const paso = pasoEje(max, 5), tope = Math.ceil(max / paso) * paso || paso;
+  let s = '';
+  for(let v = 0; v <= tope + 1e-6; v += paso){
+    const y = y0 - v / tope * alto;
+    s += `<line x1="${x0}" y1="${y.toFixed(1)}" x2="${W - 6}" y2="${y.toFixed(1)}" stroke="${v ? '#EEF1F3' : '#C3CBD2'}"/>`
+       + `<text x="${x0 - 6}" y="${(y + 3.5).toFixed(1)}" font-size="10" text-anchor="end" fill="#66757F">${kMil(v)}</text>`;
+  }
+  return { s, tope };
+}
+const etqMesCx = (x, y0, m) => `<text x="${x.toFixed(1)}" y="${y0 + 14}" font-size="9.5" text-anchor="middle" fill="#66757F">${m.slice(0,3)}</text>`;
+
+/* Barras agrupadas: real y objetivo por mes. */
+function svgCxBarras(real, obj, c){
+  const W = 560, H = 250, x0 = 46, y0 = 222, alto = 200, n = 12, paso = (W - x0 - 6) / n;
+  const { s:eje, tope } = ejeCx(Math.max(...real.map(v => v || 0), ...obj), W, x0, y0, alto);
+  const h = v => Math.max(0, v) / tope * alto, an = Math.min(14, (paso - 8) / 2);
+  let s = eje;
+  MESES_CX.forEach((m, i) => {
+    const xc = x0 + paso * i + paso / 2;
+    [[real[i], c.real, 'Real'], [obj[i], c.obj, 'Objetivo']].forEach(([v, col, n2], j) => {
+      if(v == null) return;
+      s += `<rect x="${(xc - an + j * an).toFixed(1)}" y="${(y0 - h(v)).toFixed(1)}" width="${(an - 1).toFixed(1)}" height="${h(v).toFixed(1)}" fill="${col}"><title>${n2} ${MESES[i].toLowerCase()}: ${kCx(v)} K€</title></rect>`;
+    });
+    s += etqMesCx(xc, y0, m);
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" role="img">${s}</svg>`;
+}
+
+/* Líneas: acumulado real (hasta la fecha de corte) y objetivo acumulado. */
+function svgCxLineas(real, obj, c){
+  const W = 560, H = 250, x0 = 46, y0 = 222, alto = 200, n = 12, paso = (W - x0 - 6) / n;
+  const { s:eje, tope } = ejeCx(Math.max(...real.map(v => v || 0), ...obj), W, x0, y0, alto);
+  const X = i => x0 + paso * i + paso / 2, Y = v => y0 - v / tope * alto;
+  const traza = l => l.map((v, i) => v == null ? null : `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).filter(Boolean).join(' ');
+  let s = eje + MESES_CX.map((m, i) => etqMesCx(X(i), y0, m)).join('');
+  s += `<polyline points="${traza(obj)}" fill="none" stroke="${c.objLin}" stroke-width="2" stroke-dasharray="6 4" stroke-linejoin="round"/>`;
+  s += `<polyline points="${traza(real)}" fill="none" stroke="${c.real}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
+  real.forEach((v, i) => { if(v == null) return;
+    s += `<circle cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="3" fill="${c.real}"><title>${MESES[i]}: ${kCx(v)} K€ · obj. ${kCx(obj[i])} K€</title></circle>`; });
+  return `<svg viewBox="0 0 ${W} ${H}" role="img">${s}</svg>`;
+}
+
+/* Tabla de 12 meses: real, objetivo y diferencia. cur = índice del mes en curso (o −1). */
+function tablaCx(titulo, etq, real, obj, c, cur){
+  const celda = (v, i, semaforo) => {
+    if(v == null) return '<td></td>';
+    const cl = i === cur ? 'cur' : semaforo ? (v >= 0 ? 'ok' : 'ko') : '';
+    return `<td class="${cl}">${kCx(v)}</td>`;
+  };
+  const dif = obj.map((o, i) => real[i] == null ? null : real[i] - o);
+  return `<div class="cxScroll"><table class="cxTabla">
+    <colgroup><col class="lab">${MESES_CX.map(() => '<col>').join('')}</colgroup>
+    <thead><tr><th></th><th class="tit" colspan="12" style="background:${c.claro}">${titulo}</th></tr>
+      <tr><th></th>${MESES_CX.map(m => `<th class="mes">${m}</th>`).join('')}</tr></thead>
+    <tbody>
+      <tr><td class="lab" style="background:${c.claro}">${etq}</td>${real.map((v, i) => celda(v, i)).join('')}</tr>
+      <tr><td class="lab" style="background:${c.claro}">OBJETIVO</td>${obj.map(v => `<td>${kCx(v)}</td>`).join('')}</tr>
+      <tr><td class="lab" style="background:${c.claro}">DIFERENCIA</td>${dif.map((v, i) => celda(v, i, true)).join('')}</tr>
+    </tbody></table></div>`;
+}
+
+function bloqueCx(nombre, real, obj, c, cur){
+  const acum = l => { let t = 0; return l.map(v => v == null ? null : (t += v)); };
+  const rA = acum(real), oA = acum(obj), N = nombre.toUpperCase();
+  const ley = (a, b, dash) => `<div class="cxLey"><span><i style="background:${c.real}"></i>${a}</span>
+    <span><i class="${dash ? 'dash' : ''}" style="background:${c.obj};border-color:${dash ? c.objLin : c.obj}"></i>${b}</span></div>`;
+  return `<section class="cxBloque">
+    <h3 class="cxSec" style="background:${c.sec}">${N} · INSTALACIONES</h3>
+    ${tablaCx(`${N} MENSUAL - INSTALACIONES`, `${N} MENSUAL`, real, obj, c, cur)}
+    ${tablaCx(`${N} ACUMULADA - INSTALACIONES`, `${N} ACUMULADA`, rA, oA, c, cur)}
+    <div class="cxGraf">
+      <div class="cxCaja"><h4>${N} MENSUAL - INSTALACIONES vs OBJETIVO</h4>${svgCxBarras(real, obj, c)}${ley(`${nombre} mensual`, 'Objetivo')}</div>
+      <div class="cxCaja"><h4>${N} ACUMULADA - INSTALACIONES vs OBJETIVO</h4>${svgCxLineas(rA, oA, c)}${ley(`${nombre} acumulada`, 'Objetivo', true)}</div>
+    </div></section>`;
+}
+
+function vComex(c){
+  const corte = corteInf, A = +corte.slice(0,4), M = +corte.slice(5,7), D0 = +corte.slice(8,10);
+  const d = datosInforme(corte), ini = A + '-01-01';
+  const cur = D0 < diasDelMes(A, M) ? M - 1 : -1;
+  const porMes = (lista, fecha, imp) => MESES.map((_, i) => i + 1 > M ? null
+    : sumaDe(lista.filter(x => +fecha(x).slice(5,7) === i + 1), imp));
+  const venta = porMes(d.obra, o => o.cierre, o => o.valor);
+  const capt = porMes(captacionesTodas().filter(p => p.fecha >= ini && p.fecha <= corte), p => p.fecha, p => p.imp);
+  const obj = k => MESES.map((_, i) => sumaDe(OBJ_KPI.filter(o => o.kpi === k && o.anio === A && o.mes === i + 1), o => o.imp));
+
+  c.innerHTML = cabeceraInforme('Informe COMEX', `Instalaciones · corte ${fechaEs(corte)}`)
+    + `<div class="cxWrap">
+      ${bloqueCx('Venta', venta, obj('instalaciones'), COL_CX.venta, cur)}
+      ${bloqueCx('Captación', capt, obj('captacion'), COL_CX.capt, cur)}
+      <p class="infPie">Cifras en miles de euros. Venta: fichas ganadas de Obra por fecha real de cierre, importe del cubo (con descuento).
+        Captación: presupuestos Beta10 de fichas de Obra por su fecha.${cur >= 0 ? ` ${MESES[cur]} en cursiva: mes en curso hasta la fecha de corte, sin semáforo.` : ''}</p>
+    </div>`;
+  enganchaCabecera(c);
 }
 
 
