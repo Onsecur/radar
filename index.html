@@ -365,7 +365,52 @@ main{flex:1;min-width:0;display:flex;flex-direction:column}
 .ksAv{position:relative;width:36px;height:36px;flex:none;border-radius:50%;background:var(--azul-claro);overflow:hidden;display:flex;align-items:center;justify-content:center}
 .ksAv b{font-size:12px;font-weight:800;color:var(--azul)}
 .ksAv img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.ksUp{color:var(--verde);font-size:11px;font-weight:700}.ksDn{color:var(--rojo);font-size:11px;font-weight:700}.ksEq{color:#B4B2A9;font-size:11px}
+.ksUp{color:var(--verde);font-size:11px;font-weight:700}
+/* Vista clásica (réplica del PDF semanal) */
+.infVista{display:inline-flex;border:1px solid var(--linea);border-radius:var(--r);overflow:hidden;align-self:flex-end}
+.infVista button{border:0;border-radius:0;background:var(--blanco);color:var(--gris);font-size:12px;font-weight:600;padding:7px 12px}
+.infVista button[aria-pressed="true"]{background:var(--azul);color:#fff}
+.clHoja{background:var(--blanco);border:1px solid var(--linea);border-radius:8px;padding:28px 34px 22px;max-width:640px;margin:0 auto;color:#000}
+.clHoja.ancha{max-width:860px}
+.clCab{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.clCab h3{margin:0;font-size:14px;font-weight:700}
+.clCab p{margin:2px 0 0;font-size:13px;font-style:italic}
+.clMarca{text-align:center;line-height:1}
+.clMarca b{display:block;font-size:30px;font-weight:800;letter-spacing:.01em;color:var(--azul)}
+.clMarca small{font-size:9px;color:#333}
+.clT{width:100%;border-collapse:collapse;font-size:13.5px;table-layout:fixed;border:0;background:none}
+.clT th,.clQ th{color:#000;text-transform:none;letter-spacing:0}
+.clT col.et{width:48%}
+.clT td,.clT th{padding:3px 6px;border:0;background:none;font-weight:400}
+.clT .n{text-align:right;font-variant-numeric:tabular-nums}
+.clT .ko{color:#E3241B}.clT .ok{color:#1FAA59}
+.clT tr.mini th{font-size:9.5px;font-style:italic;text-align:right;color:#444;padding-bottom:0}
+.clT tr.sec th{text-align:left;border-bottom:2px solid #000;padding-top:16px;font-size:13.5px}
+.clT tr.sec th.n{text-align:right;font-weight:700}
+.clT tr.sub th{text-align:left;font-style:italic;border-bottom:1px solid #000;padding-top:4px}
+.clT td.et{padding-left:24%;white-space:nowrap}
+.clKams{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 30px}
+@media(max-width:760px){.clKams{grid-template-columns:1fr}}
+.clQ h4{margin:0;text-align:center;font-size:13.5px;font-weight:400}
+.clQ h4 b{display:block;font-size:12.5px;font-weight:700;margin-top:3px}
+.clQ table{width:100%;border-collapse:collapse;table-layout:fixed;margin-top:4px;border:0;border-top:2px solid #000;font-size:13.5px;background:none}
+.clQ th{font-size:11px;font-style:italic;font-weight:400;text-align:right;padding:3px 6px;border:0;background:none;color:#000}
+.clQ th:first-child{text-align:left}
+.clQ td{text-align:right;padding:3px 6px;border:0;font-variant-numeric:tabular-nums;vertical-align:middle}
+.clQ td:first-child{text-align:left}
+.clQ .ko{color:#E3241B}.clQ .ok{color:#1FAA59}
+.clKam{display:flex;align-items:center;gap:7px;min-width:0}
+.clKam small{font-size:10.5px;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.clAv{position:relative;width:40px;height:40px;flex:none;border-radius:50%;background:var(--azul-claro);display:flex;align-items:center;justify-content:center}
+.clAv b{font-size:12px;font-weight:800;color:var(--azul)}
+.clAv img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%}
+.clMed{position:absolute;right:-8px;top:-4px;width:20px;height:20px;border-radius:50%;font-style:normal;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;color:#fff;border:2px solid #fff}
+.clMed.m1{background:#C9A227}.clMed.m2{background:#9AA0A6}.clMed.m3{background:#B0703A}
+.clPie{margin:16px 0 0;font-size:10.5px;color:#666}
+@media print{
+  .clHoja{border:0;padding:0;max-width:none}
+  .clQ,.clT tr{break-inside:avoid}
+}.ksDn{color:var(--rojo);font-size:11px;font-weight:700}.ksEq{color:#B4B2A9;font-size:11px}
 @media print{
   .infAcc,.infAviso{display:none!important}
   .ronCaja{border:0;padding:0}
@@ -2657,6 +2702,10 @@ const MARGEN_OBJETIVO = 35.4;   // % del BOARD
 
 const fechaLocal = d => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 let corteInf = fechaLocal(new Date());   // fecha de corte común a los dos informes
+/* Vista de Resultados On y Kam score: 'radar' (la de siempre) o 'clasica'
+   (réplica del PDF semanal del BOARD). Se recuerda en este navegador. */
+let vistaInf = 'radar';
+try{ if(localStorage.getItem('radar.vistaInf') === 'clasica') vistaInf = 'clasica'; }catch(e){}
 
 const diasDelMes = (a, m) => new Date(a, m, 0).getDate();
 function laborables(a, m, hasta){
@@ -2702,11 +2751,13 @@ function datosInforme(corte){
   return { corte, iniMes, ganadas, obra:ganadas.filter(esObraInf), capt };
 }
 
-function cabeceraInforme(titulo, sub){
+function cabeceraInforme(titulo, sub, conVista){
+  const vb = (v, t) => `<button type="button" data-vista="${v}" aria-pressed="${vistaInf === v}">${t}</button>`;
   return `<div class="resHead">
     <div><h2 style="font-size:18px">${titulo}</h2>
       <p style="margin:2px 0 0;color:var(--gris);font-size:13px">${sub}</p></div>
     <div class="infAcc">
+      ${conVista ? `<div class="infVista" role="group" aria-label="Vista del informe">${vb('radar', 'Vista Radar')}${vb('clasica', 'Vista clásica')}</div>` : ''}
       <label>Fecha de corte<input type="date" id="infCorte" value="${corteInf}"></label>
       <button class="btn sec" id="infImprimir" type="button">Imprimir / PDF</button>
     </div>
@@ -2718,6 +2769,12 @@ function enganchaCabecera(c){
   if(f) f.onchange = e => { if(e.target.value){ corteInf = e.target.value; pintar(); } };
   const b = c.querySelector('#infImprimir');
   if(b) b.onclick = () => window.print();
+  c.querySelectorAll('[data-vista]').forEach(x => x.onclick = () => {
+    if(vistaInf === x.dataset.vista) return;
+    vistaInf = x.dataset.vista;
+    try{ localStorage.setItem('radar.vistaInf', vistaInf); }catch(e){}
+    pintar();
+  });
 }
 const clasePct = p => p >= 1 ? 'ok' : p >= 0.85 ? 'md' : 'ko';
 
@@ -2731,6 +2788,7 @@ function celdaOn(v, obj, anual){
 }
 
 function vResultadosOn(c){
+  if(vistaInf === 'clasica') return vResultadosOnClasica(c);
   const corte = corteInf, d = datosInforme(corte), mes = +corte.slice(5,7);
   const delMes = (lista, f) => lista.filter(x => f(x) >= d.iniMes);
   const margen = lista => {
@@ -2764,7 +2822,7 @@ function vResultadosOn(c){
       ${celdaOn(vM, o.mes)}${celdaOn(vF, o.fecha)}${celdaOn(vF, o.anual, true)}`;
   }).join('');
 
-  c.innerHTML = cabeceraInforme('Resultados On', `Corte ${fechaEs(corte)} · miles de € · ventas / objetivo`) + `
+  c.innerHTML = cabeceraInforme('Resultados On', `Corte ${fechaEs(corte)} · miles de € · ventas / objetivo`, true) + `
   <section class="ronCaja">
     <div class="infLeyenda"><span><i class="ok"></i>≥100%</span><span><i class="md"></i>85–99%</span><span><i class="ko"></i>&lt;85%</span></div>
     <div class="ronScroll"><div class="ronGrid">
@@ -2807,6 +2865,7 @@ function celdaKam(v, obj){
 }
 
 function vKamScore(c){
+  if(vistaInf === 'clasica') return vKamScoreClasica(c);
   const corte = corteInf, mes = +corte.slice(5,7);
   const filas = filasKam(corte);
   const antes = new Date(+corte.slice(0,4), mes-1, +corte.slice(8,10) - 7);
@@ -2825,7 +2884,7 @@ function vKamScore(c){
   };
   const ini = n => n.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]).join('').toUpperCase();
 
-  c.innerHTML = cabeceraInforme('Kam score', `Corte ${fechaEs(corte)} · miles de € · score = media de cumplimientos a fecha`) + `
+  c.innerHTML = cabeceraInforme('Kam score', `Corte ${fechaEs(corte)} · miles de € · score = media de cumplimientos a fecha`, true) + `
   <section class="ronCaja">
     <div class="infLeyenda"><span><i class="ok"></i>≥100%</span><span><i class="md"></i>85–99%</span><span><i class="ko"></i>&lt;85%</span></div>
     <div class="ronScroll"><table class="ksTabla">
@@ -2850,6 +2909,119 @@ function vKamScore(c){
   enganchaCabecera(c);
 }
 
+
+/* ═══════ Vista clásica de Resultados On y Kam score ═══════
+   Mismo formato que el PDF semanal del BOARD (hoja SEMANAL): cifras en miles
+   sin decimales, desviaciones en rojo/verde. Los datos y las reglas son los
+   de la vista Radar (datosInforme, objetivoKpi, filasKam); solo cambia cómo
+   se pintan. Diferencias deliberadas con el Excel de antes:
+   · Objetivo de cada KAM: el suyo propio del BOARD, no el del equipo ÷ 6.
+   · Salen los siete KAM, no los seis primeros. */
+const clK = v => String(Math.round((Number(v) || 0) / 1000));
+const clCls = n => n < 0 ? 'ko' : n > 0 ? 'ok' : '';
+function clDesv(v, o){
+  if(o == null) return '<td class="n">—</td>';
+  const n = Math.round((v - o) / 1000) || 0;
+  return `<td class="n ${clCls(n)}">${n}</td>`;
+}
+function clPct(v, o){
+  if(!o) return '<td class="n">—</td>';
+  const n = Math.round((v / o - 1) * 100) || 0;
+  return `<td class="n ${clCls(n)}">${n}%</td>`;
+}
+function clMarcaOnsecur(){
+  return `<div class="clMarca"><b>ONSECUR</b><small>Expertos en Alta Seguridad</small></div>`;
+}
+
+function vResultadosOnClasica(c){
+  const corte = corteInf, d = datosInforme(corte), mes = +corte.slice(5,7);
+  const delMes = (lista, f) => lista.filter(x => f(x) >= d.iniMes);
+  const margen = lista => {
+    const con = lista.filter(o => o.coste != null && o.coste > 0), v = sumaDe(con, o => o.valor);
+    return v ? (v - sumaDe(con, o => o.coste)) / v * 100 : null;
+  };
+  const tdMargen = m => m == null ? '<td class="n">—</td>'
+    : `<td class="n ${m >= MARGEN_OBJETIVO ? 'ok' : 'ko'}">${m.toFixed(2).replace('.', ',')}%</td>`;
+  const fila = (et, a, b, cc) => `<tr><td class="et">${et}</td><td class="n">${a}</td><td class="n">${b}</td><td class="n">${cc}</td></tr>`;
+
+  /* Las cuatro filas de un KPI: objetivo, ventas, desviación y desviación %. */
+  const bloque = (kpi, items, val, fecha, etV) => {
+    const vM = sumaDe(delMes(items, fecha), val), vF = sumaDe(items, val);
+    const o = objetivoKpi(kpi, null, corte), ob = x => o.hay ? x : null;
+    return fila('Objetivo', o.hay ? clK(o.mes) : '—', o.hay ? clK(o.fecha) : '—', o.hay ? clK(o.anual) : '—')
+      + fila(etV || 'Ventas', clK(vM), clK(vF), clK(vF))
+      + `<tr><td class="et">Desviación</td>${clDesv(vM, ob(o.mes))}${clDesv(vF, ob(o.fecha))}${clDesv(vF, ob(o.anual))}</tr>`
+      + `<tr><td class="et">Desviación %</td>${clPct(vM, ob(o.mes))}${clPct(vF, ob(o.fecha))}${clPct(vF, ob(o.anual))}</tr>`;
+  };
+  const porCierre = o => o.cierre, porValor = o => o.valor;
+  const recur = d.ganadas.filter(o => o.cuota > 0), recurMes = delMes(recur, porCierre);
+  const cuotaMedia = l => l.length ? Math.round(sumaDe(l, o => o.cuota) / l.length).toLocaleString('es-ES') + ' €' : '—';
+  const mMes = margen(delMes(d.obra, porCierre)), mFecha = margen(d.obra);
+  const sec = t => `<tr class="sec"><th colspan="4">${t}</th></tr>`;
+  const sub = t => `<tr class="sub"><th colspan="4">${t}</th></tr>`;
+
+  c.innerHTML = cabeceraInforme('Resultados On', `Corte ${fechaEs(corte)} · vista clásica · miles de €`, true) + `
+  <section class="clHoja">
+    <div class="clCab"><div><h3>Resultados de Negocio</h3><p>Informe semanal</p></div>${clMarcaOnsecur()}<div style="width:120px"></div></div>
+    <table class="clT">
+      <colgroup><col class="et"><col><col><col></colgroup>
+      <tr class="mini"><th></th><th>MES</th><th>A FECHA</th><th>ANUAL</th></tr>
+      <tr class="sec"><th>INSTALACIONES</th><th class="n">${MESES[mes-1].toUpperCase()}</th><th class="n">${fechaEs(corte)}</th><th class="n">${corte.slice(0,4)}</th></tr>
+      ${bloque('instalaciones', d.obra, porValor, porCierre)}
+      <tr><td class="et">Margen (${String(MARGEN_OBJETIVO).replace('.', ',')}%)</td>${tdMargen(mMes)}${tdMargen(mFecha)}${tdMargen(mFecha)}</tr>
+      ${sec('LÍNEAS')}
+      ${sub('Tecnología')}
+      ${bloque('tecnologia', d.obra.filter(o => !esFisica(o)), porValor, porCierre)}
+      ${sub('Seguridad Física')}
+      ${bloque('fisica', d.obra.filter(esFisica), porValor, porCierre)}
+      ${sec('RECURRENTE')}
+      ${bloque('recurrente', recur, o => o.cuota, porCierre)}
+      ${fila('Nuevos Abonados', recurMes.length, recur.length, recur.length)}
+      ${fila('Cuota media', cuotaMedia(recurMes), cuotaMedia(recur), cuotaMedia(recur))}
+      ${sec('CAPTACIÓN')}
+      ${bloque('captacion', d.capt, p => p.imp, p => p.fecha, 'Captadas')}
+    </table>
+    <p class="clPie">Mismos datos que la vista Radar. Objetivo a fecha: meses cerrados más la parte del mes por días laborables.</p>
+  </section>`;
+  enganchaCabecera(c);
+}
+
+function vKamScoreClasica(c){
+  const corte = corteInf, mes = +corte.slice(5,7);
+  const filas = filasKam(corte);
+  const ini = n => n.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]).join('').toUpperCase();
+  const corto = n => n.split(/\s+/).slice(0, 2).join(' ');
+  /* Medallas: los tres primeros en aprobaciones a fecha, como el PDF. */
+  const medalla = new Map(filas.filter(r => r.aF > 0).slice().sort((a, b) => b.aF - a.aF).slice(0, 3).map((r, i) => [r.tag, i + 1]));
+  const kam = (r, conMedalla) => {
+    const m = conMedalla && medalla.get(r.tag);
+    return `<span class="clKam" title="${esc(r.nombre)}"><span class="clAv"><b>${esc(ini(r.nombre))}</b>${FOTOS[r.tag] ? `<img src="${FOTOS[r.tag]}" alt="">` : ''}${m ? `<i class="clMed m${m}">${m}</i>` : ''}</span><small>${esc(corto(r.nombre))}</small></span>`;
+  };
+  /* Un cuadro: lista ordenada por su propio valor, de mayor a menor. */
+  const cuadro = (titulo, sub, etV, val, obj, conMedalla) => {
+    const lista = filas.slice().sort((a, b) => val(b) - val(a) || a.nombre.localeCompare(b.nombre, 'es'));
+    return `<div class="clQ"><h4>${titulo}<b>${sub}</b></h4>
+      <table><colgroup><col style="width:40%"><col><col><col></colgroup>
+        <tr><th>KAM</th><th>${etV}</th><th>Objetivo</th><th>Desviación</th></tr>
+        ${lista.map(r => { const o = obj(r);
+          return `<tr><td>${kam(r, conMedalla)}</td><td>${val(r) ? clK(val(r)) : ''}</td><td>${o.hay ? clK(o.v) : '—'}</td>${clDesv(val(r), o.hay ? o.v : null).replace('class="n ', 'class="')}</tr>`;
+        }).join('')}
+      </table></div>`;
+  };
+  const M = MESES[mes-1].toUpperCase(), F = fechaEs(corte);
+  c.innerHTML = cabeceraInforme('Kam score', `Corte ${fechaEs(corte)} · vista clásica · miles de €`, true) + `
+  <section class="clHoja ancha">
+    <div class="clCab"><div><h3>Resultados x KAMS</h3><p>Informe semanal</p></div>${clMarcaOnsecur()}<div style="width:120px"></div></div>
+    <div class="clKams">
+      ${cuadro('APROBACIONES MES', M, 'Ganadas', r => r.aM, r => ({ v:r.oa.mes, hay:r.oa.hay }))}
+      ${cuadro('APROBACIONES A FECHA', F, 'Ganadas', r => r.aF, r => ({ v:r.oa.fecha, hay:r.oa.hay }), true)}
+      ${cuadro('CAPTACIÓN MES', M, 'Captadas', r => r.cM, r => ({ v:r.oc.mes, hay:r.oc.hay }))}
+      ${cuadro('CAPTACIÓN A FECHA', F, 'Captadas', r => r.cF, r => ({ v:r.oc.fecha, hay:r.oc.hay }))}
+    </div>
+    <p class="clPie">Aprobaciones: ventas de Instalaciones de cada KAM. Objetivo: el individual de cada KAM en el BOARD (antes era el del equipo ÷ 6). Medallas: top 3 en aprobaciones a fecha.</p>
+  </section>`;
+  enganchaCabecera(c);
+}
 
 /* ═══════ Board ═══════
    Informe completo de dirección, con el estilo del BOARD (colores por línea:
