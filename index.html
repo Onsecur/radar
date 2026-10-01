@@ -670,7 +670,9 @@ const COD = {
                'Raúl Vera':'raulvera', 'Alejandro Puig':'alejandropuig',
                'Sergio Martínez':'sergiomartinez', 'Ramón Palou':'ramonpalou',
                'Jorge Morera':'jorgemorera', 'Miguel Ángel Buñuel':'miguelangel',
-               'Gustavo Callizo':'gustavocallizo', 'Jordi Simó':'jordisimo' },
+               'Gustavo Callizo':'gustavocallizo', 'Jordi Simó':'jordisimo',
+               'Carla Riba':'carlariba', 'Alba Díaz':'albadiaz', 'Sheila Heredia':'sheilaheredia',
+               'Lorena Álvarez':'lorenaalvarez', 'Manel Pérez':'manelperez' },
   motivo   : { 'Precio':'precio', 'Plazo':'plazo', 'Solución':'solucion',
                'No responde':'sin_respuesta', 'Pospone la inversión':'pospone' }
 };
@@ -783,6 +785,7 @@ async function cargarDatos(){
       vertical   : etq('vertical',  o.vertical),
       origen     : etq('origen',    o.origen),
       proyectista: etq('proyectista', o.proyectista),
+      proyectistaCod: o.proyectista || null,
       notas      : o.notas || '',
       tocada     : o.ultima_actividad ? o.ultima_actividad + 'T09:00:00.000Z' : null,
       origenDato : o.origen_dato === 'beta10' ? 'Beta10' : 'Holded',
@@ -897,7 +900,7 @@ const SERVICIOS = ['Combinado','CCTV','Intrusión','Control de acceso','Segurida
 const ORIGENES = ['Prescriptor','Referido de cliente','Cartera existente','Captación del comercial','Entrada web','Publicidad','Otros'];
 const VERTICALES = ['Casas','Pisos','Comunidades','Industria','Edificios corporativos','Retail','Hoteles','Otros'];
 // Proyectistas: personal de ingeniería. Pendiente de sustituir por los nombres reales.
-const PROYECTISTAS = ['Sin asignar','Eloi Lloveras','Miguel Ángel Maza','Raúl Vera','Alejandro Puig','Sergio Martínez','Ramón Palou','Jorge Morera','Miguel Ángel Buñuel','Gustavo Callizo','Jordi Simó'];
+const PROYECTISTAS = ['Sin asignar','Eloi Lloveras','Miguel Ángel Maza','Raúl Vera','Alejandro Puig','Sergio Martínez','Ramón Palou','Jorge Morera','Miguel Ángel Buñuel','Gustavo Callizo','Jordi Simó','Carla Riba','Alba Díaz','Sheila Heredia','Lorena Álvarez','Manel Pérez'];
 const ACTUACIONES = ['Instalación','Ampliación','Avería','Revisión','Cambio de titularidad','Gestión de cliente'];
 const MOTIVOS = ['Precio','Plazo','Solución','No responde','Pospone la inversión'];
 /* Aviso de inactividad: días sin actividad a partir de los cuales la tarjeta
@@ -1590,6 +1593,70 @@ function construirPlanMargen(){
     plan.fichas.push({ o, coste:total, antes:o.coste,
       margenPct: o.valor ? Math.round((o.valor-total)/o.valor*1000)/10 : null });
   }
+  plan.proy = construirPlanProyectista(filas);
+  return plan;
+}
+
+/* ── proyectista ────────────────────────────────────────────────────
+   El fichero de márgenes trae USUARIO_CREACION por versión. El
+   proyectista de una ficha es quien creó la primera versión (.1) de
+   su presupuesto más antiguo. Beta10 manda y sobrescribe lo que haya,
+   también en el histórico cerrado (no toca cifras). Dos excepciones:
+   Ramón Palou no usa Beta10, así que si la ficha lo tiene no se pisa;
+   y un usuario de Beta10 sin proyectista en Radar no se aplica, sale
+   en el detalle para darlo de alta. Si el fichero no trae la columna,
+   no se hace nada. */
+const sinAcentos = s => String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
+/* Beta10 da «Apellido1 Apellido2, Nombre»; Radar «Nombre Apellido1». */
+function proyectistaDeBeta10(usuario){
+  const [ap, nom] = String(usuario||'').split(',').map(x => x.trim());
+  if(!ap || !nom) return null;
+  const clave = sinAcentos(nom + ' ' + ap.split(/\s+/)[0]);
+  const hit = Object.entries(COD.proyectista).find(([et]) => sinAcentos(et) === clave);
+  return hit ? hit[1] : null;
+}
+
+function construirPlanProyectista(filas){
+  const plan = { cambios:[], yaIgual:0, sinCatalogo:new Map(), ramon:0, activo:false };
+  if(!filas.length || !('USUARIO_CREACION' in filas[0])) return plan;
+  plan.activo = true;
+
+  /* Por número de presupuesto: quién creó la versión más baja y cuándo. */
+  const creador = new Map();
+  for(const r of filas){
+    if(esExcluido(r['CLIENTE'])) continue;
+    const usuario = String(r['USUARIO_CREACION']||'').trim();
+    const n = sinVersion(r['PRESUPUESTO']);
+    if(!n || !usuario) continue;
+    const m = String(r['PRESUPUESTO']).trim().match(/\.(\d+)$/);
+    const v = m ? Number(m[1]) : 0;
+    const f = r['FPRESUPUESTO'] instanceof Date ? r['FPRESUPUESTO'].getTime() : (Date.parse(r['FPRESUPUESTO']) || Infinity);
+    const ya = creador.get(n);
+    if(!ya || v < ya.v) creador.set(n, { v, usuario, f });
+  }
+
+  const presPorOpo = new Map();
+  for(const p of D.pres){
+    if(!p.opo) continue;
+    const c = creador.get(sinVersion(p.numero));
+    if(!c) continue;
+    const ya = presPorOpo.get(p.opo);
+    if(!ya || c.f < ya.f || (c.f === ya.f && p.numero < ya.numero)) presPorOpo.set(p.opo, { ...c, numero:p.numero });
+  }
+
+  for(const o of D.opos){
+    const c = presPorOpo.get(o.id);
+    if(!c) continue;
+    const codigo = proyectistaDeBeta10(c.usuario);
+    if(!codigo){
+      const x = plan.sinCatalogo.get(c.usuario) || 0;
+      plan.sinCatalogo.set(c.usuario, x + 1); continue;
+    }
+    if(o.proyectistaCod === codigo){ plan.yaIgual++; continue; }
+    if(o.proyectistaCod === 'ramonpalou'){ plan.ramon++; continue; }
+    plan.cambios.push({ o, codigo, antes:o.proyectista || 'Sin asignar',
+      despues:etq('proyectista', codigo), numero:c.numero });
+  }
   return plan;
 }
 
@@ -1610,13 +1677,27 @@ async function aplicarMargenes(){
       const mal = res.find(r => r.error);
       if(mal) throw mal.error;
     }
+    /* Proyectistas: una actualización por proyectista, en tandas de ids. */
+    const porCodigo = new Map();
+    for(const c of (p.proy ? p.proy.cambios : [])){
+      if(!porCodigo.has(c.codigo)) porCodigo.set(c.codigo, []);
+      porCodigo.get(c.codigo).push(c.o.id);
+    }
+    for(const [codigo, ids] of porCodigo)
+      for(let i=0; i<ids.length; i+=200){
+        const { error } = await SB.from('oportunidad').update({ proyectista:codigo }).in('id', ids.slice(i, i+200));
+        if(error){
+          if(error.code === '23503') throw new Error('falta el proyectista «' + codigo + '» en la base. Ejecuta radar_v4_proyectistas.sql');
+          throw error;
+        }
+      }
     impFicheros.margenes = null; impPlanMargen = null;
     await recargar();
-    aviso('Márgenes aplicados.', true);
+    aviso(p.proy && p.proy.cambios.length ? 'Márgenes y proyectistas aplicados.' : 'Márgenes aplicados.', true);
   }catch(e){
     console.error(e);
     aviso('Los márgenes han fallado: ' + (e.message || e));
-    if(b){ b.disabled = false; b.textContent = 'Aplicar márgenes'; }
+    if(b){ b.disabled = false; b.textContent = 'Aplicar'; }
   }
 }
 
@@ -3314,7 +3395,8 @@ const REGLAS_IMPORT = [
   ['Tipo de oportunidad','Del tipo de actuación de Beta10. Averías y mantenimientos van a sus KPI, fuera de la cifra comercial.'],
   ['Comercial','Manda el propietario de cuenta sobre lo que diga el presupuesto.'],
   ['Cuentas nacionales','Orona e ICS 360 no entran en Radar.'],
-  ['Márgenes','Solo de lo ganado (Aceptado o Totalmente facturado). Se escribe el coste; el margen es importe menos coste. Coste 0 se deja como margen pendiente. Entra también en el histórico cerrado.']
+  ['Márgenes','Solo de lo ganado (Aceptado o Totalmente facturado). Se escribe el coste; el margen es importe menos coste. Coste 0 se deja como margen pendiente. Entra también en el histórico cerrado.'],
+  ['Proyectista','Del fichero de márgenes: quien creó la versión .1 del presupuesto más antiguo de la ficha. Beta10 manda y sobrescribe, también en el histórico cerrado, salvo si la ficha tiene a Ramón Palou.']
 ];
 let impDeposito = 'presupuestos', impCargados = [];
 
@@ -3421,8 +3503,15 @@ function vImportar(c){
           <tr><td>No están en Radar</td><td class="der num">${pm.noEnRadar.length}</td></tr>
           <tr class="totalFila"><td>Ignorados por no estar ganados</td><td class="der num">${pm.ignorados}</td></tr>
         </tbody></table>
+        ${!pm.proy.activo ? '' : `<h3 style="margin-top:14px">Proyectista · quien creó la versión .1</h3>
+        <table><tbody>
+          <tr><td>Fichas que cambian de proyectista</td><td class="der num">${pm.proy.cambios.length}</td></tr>
+          <tr><td>Ya tenían ese proyectista</td><td class="der num">${pm.proy.yaIgual}</td></tr>
+          <tr><td>Con Ramón Palou (no se tocan)</td><td class="der num">${pm.proy.ramon}</td></tr>
+          <tr class="totalFila"><td>Usuario de Beta10 sin proyectista en Radar</td><td class="der num">${[...pm.proy.sinCatalogo.values()].reduce((a,b)=>a+b,0)}</td></tr>
+        </tbody></table>`}
         <div style="display:flex;gap:8px;margin-top:12px">
-          <button class="btn" id="mrgAplicar" ${pm.presupuestos.length+pm.fichas.length?'':'disabled'}>Aplicar márgenes</button>
+          <button class="btn" id="mrgAplicar" ${pm.presupuestos.length+pm.fichas.length+pm.proy.cambios.length?'':'disabled'}>${pm.proy.cambios.length?'Aplicar márgenes y proyectistas':'Aplicar márgenes'}</button>
           <button class="btn sec" id="mrgDetalle">${mrgDetalle?'Ocultar':'Ver'} el detalle</button>
         </div>
         ${!mrgDetalle ? '' : `<div class="impDetalle">
@@ -3446,6 +3535,13 @@ function vImportar(c){
           <p class="sub">Ganadas con algún presupuesto sin coste. No se les pone un margen parcial.</p>
           <table><tbody>${pm.incompletas.map(x=>`<tr><td>${esc(x.o.nombre)}</td>
             <td>${esc(x.faltan.join(', '))}</td></tr>`).join('')}</tbody></table>`:''}
+          ${pm.proy.cambios.length?`<h3>Cambian de proyectista · ${pm.proy.cambios.length}</h3>
+          <table><tbody>${pm.proy.cambios.map(x=>`<tr><td>${esc(x.o.nombre)}</td><td>${esc(x.numero)}</td>
+            <td>${esc(x.antes)} → <b>${esc(x.despues)}</b></td></tr>`).join('')}</tbody></table>`:''}
+          ${pm.proy.sinCatalogo.size?`<h3>Usuarios de Beta10 sin proyectista en Radar</h3>
+          <p class="sub">Estas fichas conservan su proyectista. Si son personas que proyectan, hay que darlas de alta.</p>
+          <table><tbody>${[...pm.proy.sinCatalogo].map(([u,n])=>`<tr><td>${esc(u)}</td>
+            <td class="der num">${n} fichas</td></tr>`).join('')}</tbody></table>`:''}
           ${pm.noEnRadar.length?`<h3>No están en Radar · ${pm.noEnRadar.length}</h3>
           <table><tbody>${pm.noEnRadar.map(x=>`<tr><td>${esc(x.version)}</td><td>${esc(x.cliente)}</td></tr>`).join('')}</tbody></table>`:''}
         </div>`}
