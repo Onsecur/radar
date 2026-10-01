@@ -148,6 +148,88 @@ main{flex:1;min-width:0;display:flex;flex-direction:column}
 .bdG3b{grid-template-columns:minmax(0,1.35fr) minmax(0,1.15fr) minmax(0,1.3fr)}
 @media(max-width:1100px){.bdG4,.bdG3,.bdG3b{grid-template-columns:repeat(2,minmax(0,1fr))}.bdG21,.bdG12{grid-template-columns:1fr}}
 @media(max-width:640px){.bdG4,.bdG3,.bdG3b{grid-template-columns:1fr}}
+/* Board de dirección v2 */
+.b2Wrap{display:flex;flex-direction:column;gap:12px}
+.b2Row{display:grid;gap:12px}
+.b2R2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.b2R4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.b2R64{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}
+@media(max-width:1000px){.b2R2,.b2R64{grid-template-columns:1fr}.b2R4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.b2R4{grid-template-columns:1fr}}
+.b2Card{background:var(--blanco);border:1px solid var(--linea);border-radius:8px;padding:14px 16px;min-width:0;break-inside:avoid}
+.b2H{font-size:14px;font-weight:700;margin:0 0 12px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.b2H small{font-size:11px;font-weight:400;color:var(--gris)}
+.b2Ritmo{border-left:5px solid var(--gris);border-radius:0 8px 8px 0}
+.b2Ritmo.ok{border-left-color:var(--verde)}.b2Ritmo.md{border-left-color:var(--curry)}.b2Ritmo.ko{border-left-color:var(--rojo)}
+.b2Ver{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.b2Ver h3{font-size:16px;font-weight:700}
+.b2Badge{font-size:14px;font-weight:800;padding:5px 12px;border-radius:6px;background:var(--papel);color:var(--gris);white-space:nowrap}
+.b2Badge.sm{font-size:11px;padding:2px 7px}
+.b2Badge.ok{background:var(--verde-claro);color:var(--verde)}.b2Badge.md{background:var(--curry-claro);color:#8A6700}.b2Badge.ko{background:var(--rojo-claro);color:var(--rojo)}
+.b2Nums{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:6px}
+.b2Nums small,.b2K small{display:block;font-size:11px;color:var(--gris);font-weight:600}
+.b2Nums b{font-size:22px;font-weight:800}
+.b2Nums .gr b{color:var(--gris)}
+.b2Track{position:relative;height:12px;background:var(--azul-claro);border-radius:6px;margin:22px 0 6px}
+.b2Track>i{position:absolute;left:0;top:0;bottom:0;background:var(--azul);border-radius:6px}
+.b2Track>b{position:absolute;top:-6px;bottom:-6px;width:3px;margin-left:-1px;background:var(--curry);border-radius:2px}
+.b2Track>b span{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:10px;color:#8A6700;font-weight:700}
+.b2Escala{display:flex;justify-content:space-between;font-size:11px;color:var(--gris)}
+.b2Msg{font-size:12px;color:var(--gris);margin:10px 0 0}
+.b2Msg b{color:var(--azul)}
+.b2K>b{display:block;font-size:24px;font-weight:800;line-height:1.2;margin-top:2px}
+.b2K>b em{font-style:normal;font-size:12px;font-weight:600;color:var(--gris)}
+.b2K p{font-size:12px;color:var(--gris);margin:6px 0 0}
+.b2K p b{color:var(--azul)}
+.b2Aparte{border-style:dashed}
+.b2Tag{display:inline-block;font-size:10px;font-weight:600;color:var(--gris);border:1px solid var(--linea);border-radius:4px;padding:1px 6px;margin-left:4px}
+.b2Wrap :is(span,td).ok{color:var(--verde)}.b2Wrap :is(span,td).md{color:#8A6700}.b2Wrap :is(span,td).ko{color:var(--rojo)}
+.b2Mini{display:flex;align-items:flex-end;gap:3px;height:36px;margin-top:10px}
+.b2Mini b{flex:1;background:var(--linea);border-radius:2px 2px 0 0}
+.b2Bar{height:7px;border-radius:4px;background:var(--azul-claro);overflow:hidden;margin-top:3px}
+.b2Bar i{display:block;height:100%;background:var(--azul);border-radius:4px}
+.b2Bar.cu i{background:var(--curry)}
+.b2VH,.b2VR{display:grid;grid-template-columns:150px minmax(0,1fr) minmax(0,1fr) 52px;gap:10px;align-items:center}
+.b2VH{font-size:11px;color:var(--gris);font-weight:600;margin-bottom:4px}
+.b2VH span:last-child,.b2VR .dr{text-align:right}
+.b2VR{padding:6px 0;border-bottom:1px solid var(--linea);font-size:13px}
+.b2VR small{font-size:11px;color:var(--gris)}
+.b2Flag{display:block;font-size:10.5px;font-weight:700}
+.b2Ley{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--gris);margin-top:8px}
+.b2Ley i{display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--azul);vertical-align:-1px;margin-right:4px}
+.b2Ley i.cu{background:var(--curry)}.b2Ley i.bajo{background:var(--azul-claro)}.b2Ley i.obj{height:0;width:14px;border-top:2px dashed var(--curry);border-radius:0;background:none}
+.b2Chart{display:flex;align-items:flex-end;gap:6px;height:150px;border-bottom:1px solid var(--linea)}
+.b2Col{flex:1;position:relative;height:100%;display:flex;justify-content:center;align-items:flex-end}
+.b2Col b{display:block;width:70%;background:var(--azul);border-radius:3px 3px 0 0}
+.b2Col b.bajo{background:var(--azul-claro)}
+.b2Col b.cur{outline:1.5px dashed var(--curry);outline-offset:1px}
+.b2Col em{position:absolute;left:6%;right:6%;border-top:2px dashed var(--curry)}
+.b2Meses{display:flex;gap:6px;font-size:11px;color:var(--gris);margin-top:4px}
+.b2Meses span{flex:1;text-align:center}
+.b2Scroll{overflow-x:auto}
+.b2Tabla{width:100%;border-collapse:collapse}
+.b2Tabla th{font-size:11px;color:var(--gris);font-weight:600;text-align:right;padding:6px 8px;border-bottom:1px solid var(--linea);white-space:nowrap}
+.b2Tabla td{font-size:13px;padding:7px 8px;text-align:right;border-bottom:1px solid var(--linea);white-space:nowrap}
+.b2Tabla .iz{text-align:left}
+.b2Tabla td.iz small{display:block;font-size:11px;color:var(--gris);max-width:240px;overflow:hidden;text-overflow:ellipsis}
+.b2Tabla .rk{color:var(--gris);font-weight:700;text-align:left;width:24px}
+.b2Tabla tbody tr[data-opo]{cursor:pointer}
+.b2Tabla tbody tr[data-opo]:hover,.b2Tabla tbody tr[data-opo]:focus{background:var(--papel);outline:none}
+.b2Tabla tfoot td{font-weight:700;border-bottom:0}
+.b2Tit{font-weight:600}
+.b2Etapa{font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;background:var(--azul-claro)}
+.b2Pill{display:inline-block;min-width:44px;text-align:center;border-radius:6px;padding:2px 6px;font-weight:700;font-size:12px;background:var(--papel);color:var(--gris)}
+.b2Pill.ok{background:var(--verde-claro);color:var(--verde)}.b2Pill.md{background:var(--curry-claro);color:#8A6700}.b2Pill.ko{background:var(--rojo-claro);color:var(--rojo)}
+.b2Pj{margin-bottom:12px}
+.b2Pj>div:first-child{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:600;flex-wrap:wrap}
+.b2Pj>div:first-child span:last-child{font-weight:400;color:var(--gris);font-size:12px}
+.b2Al{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--linea);font-size:13px}
+.b2Al:last-child{border-bottom:0}
+.b2Al>i{flex:none;width:9px;height:9px;border-radius:50%;margin-top:5px;background:var(--azul)}
+.b2Al>i.md{background:var(--naranja)}.b2Al>i.ko{background:var(--rojo)}
+.b2Al small{display:block;color:var(--gris);font-size:12px}
+.b2Vacio{color:var(--gris);font-size:12px}
+@media print{.b2Card{border-color:#ccc}.b2Wrap{gap:8px}}
 .bdBox{border:1px solid var(--linea);display:flex;flex-direction:column;min-width:0;break-inside:avoid}
 .bdHd{background:var(--azul);color:#fff;font-size:10.5px;letter-spacing:.05em;font-weight:600;padding:4px 8px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .bdGauge{display:block;width:100%;max-width:230px;margin:4px auto 0}
@@ -2913,189 +2995,220 @@ function svgArea(etq, vals, obj){
   return `<svg viewBox="0 0 ${W} ${H}" class="bdChart">${s}</svg>`;
 }
 
+/* ── Board de dirección (v2) ──
+   Una pantalla para saber cómo va el departamento a la fecha de corte.
+   · Ventas: fichas ganadas de Obra que cuentan en resultados (como Resultados On).
+   · Captación: presupuestos de Beta10 de fichas de Obra, por su fecha.
+   · Objetivo a hoy: meses cerrados + parte del mes en curso por días laborables.
+     Vamos bien ≥ 100 % · algo por detrás 85–99 % · vamos mal < 85 %.
+   · Forecast ponderado: abiertas de Obra sin Stand By con cierre previsto este
+     año (vencidas incluidas) × hit rate fijo del BOARD por rango de importe.
+   · Hit rate: ganadas / (ganadas + perdidas) de Obra con cierre en los
+     365 días anteriores al corte, en importe y en número.
+   · Averías y recurrente van aparte: no suman en el resultado comercial. */
+const HR_BOARD_RANGO = [0.67, 0.52, 0.40, 0.31, 0.15];   // < 5K · 5–15K · 15–50K · 50–100K · > 100K
+const PROYECTISTAS_CASA = [['eloilloveras','Eloi Lloveras','Eloi'],['miguelangelmaza','Miguel Ángel Maza','Miguel Ángel'],['raulvera','Raúl Vera','Raúl']];
+
 function vBoard(c){
-  const corte = corteInf, A = +corte.slice(0,4), M = +corte.slice(5,7);
-  const d = datosInforme(corte), iniMes = d.iniMes;
-  const obra = d.obra, obraMes = obra.filter(o => o.cierre >= iniMes);
-  const tec = l => l.filter(o => !esFisica(o)), fis = l => l.filter(esFisica);
-  const sV = l => sumaDe(l, o => o.valor);
+  const corte = corteInf, A = +corte.slice(0,4), M = +corte.slice(5,7), D0 = +corte.slice(8,10);
+  const iniAnio = A + '-01-01', finAnio = A + '-12-31';
+  const d = datosInforme(corte), obra = d.obra;
+  const sV = l => sumaDe(l, o => o.valor), sI = l => sumaDe(l, p => p.imp);
+  const pctTxt = p => p == null ? '—' : Math.round(p * 100) + ' %';
+  const clase = p => p == null ? 'sin' : p >= 1 ? 'ok' : p >= 0.85 ? 'md' : 'ko';
+  const nombreCom = t => COMERCIALES[t] || (t === 'sinasignar' ? 'Sin asignar' : t);
+  const nombreCta = o => (D.cuentas.find(x => x.id === o.cuenta) || {}).nombre || '';
   const margen = l => { const con = l.filter(o => o.coste != null && o.coste > 0), v = sV(con);
     return v ? (v - sumaDe(con, o => o.coste)) / v * 100 : null; };
-  /* Ticket medio como el BOARD: importe de las nuevas instalaciones / cuántas. */
-  const tm = l => { const n = l.filter(esNueva); return n.length ? sV(n) / n.length : null; };
-  const nNuevas = l => l.filter(esNueva).length;
-  const recur = d.ganadas.filter(o => o.cuota > 0), recurMes = recur.filter(o => o.cierre >= iniMes);
-  const cuotaMedia = l => l.length ? sumaDe(l, o => o.cuota) / l.length : null;
-  const ob = k => objetivoKpi(k, null, corte);
-  const oI = ob('instalaciones'), oT = ob('tecnologia'), oF = ob('fisica'), oR = ob('recurrente'), oC = ob('captacion');
-  const pc = (v, o) => o ? v / o : null;
-  const desv = (v, o) => o ? `<b style="color:${colPct(v/o)}">${conSigno(Math.round((v/o - 1)*100))}%</b>` : '';
+  const hit = l => { const g = l.filter(o => o.estado === 'ganada');
+    return { e:sV(l) ? sV(g) / sV(l) : null, n:l.length ? g.length / l.length : null, cerradas:l.length }; };
 
-  /* ── fila de velocímetros ── */
-  const cajaLinea = (tit, color, v, vMes, o, extra) => `<div class="bdBox"><div class="bdHd" style="background:${color}">${tit}</div>
-    ${svgGauge(pc(v, o.fecha), color)}
-    <table class="bdKv"><tr><td>Mes</td><td>${eK(vMes)} / ${eK(o.mes)} ${desv(vMes, o.mes)}</td></tr>
-      <tr><td>Año</td><td>${o.anual ? Math.round(v/o.anual*100) + '% de ' + eK(o.anual) : '—'}</td></tr>${extra || ''}</table></div>`;
-  const filaGauges = `<div class="bdG bdG4">
-    ${cajaGrande('TOTAL INSTALACIONES', COL.total, svgGauge(pc(sV(obra), oI.fecha), COL.total), [
-        [MESES[M-1], `${eK(sV(obraMes))} / ${eK(oI.mes)}`, desv(sV(obraMes), oI.mes)],
-        ['A fecha', `${eK(sV(obra))} / ${eK(oI.fecha)}`, desv(sV(obra), oI.fecha)],
-        ['Anual', oI.anual ? `${eK(sV(obra))} / ${eK(oI.anual)}` : '—', oI.anual ? `<b style="color:${colPct(sV(obra)/oI.anual)}">${Math.round(sV(obra)/oI.anual*100)}%</b>` : '']],
-      `Nuevas instalaciones: <b>${nNuevas(obraMes)}</b> en ${MESES[M-1].toLowerCase()} · TM ${tm(obraMes) == null ? '—' : eK(tm(obraMes))}
-       &nbsp;|&nbsp; <b>${nNuevas(obra)}</b> en el año · TM ${tm(obra) == null ? '—' : eK(tm(obra))}`)}
-    ${cajaLinea('S. TECNOLÓGICA', COL.tec, sV(tec(obra)), sV(tec(obraMes)), oT)}
-    ${cajaLinea('S. FÍSICA', COL.fis, sV(fis(obra)), sV(fis(obraMes)), oF)}
-    ${cajaLinea('MANT. Y CONEXIONES', COL.rec, sumaDe(recur, o => o.cuota), sumaDe(recurMes, o => o.cuota), oR,
-       `<tr><td>Abonados</td><td>${recur.length} · ${cuotaMedia(recur) == null ? '—' : Math.round(cuotaMedia(recur)).toLocaleString('es-ES') + ' €'}</td></tr>`)}
-  </div>`;
+  /* Fracción del mes en curso ya transcurrida (días laborables). */
+  const labMes = laborables(A, M, diasDelMes(A, M));
+  const frac = labMes ? laborables(A, M, D0) / labMes : 1;
+  const mesesRest = Math.max(0, 12 - M + 1 - frac);
 
-  /* ── margen, ticket medio, verticales ── */
-  const oM = k => refVal('objetivo', 'margen_' + k, A), oTk = k => refVal('objetivo', 'ticket_' + k, A);
-  const anillo = (tit, l, lMes, color, k) => `<div>${svgAnillo(margen(l), oM(k), color)}<b>${tit}</b><span>obj. ${pct1(oM(k))}</span><span>mes ${pct1(margen(lMes))}</span></div>`;
-  const ticket = (tit, l, color, k) => { const t = tm(l), o = oTk(k);
-    return `<div class="bdTk"><i style="background:${color}"></i><span>${tit}</span><b>${t == null ? '—' : eK(t)}</b>
-      <em style="color:${t == null || !o ? 'var(--gris)' : t >= o ? 'var(--verde)' : 'var(--rojo)'}">${t == null || !o ? '' : (t >= o ? '+' : '−') + eK(Math.abs(t - o))}</em><small>obj. ${o ? eK(o) : '—'}</small></div>`; };
-  const vertLista = bdVert === 'mes' ? obraMes : obra;
-  const vertVals = VERTS.map(v => sV(vertLista.filter(o => vertDe(o) === v[0])));
-  const filaMargen = `<div class="bdG bdG3">
-    <div class="bdBox"><div class="bdHd">MARGEN ${A} VS OBJETIVO</div><div class="bdRings">
-      ${anillo('Global', obra, obraMes, COL.total, 'total')}${anillo('Tecnológica', tec(obra), tec(obraMes), COL.tec, 'tecnologia')}${anillo('Física', fis(obra), fis(obraMes), COL.fis, 'fisica')}</div></div>
-    <div class="bdBox"><div class="bdHd">TICKET MEDIO NUEVAS INSTALACIONES ${A}</div><div class="bdTks">
-      ${ticket('Global', obra, COL.total, 'total')}${ticket('Tecnológica', tec(obra), COL.tec, 'tecnologia')}${ticket('Física', fis(obra), COL.fis, 'fisica')}
-      <div class="bdTk"><i style="background:${COL.rec}"></i><span>Cuota media</span><b>${cuotaMedia(recur) == null ? '—' : Math.round(cuotaMedia(recur)).toLocaleString('es-ES') + ' €'}</b><em></em><small>${recur.length} abonados</small></div></div></div>
-    <div class="bdBox"><div class="bdHd">VERTICALES APROBADAS
-      <span class="bdTog"><button type="button" data-bdvert="mes" aria-pressed="${bdVert==='mes'}">${MESES[M-1]}</button><button type="button" data-bdvert="anio" aria-pressed="${bdVert==='anio'}">${A}</button></span></div>
-      <div class="bdPieIn">${svgQuesito(vertVals)}${leyendaVert(vertVals)}</div></div>
-  </div>`;
+  /* Conjuntos comunes */
+  const desdeHR = fechaLocal(new Date(A, M - 1, D0 - 365));
+  const cerradas = D.opos.filter(o => (o.estado === 'ganada' || o.estado === 'perdida') && !o.exclusion
+                                   && esObraInf(o) && o.cierre && o.cierre >= desdeHR && o.cierre <= corte);
+  const abiertas = D.opos.filter(o => o.estado === 'abierta' && !o.exclusion && esObraInf(o));
+  const pipe = abiertas.filter(o => o.etapa !== 'standby' && o.cierre && o.cierre <= finAnio);
+  const fichasObra = new Map(D.opos.filter(o => !o.exclusion && esObraInf(o)).map(o => [o.id, o]));
+  const capt = D.pres.filter(p => p.opo && fichasObra.has(p.opo) && p.fecha)
+    .map(p => { const o = fichasObra.get(p.opo); return { opo:p.opo, fecha:String(p.fecha).slice(0,10), imp:p.importe, owner:o.owner, vert:vertDe(o) }; })
+    .filter(p => p.fecha >= iniAnio && p.fecha <= corte);
 
-  /* ── evolución ── */
-  const etqM = MESES.map(m => m.slice(0,3));
-  const ventasMes = etqM.map((_, i) => i + 1 > M ? null : sV(obra.filter(o => +o.cierre.slice(5,7) === i + 1)));
-  const hist = etqM.map((_, i) => refVal('historico', 'aprobaciones', A - 1, i + 1));
-  const objMes = etqM.map((_, i) => sumaDe(OBJ_KPI.filter(o => o.kpi === 'instalaciones' && o.anio === A && o.mes === i + 1), o => o.imp));
-  const series = [];
-  if(hist.some(v => v != null)) series.push({ n:String(A-1), c:'#C9C6BC', v:hist });
-  series.push({ n:String(A), c:COL.total, v:ventasMes });
-  const hAnios = [A-3, A-2, A-1];
-  const etqEv = hAnios.map(String).concat(etqM.slice(0, M));
-  const tmEv = hAnios.map(a => refVal('historico', 'ticket_medio', a)).concat(etqM.slice(0, M).map((_, i) => tm(obra.filter(o => +o.cierre.slice(5,7) === i + 1))));
-  const mgEv = hAnios.map(a => refVal('historico', 'margen_pct', a)).concat(etqM.slice(0, M).map((_, i) => margen(obra.filter(o => +o.cierre.slice(5,7) === i + 1))));
-  const filaEvol = `<div class="bdG bdG21">
-    <div class="bdBox"><div class="bdHd">EVOLUCIÓN APROBACIONES VS OBJETIVO
-      <span class="bdLeyH">${series.map(s => `<i style="background:${s.c}"></i>${s.n}`).join(' ')} <i style="background:#0C263A;height:2px;vertical-align:3px"></i>Objetivo</span></div>
-      ${svgBarras(etqM, series, objMes)}</div>
-    <div class="bdBox"><div class="bdHd">TICKET MEDIO Y MARGEN <span class="bdLeyH">gris = años anteriores</span></div>
-      <div class="bdMini"><small>Ticket medio · obj. ${oTk('total') ? eK(oTk('total')) : '—'}</small>${svgLinea(etqEv, tmEv, oTk('total'), COL.total, eK)}</div>
-      <div class="bdMini"><small>Margen · obj. ${pct1(oM('total'))}</small>${svgLinea(etqEv, mgEv, oM('total'), COL.tec, pct1)}</div></div>
-  </div>`;
-
-  /* ── tabla de verticales y top del mes ── */
-  const filasVert = VERTS.map(([k, n], i) => {
-    const oV = objPeriodo(m => refVal('objetivo_vertical', k, A, m) || 0, corte);
-    const lA = obra.filter(o => vertDe(o) === k), lM = lA.filter(o => o.cierre >= iniMes);
-    const cons = (v, o) => o ? `<span style="color:${colPct(v/o)}">${Math.round(v/o*100)}%</span>` : '—';
-    return `<tr><td><i class="bdSw" style="background:${COL_VERT[i]}"></i>${n}</td>
-      <td>${oV.mes ? eK(oV.mes) : '—'}</td><td>${eK(sV(lM))}</td><td>${cons(sV(lM), oV.mes)}</td>
-      <td class="bdSep">${oV.fecha ? eK(oV.fecha) : '—'}</td><td>${eK(sV(lA))}</td><td>${cons(sV(lA), oV.fecha)}</td><td>${pct1(margen(lA))}</td></tr>`;
-  }).join('');
-  const nombreCom = t => COMERCIALES[t] || (t === 'sinasignar' ? 'Sin asignar' : t);
-  const topGan = obraMes.slice().sort((a, b) => b.valor - a.valor).slice(0, 5);
-  const topPer = D.opos.filter(o => o.estado === 'perdida' && !o.exclusion && esObraInf(o) && o.cierre >= iniMes && o.cierre <= corte)
-                   .sort((a, b) => b.valor - a.valor).slice(0, 5);
-  const itemTop = (o, perdida) => `<button type="button" class="bdTop" data-opo="${esc(o.id)}">
-      <span class="t">${esc(o.nombre || 'Sin título')}</span><b>${eK(o.valor)}</b>
-      <small>${esc(nombreCom(o.owner))} · ${esc(o.vertical || 'sin vertical')}${perdida ? ' · ' + esc(o.motivo || 'sin motivo') : ''}</small></button>`;
-  const filaTablas = `<div class="bdG bdG12">
-    <div class="bdBox"><div class="bdHd">VERTICALES · OBJETIVO Y CONSECUCIÓN</div><div class="bdScroll"><table class="bdTabla">
-      <thead><tr><th></th><th colspan="3">${MESES[M-1]}</th><th colspan="4" class="bdSep">A fecha ${fechaEs(corte).slice(0,5)}</th></tr>
-        <tr><th>Vertical</th><th>Obj.</th><th>Aprob.</th><th>Cons.</th><th class="bdSep">Obj.</th><th>Aprob.</th><th>Cons.</th><th>Margen</th></tr></thead>
-      <tbody>${filasVert}</tbody></table></div></div>
-    <div class="bdBox"><div class="bdHd">TOP OPORTUNIDADES DEL MES</div>
-      <div class="bdTopCols"><div><h4 class="gan">Ganadas</h4>${topGan.map(o => itemTop(o)).join('') || '<p class="bdVacio">Ninguna este mes</p>'}</div>
-      <div><h4 class="per">Perdidas</h4>${topPer.map(o => itemTop(o, true)).join('') || '<p class="bdVacio">Ninguna este mes</p>'}</div></div></div>
-  </div>`;
-
-  /* ── captación ── */
-  const capt = captacionesTodas();
-  const cA = capt.filter(p => p.fecha >= A + '-01-01' && p.fecha <= corte), cM = cA.filter(p => p.fecha >= iniMes);
-  const sI = l => sumaDe(l, p => p.imp);
-  const seis = [];
-  for(let k = 5; k >= 0; k--){
-    const f = new Date(A, M - 1 - k, 1), a = f.getFullYear(), m = f.getMonth() + 1, pre = a + '-' + String(m).padStart(2,'0');
-    seis.push({ e:MESES[m-1].slice(0,3), v:sI(capt.filter(p => p.fecha.slice(0,7) === pre && p.fecha <= corte)),
-      o:sumaDe(OBJ_KPI.filter(o => o.kpi === 'captacion' && o.anio === a && o.mes === m), o => o.imp) });
+  /* ── 1. ¿Cómo vamos? ── */
+  const veredicto = p => p == null ? ['sin', 'Sin objetivo cargado'] : p >= 1 ? ['ok', 'vamos bien'] : p >= 0.85 ? ['md', 'algo por detrás'] : ['ko', 'vamos mal'];
+  function bloqueRitmo(tit, real, o, mensaje){
+    const p = o.fecha ? real / o.fecha : null, [k, txt] = veredicto(p);
+    const escala = Math.max(o.anual, real, 1);
+    return `<div class="b2Card b2Ritmo ${k}">
+      <div class="b2Ver"><span class="b2Badge ${k}">${p == null ? '—' : conSigno(Math.round((p - 1) * 100)) + ' %'}</span><h3>${tit} · ${txt}</h3></div>
+      <div class="b2Nums">
+        <div><small>Real a hoy</small><b class="num">${eK(real)}</b></div>
+        <div><small>Objetivo a hoy</small><b class="num">${eK(o.fecha)}</b></div>
+        <div class="gr"><small>Objetivo año</small><b class="num">${eK(o.anual)}</b></div>
+      </div>
+      <div class="b2Track" role="img" aria-label="${eK(real)} de ${eK(o.anual)}; hoy deberíamos llevar ${eK(o.fecha)}">
+        <i style="width:${Math.min(100, real / escala * 100).toFixed(1)}%"></i>
+        <b style="left:${Math.min(100, o.fecha / escala * 100).toFixed(1)}%"><span>Hoy deberíamos estar aquí</span></b></div>
+      <div class="b2Escala"><span>0</span><span>${eK(o.anual)}</span></div>
+      <p class="b2Msg">${mensaje(p)}</p></div>`;
   }
-  const cvVals = VERTS.map(v => sI(cA.filter(p => p.vert === v[0])));
-  const filaCapt = `<div class="bdG bdG3b">
-    ${cajaGrande('CAPTACIÓN DE OPORTUNIDADES', COL.cap, svgGauge(pc(sI(cA), oC.fecha), COL.cap), [
-        [MESES[M-1], `${eK(sI(cM))} / ${eK(oC.mes)}`, desv(sI(cM), oC.mes)],
-        ['A fecha', `${eK(sI(cA))} / ${eK(oC.fecha)}`, desv(sI(cA), oC.fecha)],
-        ['Anual', oC.anual ? `${eK(sI(cA))} / ${eK(oC.anual)}` : '—', oC.anual ? `<b style="color:${colPct(sI(cA)/oC.anual)}">${Math.round(sI(cA)/oC.anual*100)}%</b>` : '']],
-      `Presupuestos: <b>${cM.length}</b> en ${MESES[M-1].toLowerCase()} · TM ${cM.length ? eK(sI(cM)/cM.length) : '—'}
-       &nbsp;|&nbsp; <b>${cA.length}</b> en el año · TM ${cA.length ? eK(sI(cA)/cA.length) : '—'}`)}
-    <div class="bdBox"><div class="bdHd">CAPTACIÓN · 6 MESES <span class="bdLeyH"><i style="background:#0C263A"></i>Captado <i style="background:#CC9B00"></i>Objetivo</span></div>
-      ${svgArea(seis.map(x => x.e), seis.map(x => x.v), seis.map(x => x.o))}</div>
-    <div class="bdBox"><div class="bdHd">CAPTACIÓN POR VERTICALES · ${A}</div><div class="bdPieIn">${svgQuesito(cvVals)}${leyendaVert(cvVals)}</div></div>
+  const oI = objetivoKpi('instalaciones', null, corte), oC = objetivoKpi('captacion', null, corte);
+  const vVen = sV(obra), vCap = sI(capt);
+  const ritmoNec = (o, v) => mesesRest > 0 && o.anual > v ? `Para cerrar el año en objetivo hay que llevar <b>${eK((o.anual - v) / mesesRest)} al mes</b> de aquí a diciembre.` : o.anual && v >= o.anual ? 'Objetivo anual ya superado.' : '';
+  const msgVen = p => p == null ? '' : (p >= 1 ? `<b>${eK(vVen - oI.fecha)}</b> por encima del ritmo. ` : `Faltan <b>${eK(oI.fecha - vVen)}</b> para ir en ritmo. `) + ritmoNec(oI, vVen);
+  const captMes = capt.filter(p => p.fecha >= d.iniMes);
+  const msgCap = p => (p == null ? '' : p >= 1 ? `<b>${eK(vCap - oC.fecha)}</b> por encima del ritmo. ` : `Faltan <b>${eK(oC.fecha - vCap)}</b> para ir en ritmo. `)
+    + `${capt.length} presupuestos en el año, ${captMes.length} en ${MESES[M-1].toLowerCase()}.`;
+  const fila1 = `<div class="b2Row b2R2">${bloqueRitmo('Ventas', vVen, oI, msgVen)}${bloqueRitmo('Captación', vCap, oC, msgCap)}</div>`;
+
+  /* ── 2. KPIs de apoyo ── */
+  const ponderado = sumaDe(pipe, o => o.valor * (HR_BOARD_RANGO[rangoDe(o.valor)] || 0));
+  const prevista = vVen + ponderado;
+  const hTot = hit(cerradas);
+  const mg = margen(obra), conCoste = sV(obra.filter(o => o.coste != null && o.coste > 0));
+  const averias = d.ganadas.filter(o => esAveria(o) || o.tipoOp === 'averia');
+  const avMes = averias.filter(o => o.cierre >= d.iniMes);
+  const avPorMes = Array.from({length:M}, (_, i) => sV(averias.filter(o => +o.cierre.slice(5,7) === i + 1)));
+  const mini = vals => { const mx = Math.max(1, ...vals);
+    return `<div class="b2Mini" aria-hidden="true">${vals.map((v, i) => `<b style="height:${Math.max(2, v / mx * 100).toFixed(0)}%" title="${MESES[i]}: ${eK(v)}"></b>`).join('')}</div>`; };
+  const fila2 = `<div class="b2Row b2R4">
+    <div class="b2Card b2K"><small>Forecast ponderado</small><b class="num">${eK(ponderado)}</b>
+      <p>Cierre previsto <b>${eK(prevista)}</b>${oI.anual ? ` · <span class="${clase(prevista / oI.anual)}">${pctTxt(prevista / oI.anual)} obj.</span>` : ''}</p></div>
+    <div class="b2Card b2K"><small>Hit rate · 12 meses</small><b class="num">${pctTxt(hTot.e)} <em>en €</em></b>
+      <p><b>${pctTxt(hTot.n)}</b> en número · ${hTot.cerradas} cerradas</p></div>
+    <div class="b2Card b2K"><small>Margen ganado</small><b class="num">${mg == null ? '—' : pct1(mg)}</b>
+      <p>Obj. ${pct1(MARGEN_OBJETIVO)} · con coste el ${vVen ? Math.round(conCoste / vVen * 100) : 0} % de las ventas</p></div>
+    <div class="b2Card b2K b2Aparte"><small>Ventas de averías <span class="b2Tag">No suma en comercial</span></small>
+      <b class="num">${eK(sV(averias))} <em>· ${averias.length} avisos</em></b>
+      <p>Ticket medio ${averias.length ? eK(sV(averias) / averias.length) : '—'} · ${MESES[M-1].toLowerCase()} ${eK(sV(avMes))}</p>${mini(avPorMes)}</div>
   </div>`;
 
-  /* ── forecast ── */
-  const hace = new Date(A, M - 1, +corte.slice(8,10) - 365), desdeHR = fechaLocal(hace);
-  const cerradas = D.opos.filter(o => (o.estado === 'ganada' || o.estado === 'perdida') && !o.exclusion && esObraInf(o)
-                                   && o.cierre && o.cierre >= desdeHR && o.cierre <= corte);
-  const finAnio = A + '-12-31';
-  const pipe = D.opos.filter(o => o.estado === 'abierta' && o.etapa !== 'standby' && !o.exclusion && esObraInf(o) && o.cierre && o.cierre <= finAnio);
-  const porRango = RANGOS.map((r, i) => {
-    const cr = cerradas.filter(o => rangoDe(o.valor) === i), g = cr.filter(o => o.estado === 'ganada').length;
-    const hr = cr.length ? g / cr.length : null, pr = pipe.filter(o => rangoDe(o.valor) === i);
-    const ca = cA.filter(p => rangoDe(p.imp) === i);
-    return { n:r[2], hr, nCerr:cr.length, pipe:sV(pr), prev:sV(pr) * (hr || 0), nCapt:ca.length, capt:sI(ca) };
+  /* ── 3. Verticales + recurrente ── */
+  const vTotV = vVen || 1, vTotC = vCap || 1;
+  const vfilas = VERTS.map(([k, n]) => {
+    const ven = sV(obra.filter(o => vertDe(o) === k)), cap = sI(capt.filter(p => p.vert === k));
+    const h = hit(cerradas.filter(o => vertDe(o) === k));
+    return { k, n:VERTICALES.find(x => cod('vertical', x) === k) || n, ven, cap, sv:ven / vTotV, sc:cap / vTotC, h };
+  }).filter(r => r.ven || r.cap).sort((a, b) => b.ven - a.ven || b.cap - a.cap);
+  const maxV = Math.max(1, ...vfilas.map(r => r.ven)), maxC = Math.max(1, ...vfilas.map(r => r.cap));
+  const marcaVert = r => r.sc - r.sv >= 0.04 && r.cap > 0 ? '<span class="b2Flag md">Ofertamos más de lo que cerramos</span>'
+    : r.h.e != null && hTot.e != null && r.h.cerradas >= 5 && r.h.e >= hTot.e * 1.3 ? '<span class="b2Flag ok">Mejor conversión</span>' : '';
+  const recur = d.ganadas.filter(o => o.cuota > 0), oR = objetivoKpi('recurrente', null, corte);
+  const vRec = sumaDe(recur, o => o.cuota), pR = oR.fecha ? vRec / oR.fecha : null, escR = Math.max(oR.anual, vRec, 1);
+  const recPipe = sumaDe(abiertas.filter(o => o.cuota > 0), o => o.cuota);
+  const recPorMes = Array.from({length:M}, (_, i) => sumaDe(recur.filter(o => +o.cierre.slice(5,7) === i + 1), o => o.cuota));
+  const fila3 = `<div class="b2Row b2R64">
+    <div class="b2Card"><h3 class="b2H">Verticales <small>ventas y captación del año</small></h3>
+      <div class="b2VH"><span></span><span>Ventas</span><span>Captación</span><span>Hit €</span></div>
+      ${vfilas.map(r => `<div class="b2VR"><span>${esc(r.n)}${marcaVert(r)}</span>
+        <div><small class="num">${eK(r.ven)} · ${Math.round(r.sv * 100)} %</small><div class="b2Bar"><i style="width:${(r.ven / maxV * 100).toFixed(1)}%"></i></div></div>
+        <div><small class="num">${eK(r.cap)} · ${Math.round(r.sc * 100)} %</small><div class="b2Bar cu"><i style="width:${(r.cap / maxC * 100).toFixed(1)}%"></i></div></div>
+        <span class="num dr">${pctTxt(r.h.e)}</span></div>`).join('') || '<p class="b2Vacio">Sin ventas ni captación en el año</p>'}
+      <div class="b2Ley"><span><i></i>Ventas</span><span><i class="cu"></i>Captación</span></div></div>
+    <div class="b2Card b2Ritmo ${clase(pR)}"><h3 class="b2H">Recurrente · nueva cuota <span class="b2Tag">No suma en comercial</span></h3>
+      <div class="b2Nums"><div><small>Cuota anual nueva</small><b class="num">${eK(vRec)}</b></div>
+        <div><small>Objetivo a hoy</small><b class="num">${oR.hay ? eK(oR.fecha) : '—'}</b></div></div>
+      <div class="b2Track"><i style="width:${Math.min(100, vRec / escR * 100).toFixed(1)}%"></i>${oR.hay ? `<b style="left:${Math.min(100, oR.fecha / escR * 100).toFixed(1)}%"><span>Hoy deberíamos estar aquí</span></b>` : ''}</div>
+      <div class="b2Escala"><span>0</span><span>${oR.hay ? 'Objetivo año ' + eK(oR.anual) : 'sin objetivo'}</span></div>
+      <p class="b2Msg">${pR == null ? '' : `<span class="b2Badge ${clase(pR)} sm">${conSigno(Math.round((pR - 1) * 100))} %</span> `}<b>${recur.length} contratos</b> nuevos · cuota media ${recur.length ? Math.round(vRec / recur.length).toLocaleString('es-ES') + ' €/año' : '—'}</p>
+      <p class="b2Msg">En pipeline: <b>${eK(recPipe)}</b> de cuota en oportunidades abiertas.</p>${mini(recPorMes)}</div>
+  </div>`;
+
+  /* ── 4. Top 10 + evolución mensual ── */
+  const top = abiertas.slice().sort((a, b) => b.valor - a.valor).slice(0, 10);
+  const topIds = new Set(top.map(o => o.id));
+  const filaTop = (o, i) => { const vencida = o.cierre && o.cierre < corte, dsa = diasSinActividad(o), aviso = avisoInactividad(o);
+    const et = (ETAPAS.find(e => e.id === o.etapa) || {}).nombre || o.etapa;
+    return `<tr data-opo="${esc(o.id)}" tabindex="0"><td class="rk">${i + 1}</td>
+      <td class="iz"><span class="b2Tit">${esc(nombreCta(o) || o.nombre)}</span><small>${esc(nombreCta(o) ? o.nombre : '')}</small></td>
+      <td class="iz">${esc(nombreCom(o.owner))}</td><td class="iz"><span class="b2Etapa">${esc(et)}</span></td>
+      <td class="num"><b>${eK(o.valor)}</b></td>
+      <td class="num${vencida ? ' ko' : ''}">${o.cierre ? fechaEs(o.cierre).slice(0,5) + (vencida ? ' · vencida' : '') : '—'}</td>
+      <td class="num">${dsa == null ? '—' : aviso != null ? `<span class="b2Pill ko">${dsa} d</span>` : dsa + ' d'}</td></tr>`; };
+  const ventasMes = Array.from({length:M}, (_, i) => sV(obra.filter(o => +o.cierre.slice(5,7) === i + 1)));
+  const objMes = Array.from({length:M}, (_, i) => sumaDe(OBJ_KPI.filter(o => o.kpi === 'instalaciones' && o.anio === A && o.mes === i + 1), o => o.imp));
+  const maxMes = Math.max(1, ...ventasMes, ...objMes) * 1.08;
+  const barras = ventasMes.map((v, i) => { const o = i + 1 === M ? objMes[i] * frac : objMes[i];
+    return `<div class="b2Col" title="${MESES[i]}: ${eK(v)} / obj. ${eK(objMes[i])}${i + 1 === M ? ' (mes en curso)' : ''}">
+      ${objMes[i] ? `<em style="bottom:${(objMes[i] / maxMes * 100).toFixed(1)}%"></em>` : ''}
+      <b class="${o && v >= o ? '' : 'bajo'}${i + 1 === M ? ' cur' : ''}" style="height:${(v / maxMes * 100).toFixed(1)}%"></b></div>`; }).join('');
+  const fila4 = `
+    <div class="b2Card"><h3 class="b2H">Top 10 oportunidades abiertas <small>por importe · ${eK(sV(top))} en total</small></h3>
+      <div class="b2Scroll"><table class="b2Tabla">
+        <thead><tr><th class="iz">#</th><th class="iz">Cliente / oportunidad</th><th class="iz">Comercial</th><th class="iz">Etapa</th><th>Importe</th><th>Cierre previsto</th><th>Sin actividad</th></tr></thead>
+        <tbody>${top.map(filaTop).join('') || '<tr><td colspan="7" class="b2Vacio">No hay oportunidades abiertas</td></tr>'}</tbody></table></div></div>`;
+  const grafMes = `
+    <div class="b2Card"><h3 class="b2H">Ventas por mes frente a objetivo</h3>
+      <div class="b2Chart">${barras}</div>
+      <div class="b2Meses">${ventasMes.map((_, i) => `<span>${MESES[i].slice(0,3)}</span>`).join('')}</div>
+      <div class="b2Ley"><span><i></i>Cumplido</span><span><i class="bajo"></i>Por debajo</span><span><i class="obj"></i>Objetivo</span></div>
+      <p class="b2Msg">El mes en curso se compara con su objetivo proporcional a hoy.</p></div>`;
+
+  /* ── 5. Comerciales + proyectistas ── */
+  const tags = [...new Set([...Object.keys(COMERCIALES), ...obra.map(o => o.owner)])].filter(t => t && t !== 'sinasignar');
+  const filasCom = tags.map(t => {
+    const ob = obra.filter(o => o.owner === t), ca = capt.filter(p => p.owner === t);
+    const oa = objetivoKpi('instalaciones', t, corte), oc = objetivoKpi('captacion', t, corte);
+    return { t, ven:sV(ob), pV:oa.fecha ? sV(ob) / oa.fecha : null, pC:oc.fecha ? sI(ca) / oc.fecha : null,
+      pipe:sV(abiertas.filter(o => o.owner === t)), h:hit(cerradas.filter(o => o.owner === t)), mg:margen(ob),
+      activo:ob.length || ca.length || oa.hay || oc.hay };
+  }).filter(r => r.activo).sort((a, b) => (b.pV ?? -1) - (a.pV ?? -1) || b.ven - a.ven);
+  const pill = p => `<span class="b2Pill ${clase(p)}">${pctTxt(p)}</span>`;
+  const pipeTotal = sV(abiertas);
+  const cProy = new Map(D.opos.map(o => [o.id, o.proyectistaCod]));
+  const deProy = (cod2, casa) => casa ? (x => x === cod2) : (x => !PROYECTISTAS_CASA.some(p => p[0] === x));
+  const filasPj = PROYECTISTAS_CASA.map(([k, n, corto]) => ({ k, n, corto, casa:true })).concat([{ k:null, n:'Comerciales / sin proyectista', casa:false }]).map(p => {
+    const es = deProy(p.k, p.casa), pr = capt.filter(x => es(cProy.get(x.opo) || null));
+    return { ...p, nOf:pr.length, imp:sI(pr), h:hit(cerradas.filter(o => es(o.proyectistaCod || null))),
+      curso:abiertas.filter(o => o.etapa === 'estudio' && es(o.proyectistaCod || null)).length };
   });
-  const prevista = sV(obra) + sumaDe(porRango, r => r.prev);
-  const pipeTot = sV(pipe), hrTot = pipeTot ? sumaDe(porRango, r => r.prev) / pipeTot : null;
-  const cubos = [[95,'95%','#6B5200'],[80,'80%','#CC9B00'],[40,'40%','#6E9CB0'],[20,'20% o menos','#C9D6DE']];
-  const cubo = p => p >= 95 ? 0 : p >= 80 ? 1 : p >= 40 ? 2 : 3;
-  const meses4 = [0,1,2,3].map(k => { const f = new Date(A, M - 1 + k, 1), pre = f.getFullYear() + '-' + String(f.getMonth()+1).padStart(2,'0');
-    const l = D.opos.filter(o => o.estado === 'abierta' && o.etapa !== 'standby' && !o.exclusion && esObraInf(o) && (o.cierre || '').slice(0,7) === pre);
-    const v = [0,0,0,0], n = [0,0,0,0]; l.forEach(o => { const b = cubo(Number(o.prob) || 0); v[b] += o.valor; n[b]++; });
-    return { e:MESES[f.getMonth()].slice(0,3), v, n, hot:v[0] + v[1], cold:v[2] + v[3] }; });
-  const max4 = Math.max(1, ...meses4.map(m => m.hot + m.cold)) * 1.1;
-  const barras4 = meses4.map((m, i) => { let y = 132, s = '';
-    m.v.forEach((v, b) => { const h = v / max4 * 118; y -= h; if(h > 0) s += `<rect x="${24 + i*70}" y="${y.toFixed(1)}" width="40" height="${h.toFixed(1)}" fill="${cubos[b][2]}"><title>${cubos[b][1]}: ${eK(v)} (${m.n[b]})</title></rect>`; });
-    return s + `<text x="${44 + i*70}" y="${(y-4).toFixed(1)}" font-size="8.5" text-anchor="middle" fill="#0C263A">${eK(m.hot + m.cold)}</text>
-      <text x="${44 + i*70}" y="144" font-size="8.5" text-anchor="middle" fill="#66757F">${m.e}</text>
-      <text x="${44 + i*70}" y="156" font-size="8" text-anchor="middle" fill="#6B5200">hot ${eK(m.hot)}</text>
-      <text x="${44 + i*70}" y="166" font-size="8" text-anchor="middle" fill="#66757F">cold ${eK(m.cold)}</text>`; }).join('');
-  const filaFc = `<div class="bdG bdG3b">
-    ${cajaGrande('PREVISIÓN DE CIERRE ' + A, COL.cap, svgGauge(pc(prevista, oI.anual), COL.total).replace('a fecha', 'del año'), [
-        ['Previsión', `<b>${eK(prevista)}</b> / ${eK(oI.anual)}`, desv(prevista, oI.anual)],
-        ['Ganado', eK(sV(obra)), ''],
-        ['Pipeline', eK(pipeTot), ''],
-        ['Hit rate', hrTot == null ? '—' : Math.round(hrTot*100) + '%', '']],
-      `Pipeline: <b>${pipe.length}</b> fichas abiertas con cierre este año, sin Stand By`)}
-    <div class="bdBox"><div class="bdHd">PREVISIÓN DE VENTAS · 4 MESES
-      <span class="bdLeyH">${cubos.map(x => `<i style="background:${x[2]}"></i>${x[1]}`).join(' ')}</span></div>
-      <svg viewBox="0 0 300 170" class="bdChart">${barras4}</svg></div>
-    <div class="bdBox"><div class="bdHd">RANGOS DE IMPORTE · ${A}</div><div class="bdScroll"><table class="bdTabla">
-      <thead><tr><th>Rango</th><th>Captado</th><th>Hit rate</th><th>Pipeline</th><th>Previsión</th></tr></thead>
-      <tbody>${porRango.map(r => `<tr><td>${r.n}</td><td title="${r.nCapt} presupuestos">${eK(r.capt)}</td>
-        <td title="${r.nCerr} cerradas en 12 meses">${r.hr == null ? '—' : Math.round(r.hr*100) + '%'}</td><td>${eK(r.pipe)}</td><td>${eK(r.prev)}</td></tr>`).join('')}
-        <tr class="bdTot"><td>Total</td><td title="${cA.length} presupuestos">${eK(sI(cA))}</td><td>${hrTot == null ? '—' : Math.round(hrTot*100) + '%'}</td><td>${eK(pipeTot)}</td><td>${eK(sumaDe(porRango, r => r.prev))}</td></tr>
-      </tbody></table></div></div>
+  const maxPj = Math.max(1, ...filasPj.map(p => p.nOf));
+  const fila5 = `<div class="b2Row b2R64">
+    <div class="b2Card"><h3 class="b2H">Por comercial <small>% sobre objetivo a hoy</small></h3>
+      <div class="b2Scroll"><table class="b2Tabla">
+        <thead><tr><th class="iz">Comercial</th><th>Ventas</th><th>% ventas</th><th>% captación</th><th>Pipeline</th><th>Hit €</th><th>Hit nº</th><th>Margen</th></tr></thead>
+        <tbody>${filasCom.map(r => `<tr><td class="iz">${esc(nombreCom(r.t))}</td><td class="num">${eK(r.ven)}</td><td>${pill(r.pV)}</td><td>${pill(r.pC)}</td>
+          <td class="num">${eK(r.pipe)}</td><td class="num">${pctTxt(r.h.e)}</td><td class="num">${pctTxt(r.h.n)}</td><td class="num">${r.mg == null ? '—' : pct1(r.mg)}</td></tr>`).join('')}</tbody>
+        <tfoot><tr><td class="iz">Total departamento</td><td class="num">${eK(vVen)}</td><td>${pill(oI.fecha ? vVen / oI.fecha : null)}</td><td>${pill(oC.fecha ? vCap / oC.fecha : null)}</td>
+          <td class="num">${eK(pipeTotal)}</td><td class="num">${pctTxt(hTot.e)}</td><td class="num">${pctTxt(hTot.n)}</td><td class="num">${mg == null ? '—' : pct1(mg)}</td></tr></tfoot></table></div></div>
+    <div class="b2Card"><h3 class="b2H">Proyectistas <small>presupuestos hechos en el año</small></h3>
+      ${filasPj.map(p => `<div class="b2Pj"><div><span>${esc(p.n)}</span><span class="num">${p.nOf} ofertas · ${eK(p.imp)} · hit ${pctTxt(p.h.n)}</span></div>
+        <div class="b2Bar"><i style="width:${(p.nOf / maxPj * 100).toFixed(1)}%"></i></div></div>`).join('')}
+      <p class="b2Msg">En estudio ahora mismo: ${filasPj.filter(p => p.casa).map(p => `${esc(p.corto)} <b>${p.curso}</b>`).join(' · ')}</p></div>
   </div>`;
 
-  c.innerHTML = cabeceraInforme('Board', `Corte ${fechaEs(corte)} · ${MESES[M-1].toLowerCase()} ${A}`)
-    + (obra.length && !obra.some(o => o.vertical) ? `<p class="infAviso">Las fichas no tienen vertical, línea ni tipo de actuación, así que verticales, seguridad física y ticket medio salen vacíos. Ejecuta <b>radar_v4_clasificacion.sql</b> y recarga.</p>` : '')
-    + (REF.length ? '' : `<p class="infAviso">Faltan los datos de referencia (histórico 2025, objetivos por vertical, margen y ticket). Ejecuta <b>radar_v4_board.sql</b> y recarga.</p>`)
-    + `<div class="bdWrap">
-      <h3 class="bdSec">APROBACIONES</h3>${filaGauges}${filaMargen}${filaEvol}${filaTablas}
-      <h3 class="bdSec">CAPTACIÓN DE OPORTUNIDADES</h3>${filaCapt}
-      <h3 class="bdSec">FORECAST Y PREVISIONES DE VENTA</h3>${filaFc}
-      <p class="infPie">Hit rate: ganadas / cerradas de Obra por rango, con cierre en los últimos 12 meses. Previsión de cierre: ganado a fecha más el pipeline sin Stand By
-        con cierre previsto este año, multiplicado por el hit rate de su rango. Hot: probabilidad de 80% o más.</p>
-    </div>`;
+  /* ── 6. Requiere atención ── */
+  const inact = abiertas.filter(o => avisoInactividad(o) != null);
+  const venc = abiertas.filter(o => o.etapa !== 'standby' && o.cierre && o.cierre < corte);
+  const perdidas = D.opos.filter(o => o.estado === 'perdida' && !o.exclusion && esObraInf(o) && o.cierre >= iniAnio && o.cierre <= corte);
+  const motivos = {}; perdidas.forEach(o => { const m = o.motivo || 'Sin motivo'; motivos[m] = (motivos[m] || 0) + 1; });
+  const topMot = Object.entries(motivos).sort((a, b) => b[1] - a[1])[0];
+  const peor = filasCom.filter(r => r.pV != null).slice(-1)[0];
+  const aviso = (col, tit, sub) => `<div class="b2Al"><i class="${col}"></i><div>${tit}<small>${sub}</small></div></div>`;
+  const avisos = [
+    inact.length ? aviso('md', `${inact.length} oportunidades sin actividad por encima del umbral de su etapa`, `${eK(sV(inact))} en juego · ${inact.filter(o => topIds.has(o.id)).length} están en el top 10`) : '',
+    venc.length ? aviso('ko', `${venc.length} oportunidades con fecha de cierre vencida`, `${eK(sV(venc))} · hay que actualizar la fecha o marcarlas como perdidas`) : '',
+    topMot ? aviso('ko', `Primer motivo de pérdida: ${esc(topMot[0].toLowerCase())}`, `${Math.round(topMot[1] / perdidas.length * 100)} % de las ${perdidas.length} pérdidas del año`) : '',
+    peor && peor.pV < 0.85 ? aviso('az', `${esc(nombreCom(peor.t))} va al ${pctTxt(peor.pV)} de su objetivo de ventas a hoy`, `Captación ${pctTxt(peor.pC)} de su objetivo`) : ''
+  ].filter(Boolean);
+  const fila6 = `<div class="b2Row b2R64">${grafMes}<div class="b2Card"><h3 class="b2H">Requiere atención</h3>
+    ${avisos.join('') || '<p class="b2Vacio">Nada urgente a fecha de corte</p>'}</div></div>`;
+
+  c.innerHTML = cabeceraInforme('Board', `Corte ${fechaEs(corte)} · ${MESES[M-1].toLowerCase()} ${A} · solo dirección`)
+    + `<div class="b2Wrap">${fila1}${fila2}${fila3}${fila4}${fila5}${fila6}
+      <p class="infPie">Ventas: fichas ganadas de Obra que cuentan en resultados. Captación: presupuestos de Beta10 por su fecha. Objetivo a hoy: meses cerrados más la parte del mes por días laborables.
+        Forecast: pipeline sin Stand By con cierre este año × hit rate del BOARD por rango (67 · 52 · 40 · 31 · 15 %). Hit rate: cerradas de Obra de los últimos 12 meses.
+        Averías y recurrente no suman en el resultado comercial.</p></div>`;
   enganchaCabecera(c);
-  c.querySelectorAll('[data-bdvert]').forEach(b => b.onclick = () => { bdVert = b.dataset.bdvert; pintar(); });
-  c.querySelectorAll('[data-opo]').forEach(b => b.onclick = () => { const o = D.opos.find(x => x.id === b.dataset.opo); if(o) abrirCajon(o); });
+  c.querySelectorAll('tr[data-opo]').forEach(tr => {
+    const abrir = () => { const o = D.opos.find(x => x.id === tr.dataset.opo); if(o) abrirCajon(o); };
+    tr.onclick = abrir; tr.onkeydown = e => { if(e.key === 'Enter') abrir(); };
+  });
 }
 
 
