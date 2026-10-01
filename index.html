@@ -1685,11 +1685,17 @@ async function aplicarMargenes(){
     }
     for(const [codigo, ids] of porCodigo)
       for(let i=0; i<ids.length; i+=200){
-        const { error } = await SB.from('oportunidad').update({ proyectista:codigo }).in('id', ids.slice(i, i+200));
+        const tanda = ids.slice(i, i+200);
+        const { data, error } = await SB.from('oportunidad').update({ proyectista:codigo }).in('id', tanda).select('id');
         if(error){
           if(error.code === '23503') throw new Error('falta el proyectista «' + codigo + '» en la base. Ejecuta radar_v4_proyectistas.sql');
           throw error;
         }
+        /* Si una política RLS o un trigger lo impide, Supabase no da error:
+           devuelve menos filas. Se avisa en lugar de dar por bueno. */
+        if((data||[]).length < tanda.length)
+          throw new Error('la base solo ha guardado ' + (data||[]).length + ' de ' + tanda.length +
+            ' proyectistas (' + etq('proyectista', codigo) + '). Revisa la política de actualización de oportunidad.');
       }
     impFicheros.margenes = null; impPlanMargen = null;
     await recargar();
