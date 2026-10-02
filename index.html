@@ -146,16 +146,16 @@ main{flex:1;min-width:0;display:flex;flex-direction:column}
 .bdG21{grid-template-columns:minmax(0,2fr) minmax(0,1fr)}
 .bdG12{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
 .bdG3b{grid-template-columns:minmax(0,1.35fr) minmax(0,1.15fr) minmax(0,1.3fr)}
-@media(max-width:1100px){.bdG4,.bdG3,.bdG3b{grid-template-columns:repeat(2,minmax(0,1fr))}.bdG21,.bdG12{grid-template-columns:1fr}}
-@media(max-width:640px){.bdG4,.bdG3,.bdG3b{grid-template-columns:1fr}}
+@media screen and (max-width:1100px){.bdG4,.bdG3,.bdG3b{grid-template-columns:repeat(2,minmax(0,1fr))}.bdG21,.bdG12{grid-template-columns:1fr}}
+@media screen and (max-width:640px){.bdG4,.bdG3,.bdG3b{grid-template-columns:1fr}}
 /* Board de dirección v2 */
 .b2Wrap{display:flex;flex-direction:column;gap:12px}
 .b2Row{display:grid;gap:12px}
 .b2R2{grid-template-columns:repeat(2,minmax(0,1fr))}
 .b2R4{grid-template-columns:repeat(4,minmax(0,1fr))}
 .b2R64{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}
-@media(max-width:1000px){.b2R2,.b2R64{grid-template-columns:1fr}.b2R4{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:560px){.b2R4{grid-template-columns:1fr}}
+@media screen and (max-width:1000px){.b2R2,.b2R64{grid-template-columns:1fr}.b2R4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media screen and (max-width:560px){.b2R4{grid-template-columns:1fr}}
 .b2Card{background:var(--blanco);border:1px solid var(--linea);border-radius:8px;padding:14px 16px;min-width:0;break-inside:avoid}
 .b2H{font-size:14px;font-weight:700;margin:0 0 12px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
 .b2H small{font-size:11px;font-weight:400;color:var(--gris)}
@@ -277,7 +277,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column}
 .bdTabla tr.bdTot td{font-weight:700;border-top:2px solid var(--azul);border-bottom:0}
 .bdSw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
 .bdTopCols{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:6px 8px}
-@media(max-width:640px){.bdTopCols{grid-template-columns:1fr}}
+@media screen and (max-width:640px){.bdTopCols{grid-template-columns:1fr}}
 .bdTopCols h4{font-size:11px;margin:0 0 4px;padding-bottom:3px;border-bottom:2px solid}
 .bdTopCols h4.gan{color:var(--verde);border-color:var(--verde)}.bdTopCols h4.per{color:var(--rojo);border-color:var(--rojo)}
 .bdTop{display:grid;grid-template-columns:1fr auto;gap:0 8px;width:100%;text-align:left;padding:4px 0;border-bottom:1px solid #EEF1F3}
@@ -308,7 +308,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column}
 .cxTabla td.ko{background:var(--rojo-claro);color:#8C1D17;font-weight:600}
 .cxTabla td.cur{font-style:italic;color:var(--gris)}
 .cxGraf{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-@media(max-width:900px){.cxGraf{grid-template-columns:1fr}}
+@media screen and (max-width:900px){.cxGraf{grid-template-columns:1fr}}
 .cxCaja{border:1px solid var(--linea);border-radius:6px;padding:10px 12px 8px;min-width:0;break-inside:avoid;text-align:center}
 .cxCaja h4{font-size:13px;font-weight:600;color:var(--azul);margin:0 0 6px;text-align:center}
 .cxCaja svg{width:100%;height:auto;display:block}
@@ -390,7 +390,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column}
 .clT tr.sub th{text-align:left;font-style:italic;border-bottom:1px solid #000;padding-top:4px}
 .clT td.et{padding-left:24%;white-space:nowrap}
 .clKams{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 30px}
-@media(max-width:760px){.clKams{grid-template-columns:1fr}}
+@media screen and (max-width:760px){.clKams{grid-template-columns:1fr}}
 .clQ h4{margin:0;text-align:center;font-size:13.5px;font-weight:400}
 .clQ h4 b{display:block;font-size:12.5px;font-weight:700;margin-top:3px}
 .clQ table{width:100%;border-collapse:collapse;table-layout:fixed;margin-top:4px;border:0;border-top:2px solid #000;font-size:13.5px;background:none}
@@ -408,9 +408,16 @@ main{flex:1;min-width:0;display:flex;flex-direction:column}
 .clMed.m1{background:#C9A227}.clMed.m2{background:#9AA0A6}.clMed.m3{background:#B0703A}
 .clPie{margin:16px 0 0;font-size:10.5px;color:#666}
 @media print{
-  .clHoja{border:0;padding:0;max-width:none}
+  /* El PDF sale igual que en pantalla: mismo ancho de hoja y los cuadros en 2 columnas. */
+  .clHoja{border:0;padding:0}
+  .clKams{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 24px}
+  .clQ col:first-child{width:46%!important}
   .clQ,.clT tr{break-inside:avoid}
-}.ksDn{color:var(--rojo);font-size:11px;font-weight:700}.ksEq{color:#B4B2A9;font-size:11px}
+  /* Las vistas clásicas son hojas verticales: caben en una sola página A4. */
+  .contenido:has(.clHoja){page:clasica}
+}
+@page clasica{size:A4 portrait;margin:10mm}
+.ksDn{color:var(--rojo);font-size:11px;font-weight:700}.ksEq{color:#B4B2A9;font-size:11px}
 @media print{
   .infAcc,.infAviso{display:none!important}
   .ronCaja{border:0;padding:0}
@@ -682,8 +689,8 @@ button.fcFila.comp:hover{background:#F2E4B8}
 .fcCard footer .c .et{color:#6B5200}
 .fcCard footer .t{background:var(--papel)}
 .fcCargando{color:var(--gris);font-size:13px}
-@media (max-width:1024px){.fcKpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media (max-width:760px){.fcKpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media screen and (max-width:1024px){.fcKpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media screen and (max-width:760px){.fcKpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media print{
   @page{size:A4 landscape;margin:9mm}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
