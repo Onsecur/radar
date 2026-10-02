@@ -835,7 +835,7 @@ async function cargarDatos(){
       'probabilidad,cierre_previsto,fecha_revision,cierre_real,motivo_perdida,'+
       'motivo_exclusion,ultima_actividad,notas,origen_dato,coste'),
     todasLasFilas('nota', 'id,oportunidad_id,tipo,texto,fecha_actividad,proxima_accion,autor_nombre'),
-    todasLasFilas('presupuesto', 'numero,version,oportunidad_id,importe,coste,estado,fecha,fecha_aceptacion')
+    todasLasFilas('presupuesto', 'numero,version,oportunidad_id,importe,importe_cuotas,coste,estado,fecha,fecha_aceptacion')
   ]);
 
   /* Objetivos de los informes Resultados On y Kam score (radar_v4_objetivos.sql).
@@ -920,7 +920,7 @@ async function cargarDatos(){
       prescId    : prescDeOpo.get(String(o.id)) || ''
     })),
     pres: presupuestos.map(p => ({ numero:p.numero, opo:p.oportunidad_id ? String(p.oportunidad_id) : null,
-      importe:Number(p.importe)||0, coste:p.coste==null?null:Number(p.coste), version:p.version,
+      importe:Number(p.importe)||0, cuotas:Number(p.importe_cuotas)||0, coste:p.coste==null?null:Number(p.coste), version:p.version,
       estado:p.estado, fecha:p.fecha, fecha_aceptacion:p.fecha_aceptacion })),
     acts: notas.map(n => ({
       id:String(n.id), opo:String(n.oportunidad_id), tipo:n.tipo, desc:n.texto,
@@ -1283,6 +1283,11 @@ const conVersion = n => {
 /* Las ganadas con cierre hasta aquí son histórico cerrado: el importador
    no las toca nunca. Septiembre sigue abierto y se cierra ya en Radar. */
 const HISTORICO_HASTA = '2026-08-31';
+/* Cuota: Beta10 la da mensual ('Importe cuotas' del cubo). En Radar se
+   guarda anualizada en oportunidad.cuota_anual (×12), como en el BOARD.
+   presupuesto.importe_cuotas sigue siendo espejo de Beta10: mensual. */
+const CUOTA_MESES = 12;
+const cuotaAnual = m => Math.round((Number(m)||0) * CUOTA_MESES * 100) / 100;
 const norm = s => String(s||'').trim().toUpperCase();
 const esExcluido = cliente => EXCLUIDOS.some(x => norm(cliente).includes(x));
 
@@ -1502,7 +1507,7 @@ function construirPlan(){
                    + ' · ' + numero,
       direccion  : String(r['Dirección'] || '').replace(/[\r\n]+/g, ', ').trim(),
       importe,
-      cuota      : c ? (Number(c['Importe cuotas']) || 0) : 0,
+      cuota      : c ? (Number(c['Importe cuotas']) || 0) : 0,   /* mensual, como Beta10 */
       comercial  : COMERCIAL_B10[String(comB10).trim()] || null,
       actuacion  : ACTUACION_B10[actuacion] || null,
       sistema    : SISTEMA_B10[norm(sistema)] || null,
@@ -1570,10 +1575,10 @@ function construirPlan(){
     const todos = new Map();
     for(const n of String(o.presupuestos||'').split(',').map(x=>x.trim()).filter(Boolean)){
       const p = presBase.get(n);
-      if(p) todos.set(n, { importe:Number(p.importe)||0, estado:estadoDe(p.estado), fecha:p.fecha_aceptacion||p.fecha });
+      if(p) todos.set(n, { importe:Number(p.importe)||0, cuota:Number(p.importe_cuotas ?? p.cuotas)||0, estado:estadoDe(p.estado), fecha:p.fecha_aceptacion||p.fecha });
     }
     for(const f of fichas)
-      todos.set(f.numero, { importe:f.importe, estado:f.estado, fecha:f.fechaCierre, etapa:f.etapa });
+      todos.set(f.numero, { importe:f.importe, cuota:f.cuota, estado:f.estado, fecha:f.fechaCierre, etapa:f.etapa });
     const lista = [...todos.values()];
 
     const ganados  = lista.filter(p => p.estado === 'ganada');
@@ -1586,6 +1591,17 @@ function construirPlan(){
     /* Importe: la suma de los que cuentan para ese estado. */
     const importeNuevo = ganados.length ? suma(ganados)
                        : abiertos.length ? suma(abiertos) : o.valor;
+    /* Cuota anual: misma regla que el importe, sobre la cuota mensual ×12. */
+    const sumaCuota = a => cuotaAnual(a.reduce((s,p)=>s+(p.cuota||0),0));
+    const cuotaNueva = ganados.length ? sumaCuota(ganados)
+                     : abiertos.length ? sumaCuota(abiertos) : (o.cuota||0);
+    const ajustaCuota = () => {
+      /* Si Beta10 no trae cuota, no se borra la que ya tenga la ficha. */
+      if(cuotaNueva > 0 && Math.abs((o.cuota||0) - cuotaNueva) > 0.5){
+        cambio.cuota_anual = cuotaNueva;
+        cambios.push({ campo:'Cuota anual', de:eur(o.cuota||0), a:eur(cuotaNueva) });
+      }
+    };
 
     const cambio = {}, cambios = [];
     const numeros = fichas.map(f=>f.numero).join(', ');
@@ -1608,6 +1624,7 @@ function construirPlan(){
         cambio.importe = importeNuevo;
         cambios.push({ campo:'Importe', de:eur(o.valor), a:eur(importeNuevo) });
       }
+      if(estadoNuevo === 'ganada') ajustaCuota();
     }
 
     /* 3. Abierta o perdida: puede ganarse. Una abierta solo se pierde si
@@ -1617,6 +1634,7 @@ function construirPlan(){
         cambio.importe = importeNuevo;
         cambios.push({ campo:'Importe', de:eur(o.valor), a:eur(importeNuevo) });
       }
+      ajustaCuota();
       const fechasG = ganados.map(p=>p.fecha).filter(Boolean).sort();
       if(estadoNuevo === 'ganada' && o.estado !== 'ganada'
          && fechasG[0] && fechasG[0] <= HISTORICO_HASTA){
@@ -1872,7 +1890,7 @@ async function aplicarPlan(){
         tipo           : f.actuacion ? TIPO_DE_ACTUACION[COD.actuacion[f.actuacion]] : 'obra',
         tipo_sistema   : f.sistema ? COD.sistema[f.sistema] : null,
         importe        : f.importe,
-        cuota_anual    : f.cuota,
+        cuota_anual    : cuotaAnual(f.cuota),
         etapa          : f.etapa,
         estado         : f.estado,
         probabilidad   : f.etapa === 'enviada' ? 20 : f.estado === 'ganada' ? 95 : 10,
