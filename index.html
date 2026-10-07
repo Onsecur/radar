@@ -3962,6 +3962,9 @@ function abrirCajon(o){
   o = o || { nombre:'',cuenta:'',owner:comoUsuario,etapa:'estudio',estado:'abierta',valor:0,prob:10,cierre:'',servicio:'',origen:'',vertical:'',proyectista:'Sin asignar',notas:'' };
   $('#cajonTitulo').textContent = nuevo ? 'Nueva oportunidad' : o.nombre;
   const pres = o.pres || [];
+  const tit = numerosEnTitulo(o.nombre);
+  const numPres = o.presupuestos ? { n:o.presupuestos, f:'Beta10' }
+    : tit.length ? { n:tit.join(', '), f:'Holded · del título' } : null;
   const bloqueado = pres.length ? ' disabled title="Viene de Beta10, se actualiza en la importación"' : '';
   $('#cajonCuerpo').innerHTML = `
     <div class="campos">
@@ -3999,6 +4002,7 @@ function abrirCajon(o){
         <div class="campo"><label>Importe sin IVA</label><input id="cValor" type="number" min="0" step="100" value="${o.valor}"${bloqueado}></div>
         <div class="campo"><label>Cuota recurrente anual</label><input type="text" value="${o.cuota?eur2(o.cuota):'—'}" disabled></div>
         <div class="campo"><label>Margen</label><input type="text" value="${o.margen?o.margen+' %':'— margen pendiente'}" disabled></div>
+        <div class="campo"><label>Nº presupuesto${numPres?` <span style="font-weight:400;color:var(--gris)">${numPres.f}</span>`:''}</label><input type="text" value="${numPres?esc(numPres.n):'— sin número'}" disabled></div>
       </div>
       ${pres.length?'<p class="avisoB10">El importe, la cuota y el margen vienen de Beta10 y se actualizan en cada importación.</p>':''}
     </div>
@@ -4018,9 +4022,9 @@ function abrirCajon(o){
       ${pres.map(q=>`<tr><td class="num">${esc(q.n)}</td><td class="der num">${eur2(q.imp)}</td><td>${q.f?esc(q.f):''}</td><td>${esc(q.e)}</td></tr>`).join('')}
       </tbody></table></div>`:''}
 
+    ${nuevo?'':actividadHTML(o)}
     <div class="seccion"><h3>Notas</h3><div class="campos">
-      <div class="campo ancho"><textarea id="cNotas" rows="3">${esc(o.notas||'')}</textarea></div></div></div>
-    ${nuevo?'':actividadHTML(o)}`;
+      <div class="campo ancho"><textarea id="cNotas" rows="3">${esc(o.notas||'')}</textarea></div></div></div>`;
 
   $('#cOrigen').onchange = e => $('#wrapPresc').classList.toggle('oculto', e.target.value !== 'Prescriptor');
   $('#cEtapa').onchange = e => { const w=$('#wrapRev'); if(w) w.classList.toggle('oculto', e.target.value!=='standby'); };
