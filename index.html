@@ -1005,8 +1005,12 @@ async function sincronizar(o){
       const viejo = o.id; o.id = String(data.id);
       D.acts.filter(a=>a.opo===viejo).forEach(a=>a.opo=o.id);
     } else {
-      const { error } = await SB.from('oportunidad').update(aFilaBD(o)).eq('id', o.id);
+      /* .select() para saber si la fila se ha guardado de verdad: si RLS la
+         bloquea, Supabase no da error, solo devuelve 0 filas. */
+      const { data, error } = await SB.from('oportunidad')
+        .update(aFilaBD(o)).eq('id', o.id).select('id');
       if(error) throw error;
+      if(!data || !data.length) throw new Error('la base no ha aceptado el cambio (sin permiso sobre esta oportunidad)');
     }
     forecastCambiado();
   }catch(e){
@@ -2599,6 +2603,12 @@ function activarRadar(){
       const o = D.opos.find(x=>x.id===e.dataTransfer.getData('text/plain'));
       if(!o) return;
       const destino = col.dataset.mes;
+      /* Stand By no lleva fecha prevista (regla y trigger normaliza_standby):
+         si se dejara mover, la tarjeta cambiaria en pantalla pero no en la base. */
+      if(o.etapa === 'standby' && destino !== ''){
+        aviso('Está en Stand By y no lleva fecha prevista. Sácala de Stand By en Etapas para fecharla.');
+        return;
+      }
       if(destino === 'vencidas') return;          // no se puede arrastrar hacia el pasado
       if(destino === '') { o.cierre = ''; }       // devolver a la bandeja
       else {
