@@ -723,8 +723,7 @@ button.fcFila.comp:hover{background:#F2E4B8}
 <div id="app" class="oculto">
   <nav class="rail">
     <div class="marca"><svg role="img" aria-label="Onsecur Radar"><use href="#radarLogo"/></svg></div>
-    <button data-vista="panel" aria-current="true">Panel</button>
-    <button data-vista="informes">Informes</button>
+    <button data-vista="informes" aria-current="true">Informes</button>
     <button data-vista="radar">Previsiones</button>
     <button data-vista="pipeline">Etapas</button>
     <button data-vista="agenda">Agenda <span class="chip" id="chipAgenda">0</span></button>
@@ -1051,8 +1050,8 @@ let OBJ_KPI = [];   // radar.objetivo_kpi: { kpi, tag, anio, mes, imp }
 let REF = [];       // radar.referencia: { grupo, clave, anio, mes, valor }
 let IGNORADOS = [], IGNORADOS_ERROR = '';   // radar.presupuesto_ignorado
 let D = estructuraClonada();
-let vista = 'panel', comoUsuario = 'u1', abierta = null;
-let informe = 'resultados';   // subpantalla activa dentro de Informes
+let vista = 'informes', comoUsuario = 'u1', abierta = null;
+let informe = 'board';   // subpantalla activa dentro de Informes
 let filtros = { texto:'', comercial:'', etapa:'', estado:'abierta', actuacion:'' };
 let radar = { comercial:'', prob:'', vertical:'', proyectista:'', orden:'importe' };
 
@@ -2230,7 +2229,7 @@ async function hacerCopia(formato){
 }
 
 function vCopia(c){
-  if(!esManager()){ vista = 'panel'; return pintar(); }
+  if(!esManager()){ vista = 'informes'; return pintar(); }
   if(!copia.cargando && !copia.trabajando && (!copia.conteo || Date.now()-(copia.leido||0) > 60000)){
     copia.leido = Date.now(); cargarEstadoCopia();
   }
@@ -2368,8 +2367,8 @@ function entrar(id){
   comoUsuario = id;
   filtros = { texto:'', comercial:'', etapa:'', estado:'abierta', actuacion:'' };
   radar = { comercial:'', prob:'', vertical:'', proyectista:'', orden:'importe' };
-  vista = 'panel';
-  informe = 'resultados';
+  vista = 'informes';
+  informe = 'board';
   pf = { comercial:'', tipo:'', texto:'', revisar:false, descartados:false };
   $('#usuarioActivo').textContent = yo().nombre;
   $('#rolActivo').textContent = yo().rol;
@@ -2382,7 +2381,7 @@ function entrar(id){
 function pintar(){
   document.querySelectorAll('.rail [data-vista]').forEach(b=>b.setAttribute('aria-current',String(b.dataset.vista===vista)));
   pintarCifras();
-  ({pipeline:vPipeline,radar:vRadar,lista:vLista,agenda:vAgenda,panel:vPanel,informes:vInformes,importar:vImportar,copia:vCopia,prescriptores:vPrescriptores})[vista]($('#contenido'));
+  ({pipeline:vPipeline,radar:vRadar,lista:vLista,agenda:vAgenda,informes:vInformes,importar:vImportar,copia:vCopia,prescriptores:vPrescriptores})[vista]($('#contenido'));
 }
 
 function pintarCifras(){
@@ -2677,8 +2676,6 @@ function vAgenda(c){
   });
 }
 
-/* ═══════ panel ═══════ */
-
 /* ═══════ Informes: contenedor de subpantallas ═══════
    Para añadir un informe nuevo: una línea en INFORMES con su función de pintado.
    soloDireccion:true lo oculta a quien no sea director. */
@@ -2686,9 +2683,9 @@ const INFORMES = [
   /* Mientras los comerciales no tengan cuenta, los dos se calculan en la
      página con todas las fichas, que solo dirección puede leer. Antes de dar
      de alta comerciales hará falta una función en la base, como forecast_mes. */
+  { id:'board',      nombre:'Board',         pintar:c=>vBoard(c),        soloDireccion:true },
   { id:'resultados', nombre:'Resultados On', pintar:c=>vResultadosOn(c), soloDireccion:true },
   { id:'kamscore',   nombre:'Kam score',     pintar:c=>vKamScore(c),     soloDireccion:true },
-  { id:'board',      nombre:'Board',         pintar:c=>vBoard(c),        soloDireccion:true },
   { id:'comex',      nombre:'COMEX',         pintar:c=>vComex(c),        soloDireccion:true },
   { id:'forecast',   nombre:'Forecast',   pintar:c=>vForecast(c) },
 ];
@@ -3948,45 +3945,6 @@ async function quitarIgnorado(id){
   const { error } = await SB.from('presupuesto_ignorado').delete().eq('id', g.id);
   if(error) return aviso('No se ha podido quitar: ' + error.message);
   IGNORADOS = IGNORADOS.filter(x => x !== g); impPlan = null; pintar();
-}
-
-function vPanel(c){
-  const ab = abiertas();
-  const maxE = Math.max(1,...ETAPAS.map(e=>ab.filter(o=>o.etapa===e.id).reduce((s,o)=>s+o.valor,0)));
-  const meses = [];
-  for(let i=0;i<6;i++){
-    const d = new Date(); d.setDate(1); d.setMonth(d.getMonth()+i);
-    const k = d.toISOString().slice(0,7);
-    meses.push({ et:d.toLocaleDateString('es-ES',{month:'short',year:'2-digit'}),
-                 t:ab.filter(o=>(o.cierre||'').slice(0,7)===k).reduce((s,o)=>s+o.valor*o.prob/100,0) });
-  }
-  const maxM = Math.max(1,...meses.map(m=>m.t));
-  const rank = D.usuarios.map(u=>({ n:u.nombre,
-    g:D.opos.filter(o=>o.owner===u.id&&o.estado==='ganada').reduce((s,o)=>s+o.valor,0),
-    a:ab.filter(o=>o.owner===u.id).reduce((s,o)=>s+o.valor,0) })).filter(r=>r.g||r.a).sort((x,y)=>(y.g+y.a)-(x.g+x.a));
-  const maxR = Math.max(1,...rank.map(r=>r.g+r.a));
-  const cerradas = mias().filter(o=>o.estado!=='abierta'), gan = cerradas.filter(o=>o.estado==='ganada');
-  const tasa = cerradas.length?Math.round(gan.length/cerradas.length*100):0;
-  const servicios = {};
-  ab.forEach(o=>servicios[o.servicio] = (servicios[o.servicio]||0)+o.valor);
-  const maxS = Math.max(1,...Object.values(servicios));
-
-  c.innerHTML = `<div class="rejilla">
-    <div class="bloque"><h3>Valor por etapa</h3>${ETAPAS.map(e=>{
-      const t = ab.filter(o=>o.etapa===e.id).reduce((s,o)=>s+o.valor,0);
-      return `<div class="fila-barra"><span>${e.nombre}</span><span class="pista"><i style="width:${Math.round(t/maxE*100)}%"></i></span><span class="cifra-fin num">${eur(t)}</span></div>`;
-    }).join('')}</div>
-    <div class="bloque"><h3>Previsión ponderada por mes de cierre</h3>${meses.map(m=>
-      `<div class="fila-barra"><span>${m.et}</span><span class="pista"><i class="b" style="width:${Math.round(m.t/maxM*100)}%"></i></span><span class="cifra-fin num">${eur(m.t)}</span></div>`).join('')}</div>
-    <div class="bloque"><h3>Por comercial</h3>${rank.map(r=>
-      `<div class="fila-barra"><span>${esc(r.n)}</span><span class="pista"><i style="width:${Math.round(r.g/maxR*100)}%"></i><i class="b" style="width:${Math.round(r.a/maxR*100)}%"></i></span><span class="cifra-fin num">${eur(r.g+r.a)}</span></div>`).join('')}
-      <p class="vacio" style="padding:6px 0">Azul oscuro: ganado. Gris: pipeline abierto.</p></div>
-    <div class="bloque"><h3>Pipeline por servicio</h3>${Object.entries(servicios).sort((a,b)=>b[1]-a[1]).map(([s,v])=>
-      `<div class="fila-barra"><span style="font-size:12px">${esc(s)}</span><span class="pista"><i style="width:${Math.round(v/maxS*100)}%"></i></span><span class="cifra-fin num">${eur(v)}</span></div>`).join('')}
-      <h3 style="margin-top:16px">Cierres</h3>
-      <div class="fila-barra"><span>Tasa de éxito</span><span class="pista"><i style="width:${tasa}%"></i></span><span class="cifra-fin num">${tasa}%</span></div>
-      <div class="fila-barra"><span>Ganadas</span><span></span><span class="cifra-fin num">${gan.length} / ${cerradas.length}</span></div></div>
-  </div>`;
 }
 
 /* ═══════ cajón ═══════ */
