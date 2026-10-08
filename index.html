@@ -555,6 +555,32 @@ select,input[type=text],input[type=date],input[type=number],textarea{background:
 .grupo{margin-bottom:22px}
 .grupo h3{font-size:13px;margin-bottom:8px}
 .grupo h3 span{font-weight:400;color:var(--gris)}
+/* Mis acciones */
+.accCab{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.accCab h2{margin:0;font-size:18px}
+.accCab .filtros{margin:0}
+.accBloque{margin-bottom:26px}
+.accTit{font-size:15px;margin:0 0 10px;padding-bottom:6px;border-bottom:2px solid var(--azul)}
+.accTit span{font-weight:400;color:var(--gris)}
+.accNota{font-size:12px;color:var(--gris);margin:-4px 0 12px}
+.accTabla td{vertical-align:middle}
+.accSub{font-size:12px;color:var(--gris);margin-top:2px}
+.accRetraso{font-size:11px;color:var(--rojo);font-weight:600}
+.accVencidas h3{color:var(--rojo)}
+.accTipo{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:10px;background:var(--azul-claro);color:var(--azul);margin-right:4px}
+.accTipo.t-llamada{background:var(--curry-claro)}
+.accTipo.t-visita{background:var(--verde-claro);color:var(--verde)}
+.accBtns{white-space:nowrap;width:1%}
+.accBtns .btn{padding:5px 10px;font-size:12px;margin-left:6px}
+.accSug summary{cursor:pointer;list-style:none}
+.accSug summary::-webkit-details-marker{display:none}
+.accSug summary h3::before{content:'▸ ';color:var(--gris)}
+.accSug[open] summary h3::before{content:'▾ '}
+.accMas{margin-top:8px;font-size:12px}
+.accEquipo .accMal{color:var(--rojo);font-weight:700}
+.accEquipo .accRegular{color:var(--naranja);font-weight:600}
+.accEquipo .accBien{color:var(--verde);font-weight:600}
+@media (max-width:700px){ .accBtns .btn{margin:2px 0 2px 4px} .accBtns{white-space:normal} }
 .rejilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
 .bloque{background:var(--blanco);border:1px solid var(--linea);border-radius:var(--r);padding:16px 18px}
 .bloque h3{font-size:13px;margin-bottom:12px}
@@ -729,7 +755,7 @@ button.fcFila.comp:hover{background:#F2E4B8}
     <button data-vista="informes" aria-current="true">Informes</button>
     <button data-vista="radar">Previsiones</button>
     <button data-vista="pipeline">Etapas</button>
-    <button data-vista="agenda">Agenda <span class="chip" id="chipAgenda">0</span></button>
+    <button data-vista="acciones">Mis acciones <span class="chip" id="chipAcciones" title="Vencidas + hoy">0</span></button>
     <button data-vista="lista">Oportunidades <span class="chip" id="chipLista">0</span></button>
     <button data-vista="prescriptores">Prescriptores</button>
     <button data-vista="importar">Importar</button>
@@ -843,7 +869,7 @@ async function cargarDatos(){
       'tipo_actuacion,tipo_sistema,vertical,origen,importe,cuota_anual,etapa,estado,'+
       'probabilidad,cierre_previsto,fecha_revision,cierre_real,motivo_perdida,'+
       'motivo_exclusion,ultima_actividad,notas,origen_dato,coste'),
-    todasLasFilas('nota', 'id,oportunidad_id,tipo,texto,fecha_actividad,proxima_accion,autor_nombre'),
+    todasLasFilas('nota', 'id,oportunidad_id,tipo,texto,fecha_actividad,autor_nombre'),
     todasLasFilas('presupuesto', 'numero,version,oportunidad_id,importe,importe_cuotas,coste,estado,fecha,fecha_aceptacion')
   ]);
 
@@ -864,6 +890,12 @@ async function cargarDatos(){
        IGNORADOS_ERROR = ''; }
   catch(e){ IGNORADOS = []; IGNORADOS_ERROR = e.message || String(e);
             console.warn('Sin lista de ignorados:', IGNORADOS_ERROR); }
+
+  /* Mis acciones (radar_v4_acciones.sql). Si la tabla aún no existe, la
+     pantalla lo dice y el resto de Radar sigue funcionando. */
+  let acciones = [];
+  try{ acciones = await todasLasFilas('accion', 'id,oportunidad_id,responsable,tipo,texto,fecha,origen,pospuesta,hecha_en'); ACC_ERROR = ''; }
+  catch(e){ ACC_ERROR = e.message || String(e); console.warn('Sin acciones:', ACC_ERROR); }
 
   /* Prescriptores (radar_v4_prescriptores.sql). Si el módulo aún no está en
      la base, la pantalla lo dice y el resto de Radar sigue funcionando. */
@@ -934,7 +966,11 @@ async function cargarDatos(){
     acts: notas.map(n => ({
       id:String(n.id), opo:String(n.oportunidad_id), tipo:n.tipo, desc:n.texto,
       fecha:n.fecha_actividad + 'T09:00:00.000Z',
-      proxFecha:n.proxima_accion || '', hecha:false, autor:n.autor_nombre
+      autor:n.autor_nombre
+    })),
+    acciones: acciones.map(a => ({
+      id:String(a.id), opo:String(a.oportunidad_id), resp:a.responsable, tipo:a.tipo, texto:a.texto,
+      fecha:a.fecha, origen:a.origen, pospuesta:a.pospuesta||0, hecha:!!a.hecha_en
     }))
   };
 }
@@ -1004,6 +1040,7 @@ async function sincronizar(o){
       if(error) throw error;
       const viejo = o.id; o.id = String(data.id);
       D.acts.filter(a=>a.opo===viejo).forEach(a=>a.opo=o.id);
+      D.acciones.filter(a=>a.opo===viejo).forEach(a=>a.opo=o.id);
     } else {
       /* .select() para saber si la fila se ha guardado de verdad: si RLS la
          bloquea, Supabase no da error, solo devuelve 0 filas. */
@@ -1052,7 +1089,7 @@ const MESES_RADAR = 5;   // mes 0 + 4 siguientes, además de la columna de venci
 const hoyISO = n => { const d=new Date(); d.setDate(d.getDate()+(n||0)); return d.toISOString().slice(0,10); };
 const haceDias = n => { const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString(); };
 
-let SEMILLA = { usuarios:[], cuentas:[], opos:[], acts:[], pres:[] };
+let SEMILLA = { usuarios:[], cuentas:[], opos:[], acts:[], pres:[], acciones:[] };
 let OBJ_KPI = [];   // radar.objetivo_kpi: { kpi, tag, anio, mes, imp }
 let REF = [];       // radar.referencia: { grupo, clave, anio, mes, valor }
 let IGNORADOS = [], IGNORADOS_ERROR = '';   // radar.presupuesto_ignorado
@@ -1114,9 +1151,6 @@ const visibles = (todos) => mias().filter(o =>
   (!filtros.etapa || o.etapa===filtros.etapa) &&
   (!filtros.texto || (o.nombre+' '+cuentaNombre(o.cuenta)+' '+(o.presupuestos||'')).toLowerCase().includes(filtros.texto.toLowerCase())));
 
-const pendientes = () => D.acts
-  .filter(a=>a.proxFecha && !a.hecha && mias().some(o=>o.id===a.opo && o.estado==='abierta'))
-  .sort((a,b)=>a.proxFecha.localeCompare(b.proxFecha));
 
 
 /* ═══════ Oportunidades: columnas y orden ═══════ */
@@ -1964,7 +1998,7 @@ let impDetalle = false, mrgDetalle = false;
 
 const COPIA_NOMBRES = {
   oportunidad:'Oportunidades', presupuesto:'Presupuestos Beta10', presupuesto_ignorado:'Presupuestos ignorados',
-  nota:'Notas y actividad',
+  nota:'Notas y actividad', accion:'Acciones',
   cambio:'Historial de cambios', cuenta:'Cuentas', cuenta_alias:'Alias de cuentas',
   prescriptor:'Prescriptores', prescriptor_contacto:'Contactos de prescriptores',
   prescriptor_actividad:'Actividad con prescriptores', prescriptor_categoria_hist:'Cambios de categoría de prescriptores',
@@ -1979,7 +2013,7 @@ const COPIA_NOMBRES = {
   objetivo_kpi:'Objetivos por KPI', referencia:'Referencias del Board'
 };
 /* Orden en pantalla y en el Excel: primero lo que es trabajo del equipo. */
-const COPIA_ORDEN = ['oportunidad','presupuesto','presupuesto_ignorado','nota','cambio','cuenta','cuenta_alias',
+const COPIA_ORDEN = ['oportunidad','presupuesto','presupuesto_ignorado','nota','accion','cambio','cuenta','cuenta_alias',
   'prescriptor','prescriptor_contacto','prescriptor_actividad','prescriptor_categoria_hist','perfil','objetivo','proyectista',
   'importacion','import_revision','exportacion'];
 /* Clave por la que se ordena al paginar. Sin orden fijo, PostgREST puede
@@ -1988,7 +2022,7 @@ const COPIA_CLAVE = { perfil:['id'], objetivo:['tag_comercial','anio','mes'],
   vertical_alias:['alias'], cuenta_alias:['alias'], ajuste:['clave'],
   objetivo_kpi:['kpi','tag_comercial','anio','mes'], referencia:['grupo','clave','anio','mes'] };
 const COPIA_CON_ID = ['cuenta','prescriptor','prescriptor_contacto','prescriptor_actividad','prescriptor_categoria_hist',
-  'oportunidad','presupuesto','presupuesto_ignorado','nota','cambio','importacion','import_revision','exportacion'];
+  'oportunidad','presupuesto','presupuesto_ignorado','nota','accion','cambio','importacion','import_revision','exportacion'];
 /* Si aparece una tabla que la copia no conoce, mira sus columnas en vez de
    suponer "codigo": ordena por id o codigo si los tiene, y si no, por todas. */
 async function claveCopia(t){
@@ -2377,6 +2411,8 @@ function entrar(id){
   vista = 'informes';
   informe = 'board';
   pf = { comercial:'', tipo:'', texto:'', revisar:false, descartados:false };
+  /* Dirección con cartera propia empieza por sus acciones; sin cartera, el equipo. */
+  accF = { comercial: esManager() && COMERCIALES[id] ? id : '', todas:{} };
   $('#usuarioActivo').textContent = yo().nombre;
   $('#rolActivo').textContent = yo().rol;
   $('#navCopia').classList.toggle('oculto', !esManager());
@@ -2388,7 +2424,7 @@ function entrar(id){
 function pintar(){
   document.querySelectorAll('.rail [data-vista]').forEach(b=>b.setAttribute('aria-current',String(b.dataset.vista===vista)));
   pintarCifras();
-  ({pipeline:vPipeline,radar:vRadar,lista:vLista,agenda:vAgenda,informes:vInformes,importar:vImportar,copia:vCopia,prescriptores:vPrescriptores})[vista]($('#contenido'));
+  ({pipeline:vPipeline,radar:vRadar,lista:vLista,acciones:vAcciones,informes:vInformes,importar:vImportar,copia:vCopia,prescriptores:vPrescriptores})[vista]($('#contenido'));
 }
 
 function pintarCifras(){
@@ -2398,9 +2434,10 @@ function pintarCifras(){
   const esteMes = ab.filter(o=>(o.cierre||'').slice(0,7)===mes).reduce((s,o)=>s+o.valor,0);
   const anio = new Date().getFullYear();
   const ganado = mias().filter(o=>o.estado==='ganada').reduce((s,o)=>s+o.valor,0);
-  const vencidas = pendientes().filter(a=>dias(a.proxFecha)>0).length;
+  const pendAcc = ACC_ERROR ? [] : accionesPendientes(), hoyA = hoyL();
+  const vencidas = pendAcc.filter(a=>a.fecha<hoyA).length;
   $('#chipLista').textContent = ab.length;
-  $('#chipAgenda').textContent = pendientes().length;
+  $('#chipAcciones').textContent = pendAcc.filter(a=>a.fecha<=hoyA).length;
   if(vista === 'prescriptores') return cifrasPresc();
   $('#cifras').innerHTML = `
     <div class="cifra"><dt>Pipeline abierto</dt><dd class="num">${eur(ab.reduce((s,o)=>s+o.valor,0))}</dd></div>
@@ -2657,30 +2694,303 @@ function vLista(c){
   c.querySelectorAll('tbody tr').forEach(tr=>tr.onclick=()=>abrirCajon(D.opos.find(o=>o.id===tr.dataset.id)));
 }
 
-/* ═══════ agenda ═══════ */
-function vAgenda(c){
+/* ═══════ Mis acciones ═══════
+   Sustituye a la Agenda (radar_v4_acciones.sql). Dos fuentes:
+   · Programadas: filas de radar.accion pendientes (hecha_en null) de
+     oportunidades abiertas. Vencidas · Hoy · Próximos 7 días · Más adelante.
+   · Sugeridas: se calculan aquí, no se guardan. Solo oportunidades de Obra
+     abiertas SIN acción pendiente, con un único motivo cada una, por orden:
+       1. Cierre previsto vencido (no Stand By)
+       2. Stand By con fecha de revisión cumplida
+       3. Sin actividad por encima del umbral de su etapa (INACTIVIDAD_ETAPA)
+       4. Sin próxima acción
+     «Programar» crea una acción con origen 'aviso' y la oportunidad sale de
+     sugeridas. Una oportunidad bien llevada no aparece en ninguna de las dos.
+   Hecha: registra la actividad (nota, que mueve la última actividad) y pide
+   el siguiente paso, para que el pipeline no se quede huérfano. */
+const TIPOS_ACCION = { llamada:'Llamar', email:'Email', visita:'Visita', seguimiento:'Seguimiento', otra:'Otra' };
+const NOTA_DE_ACCION = { llamada:'llamada', email:'email', visita:'visita', seguimiento:'nota', otra:'nota' };
+const MOTIVOS_SUG = {
+  cierre:   { t:'Cierre previsto vencido',  accion:'Confirmar fecha de cierre con el cliente', tipo:'llamada' },
+  revision: { t:'Stand By para revisar',     accion:'Revisar si se reactiva o se descarta',     tipo:'llamada' },
+  inactiva: { t:'Sin actividad',             accion:'Retomar el contacto',                      tipo:'llamada' },
+  sinaccion:{ t:'Sin próxima acción',        accion:'Definir el siguiente paso',                tipo:'seguimiento' }
+};
+const SUG_VISIBLES = 15;   // filas por motivo antes de «ver todas»
+let accF = { comercial:'', todas:{} };
+let ACC_ERROR = '';
+
+const hoyL = () => fechaLocal(new Date());
+/* Suma días laborables (lunes a viernes) a hoy. */
+function laborablesDesdeHoy(n){
+  const d = new Date();
+  while(n > 0){ d.setDate(d.getDate()+1); if(d.getDay() > 0 && d.getDay() < 6) n--; }
+  return fechaLocal(d);
+}
+const respDe = a => a.resp || (D.opos.find(o=>o.id===a.opo)||{}).owner || 'sinasignar';
+const tipoAcc = t => TIPOS_ACCION[t] || t;
+
+/* Oportunidades abiertas del alcance: las mías y, si dirección filtra, las
+   de ese comercial. */
+function alcanceAcc(){
+  const c = accF.comercial;
+  return mias().filter(o => o.estado==='abierta' && (!c || o.owner===c));
+}
+function accionesPendientes(){
+  const c = accF.comercial;
+  const abiertasIds = new Set(D.opos.filter(o=>o.estado==='abierta').map(o=>o.id));
+  const miasIds = new Set(mias().map(o=>o.id));
+  return D.acciones
+    .filter(a => !a.hecha && abiertasIds.has(a.opo)
+              && (miasIds.has(a.opo) || a.resp===comoUsuario)
+              && (!c || respDe(a)===c))
+    .sort((a,b)=> a.fecha.localeCompare(b.fecha) || (oppDe(b).valor||0)-(oppDe(a).valor||0));
+}
+const oppDe = a => D.opos.find(o=>o.id===a.opo) || {};
+
+function motivoSugerida(o){
+  const hoy = hoyL();
+  if(o.etapa!=='standby' && o.cierre && o.cierre < hoy) return { k:'cierre', det:'Previsto el ' + fechaCorta(o.cierre) };
+  if(o.etapa==='standby' && o.revision && o.revision <= hoy) return { k:'revision', det:'Revisar el ' + fechaCorta(o.revision) };
+  const d = avisoInactividad(o);
+  if(d != null) return { k:'inactiva', det:d + ' días · umbral ' + INACTIVIDAD_ETAPA[o.etapa] + ' d en ' + etapaNombre(o.etapa) };
+  return { k:'sinaccion', det:etapaNombre(o.etapa) };
+}
+function sugeridas(){
+  const conAccion = new Set(D.acciones.filter(a=>!a.hecha).map(a=>a.opo));
+  return alcanceAcc()
+    .filter(o => esObraInf(o) && !conAccion.has(o.id))
+    .map(o => ({ o, ...motivoSugerida(o) }))
+    .sort((a,b)=> b.o.valor - a.o.valor);
+}
+/* Vencidas + hoy: lo que pide atención ya. Es el número del menú. */
+const accionesUrgentes = () => accionesPendientes().filter(a => a.fecha <= hoyL()).length;
+
+function vAcciones(c){
+  if(ACC_ERROR){
+    c.innerHTML = `<p class="vacio">Mis acciones no está disponible: ${esc(ACC_ERROR)}.<br>
+      Falta ejecutar <b>radar_v4_acciones.sql</b> en Supabase.</p>`;
+    return;
+  }
+  const hoy = hoyL(), en7 = fechaLocal(new Date(Date.now()+7*864e5));
+  const pend = accionesPendientes(), sug = sugeridas();
+  const equipo = esManager() && !accF.comercial;
   const g = { vencidas:[], hoy:[], semana:[], despues:[] };
-  pendientes().forEach(a=>{
-    const d = dias(a.proxFecha);
-    if(d>0) g.vencidas.push(a); else if(d===0) g.hoy.push(a); else if(d>=-7) g.semana.push(a); else g.despues.push(a);
-  });
+  pend.forEach(a => (a.fecha < hoy ? g.vencidas : a.fecha === hoy ? g.hoy : a.fecha <= en7 ? g.semana : g.despues).push(a));
   const tit = { vencidas:'Vencidas', hoy:'Hoy', semana:'Próximos 7 días', despues:'Más adelante' };
-  c.innerHTML = Object.entries(g).map(([k,l])=>!l.length?'':`<div class="grupo">
-    <h3>${tit[k]} <span class="num">${l.length}</span></h3>
-    <table><tbody>${l.map(a=>{
-      const o = D.opos.find(x=>x.id===a.opo)||{};
-      return `<tr data-id="${a.opo}">
-        <td style="width:78px" class="num">${fechaCorta(a.proxFecha)}</td>
-        <td><strong>${esc(a.prox)}</strong></td>
-        <td>${esc(o.nombre||'')} · ${esc(cuentaNombre(o.cuenta))}</td>
-        <td class="der num">${eur(o.valor)}</td>
-        <td class="der"><button class="btn sec" data-hecha="${a.id}">Hecha</button></td></tr>`;
-    }).join('')}</tbody></table></div>`).join('') || '<p class="vacio">No hay próximas acciones pendientes.</p>';
-  c.querySelectorAll('tbody tr').forEach(tr=>tr.onclick=()=>abrirCajon(D.opos.find(o=>o.id===tr.dataset.id)));
-  c.querySelectorAll('[data-hecha]').forEach(b=>b.onclick=e=>{
-    e.stopPropagation();
-    const a = D.acts.find(x=>x.id===b.dataset.hecha); a.hecha = true; pintar();
+
+  const filaAcc = a => {
+    const o = oppDe(a), d = dias(a.fecha);
+    return `<tr data-opo="${a.opo}">
+      <td class="num" style="width:92px">${fechaCorta(a.fecha)}${d>0?`<div class="accRetraso">hace ${d} d</div>`:''}</td>
+      <td><span class="accTipo t-${esc(a.tipo)}">${esc(tipoAcc(a.tipo))}</span> <strong>${esc(a.texto)}</strong>
+        <div class="accSub">${esc(o.nombre||'')} · ${esc(cuentaNombre(o.cuenta))}${equipo?` · ${esc(usuario(respDe(a)))}`:''}${a.pospuesta>1?` · <span title="Veces pospuesta">↻ ${a.pospuesta}</span>`:''}</div></td>
+      <td class="der num opcional">${eur(o.valor)}</td>
+      <td class="der accBtns"><button class="btn sec" data-posponer="${a.id}">Posponer</button><button class="btn" data-hecha="${a.id}">Hecha</button></td></tr>`;
+  };
+  const programadas = Object.entries(g).filter(([,l])=>l.length).map(([k,l])=>`<div class="grupo ${k==='vencidas'?'accVencidas':''}">
+      <h3>${tit[k]} <span>${l.length}</span></h3>
+      <table class="accTabla"><tbody>${l.map(filaAcc).join('')}</tbody></table></div>`).join('')
+    || '<p class="vacio">No hay acciones programadas pendientes.</p>';
+
+  const porMotivo = {};
+  sug.forEach(s => (porMotivo[s.k] = porMotivo[s.k] || []).push(s));
+  const sugeridasHTML = Object.keys(MOTIVOS_SUG).filter(k=>porMotivo[k]).map(k => {
+    const l = porMotivo[k], todas = accF.todas[k], ver = todas ? l : l.slice(0, SUG_VISIBLES);
+    return `<details class="grupo accSug" ${k!=='sinaccion'?'open':''}>
+      <summary><h3>${MOTIVOS_SUG[k].t} <span>${l.length} · ${eur(l.reduce((s,x)=>s+x.o.valor,0))}</span></h3></summary>
+      <table class="accTabla"><tbody>${ver.map(s=>`<tr data-opo="${s.o.id}">
+        <td><strong>${esc(s.o.nombre)}</strong>
+          <div class="accSub">${esc(cuentaNombre(s.o.cuenta))}${equipo?` · ${esc(usuario(s.o.owner))}`:''} · ${esc(s.det)}</div></td>
+        <td class="der num opcional">${eur(s.o.valor)}</td>
+        <td class="der accBtns"><button class="btn sec" data-ficha="${s.o.id}">Registrar</button><button class="btn" data-programar="${s.o.id}" data-motivo="${k}">Programar</button></td></tr>`).join('')}
+      </tbody></table>
+      ${l.length > SUG_VISIBLES ? `<button class="btn sec accMas" data-todas="${k}">${todas?'Ver menos':'Ver las '+l.length}</button>` : ''}
+    </details>`;
+  }).join('') || '<p class="vacio">Todo al día: cada oportunidad abierta tiene su siguiente paso.</p>';
+
+  const selector = esManager() ? `<div class="filtros"><select id="accComercial">
+      <option value="">Todo el equipo</option>
+      ${D.usuarios.filter(u=>u.rol==='comercial').map(u=>`<option value="${u.id}" ${accF.comercial===u.id?'selected':''}>${esc(u.nombre)}</option>`).join('')}
+    </select></div>` : '';
+
+  c.innerHTML = `
+    <div class="accCab"><h2>${equipo ? 'Acciones del equipo' : 'Mis acciones'}</h2>${selector}</div>
+    ${equipo ? resumenEquipoHTML() : ''}
+    <section class="accBloque"><h2 class="accTit">Programadas <span>${pend.length}</span></h2>${programadas}</section>
+    <section class="accBloque"><h2 class="accTit">Acciones sugeridas <span>${sug.length}</span></h2>
+      <p class="accNota">Oportunidades de Obra abiertas sin ninguna acción pendiente. Al programar una, sale de aquí.</p>
+      ${sugeridasHTML}</section>`;
+
+  if($('#accComercial')) $('#accComercial').onchange = e => { accF.comercial = e.target.value; accF.todas = {}; pintar(); };
+  c.querySelectorAll('tr[data-opo]').forEach(tr => tr.onclick = () => abrirCajon(D.opos.find(o=>o.id===tr.dataset.opo)));
+  c.querySelectorAll('tr[data-tag]').forEach(tr => tr.onclick = () => { accF.comercial = tr.dataset.tag; accF.todas = {}; pintar(); });
+  const sinBurbuja = (sel, fn) => c.querySelectorAll(sel).forEach(b => b.onclick = e => { e.stopPropagation(); fn(b); });
+  sinBurbuja('[data-hecha]',    b => marcarHecha(D.acciones.find(a=>a.id===b.dataset.hecha)));
+  sinBurbuja('[data-posponer]', b => posponer(D.acciones.find(a=>a.id===b.dataset.posponer)));
+  sinBurbuja('[data-ficha]',    b => abrirCajon(D.opos.find(o=>o.id===b.dataset.ficha)));
+  sinBurbuja('[data-programar]', async b => {
+    const o = D.opos.find(x=>x.id===b.dataset.programar), m = MOTIVOS_SUG[b.dataset.motivo];
+    const r = await dialogoAccion(o, { tipo:m.tipo, texto:m.accion, fecha:laborablesDesdeHoy(1) }, 'Programar acción');
+    if(r && await crearAccion(o, { ...r, origen:'aviso' })) pintar();
   });
+  sinBurbuja('[data-todas]', b => { accF.todas[b.dataset.todas] = !accF.todas[b.dataset.todas]; pintar(); });
+}
+
+/* Dirección, todo el equipo: una fila por comercial. */
+function resumenEquipoHTML(){
+  const hoy = hoyL(), guardado = accF.comercial;
+  const filas = D.usuarios.filter(u=>u.rol==='comercial').map(u => {
+    accF.comercial = u.id;
+    const pend = accionesPendientes(), sug = sugeridas();
+    const abiertasObra = alcanceAcc().filter(esObraInf);
+    /* Con siguiente paso = abiertas de Obra que no están en sugeridas. */
+    const cub = abiertasObra.length ? Math.round((abiertasObra.length - sug.length) / abiertasObra.length * 100) : null;
+    return { u, venc:pend.filter(a=>a.fecha<hoy).length, hoy:pend.filter(a=>a.fecha===hoy).length,
+      cub, inact:sug.filter(s=>s.k==='inactiva').length, cierre:sug.filter(s=>s.k==='cierre').length,
+      sinAcc:sug.length, abiertas:abiertasObra.length };
+  }).filter(f => f.abiertas || f.venc || f.hoy);
+  accF.comercial = guardado;
+  if(!filas.length) return '';
+  return `<div class="grupo"><table class="accEquipo"><thead><tr>
+      <th>Comercial</th><th class="der">Vencidas</th><th class="der">Hoy</th>
+      <th class="der" title="Oportunidades de Obra abiertas con una acción pendiente">Con siguiente paso</th>
+      <th class="der opcional">Sin actividad</th><th class="der opcional">Cierre vencido</th></tr></thead><tbody>
+    ${filas.map(f=>`<tr data-tag="${f.u.id}"><td>${esc(f.u.nombre)}</td>
+      <td class="der num ${f.venc?'accMal':''}">${f.venc}</td><td class="der num">${f.hoy}</td>
+      <td class="der num ${f.cub==null?'':f.cub<50?'accMal':f.cub<80?'accRegular':'accBien'}">${f.cub==null?'—':f.cub+' %'} <span class="accSub">(${f.abiertas-f.sinAcc}/${f.abiertas})</span></td>
+      <td class="der num opcional ${f.inact?'accRegular':''}">${f.inact}</td><td class="der num opcional ${f.cierre?'accRegular':''}">${f.cierre}</td></tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+/* ── Diálogos ── */
+function camposAccionHTML(p, pref){
+  return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <label style="font-size:12px;color:var(--gris)">Tipo<select id="${pref}Tipo">${Object.entries(TIPOS_ACCION).map(([k,v])=>`<option value="${k}" ${p.tipo===k?'selected':''}>${v}</option>`).join('')}</select></label>
+      <label style="font-size:12px;color:var(--gris)">Fecha<input type="date" id="${pref}Fecha" value="${p.fecha||''}"></label>
+      <label style="font-size:12px;color:var(--gris);grid-column:1/-1">Qué hay que hacer<input type="text" id="${pref}Texto" value="${esc(p.texto||'')}" placeholder="Llamar a Pepito por la oferta"></label>
+    </div>`;
+}
+const leerAccion = (d, pref) => ({ tipo:d.querySelector('#'+pref+'Tipo').value,
+  texto:d.querySelector('#'+pref+'Texto').value.trim(), fecha:d.querySelector('#'+pref+'Fecha').value });
+
+/* Nueva acción. Devuelve { tipo, texto, fecha } o null. */
+function dialogoAccion(o, p, titulo){
+  return new Promise(resolve => {
+    const d = dialogoBase(`
+      <h3 style="margin:0 0 4px;font-size:16px">${esc(titulo)}</h3>
+      <p style="margin:0 0 14px;color:var(--gris);font-size:13px">«${esc(o.nombre)}» · ${esc(cuentaNombre(o.cuenta))}</p>
+      ${camposAccionHTML(p, 'dA')}
+      <p id="dAErr" style="color:var(--rojo);font-size:12px;margin:8px 0 0"></p>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+        <button class="btn sec" id="dANo">Cancelar</button><button class="btn" id="dASi">Guardar</button></div>`);
+    const fin = v => { d.close(); d.remove(); resolve(v); };
+    d.querySelector('#dANo').onclick = () => fin(null);
+    d.addEventListener('cancel', e => { e.preventDefault(); fin(null); });
+    d.querySelector('#dASi').onclick = () => {
+      const r = leerAccion(d, 'dA');
+      if(!r.texto || !r.fecha){ d.querySelector('#dAErr').textContent = 'Pon qué hay que hacer y cuándo.'; return; }
+      fin(r);
+    };
+    d.showModal(); d.querySelector('#dATexto').select();
+  });
+}
+
+function posponer(a){
+  const o = oppDe(a);
+  const d = dialogoBase(`
+    <h3 style="margin:0 0 4px;font-size:16px">Posponer</h3>
+    <p style="margin:0 0 14px;color:var(--gris);font-size:13px">${esc(tipoAcc(a.tipo))}: ${esc(a.texto)} · «${esc(o.nombre||'')}»</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn sec" data-f="${laborablesDesdeHoy(1)}">Mañana</button>
+      <button class="btn sec" data-f="${laborablesDesdeHoy(2)}">En 2 días</button>
+      <button class="btn sec" data-f="${fechaLocal(new Date(Date.now()+7*864e5))}">En una semana</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+      <input type="date" id="ppFecha" value="${a.fecha}" style="flex:1"><button class="btn" id="ppSi">Mover</button></div>
+    <div style="text-align:right;margin-top:12px"><button class="btn sec" id="ppNo">Cancelar</button></div>`);
+  const fin = async f => { d.close(); d.remove(); if(f && f !== a.fecha) { await moverAccion(a, f); pintar(); } };
+  d.querySelectorAll('[data-f]').forEach(b => b.onclick = () => fin(b.dataset.f));
+  d.querySelector('#ppSi').onclick = () => fin(d.querySelector('#ppFecha').value);
+  d.querySelector('#ppNo').onclick = () => fin(null);
+  d.addEventListener('cancel', e => { e.preventDefault(); fin(null); });
+  d.showModal();
+}
+
+/* Hecha: qué ha pasado + siguiente paso (o ninguno). */
+function marcarHecha(a, despues){
+  const o = oppDe(a);
+  const d = dialogoBase(`
+    <h3 style="margin:0 0 4px;font-size:16px">Acción hecha</h3>
+    <p style="margin:0 0 12px;color:var(--gris);font-size:13px">${esc(tipoAcc(a.tipo))}: ${esc(a.texto)} · «${esc(o.nombre||'')}»</p>
+    <label style="font-size:12px;color:var(--gris)">Qué ha pasado
+      <textarea id="mhDesc" rows="2" placeholder="Opcional. Ej.: dice que decide la semana que viene."></textarea></label>
+    <h4 style="margin:14px 0 6px;font-size:13px">Siguiente paso</h4>
+    ${camposAccionHTML({ tipo:a.tipo==='visita'?'llamada':a.tipo, texto:'', fecha:laborablesDesdeHoy(5) }, 'mh')}
+    <label style="display:flex;gap:6px;align-items:center;margin-top:10px;font-size:13px">
+      <input type="checkbox" id="mhSin" style="width:auto"> Sin siguiente paso (la cierro o la paso a Stand By desde la ficha)</label>
+    <p id="mhErr" style="color:var(--rojo);font-size:12px;margin:8px 0 0"></p>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button class="btn sec" id="mhNo">Cancelar</button><button class="btn verde" id="mhSi">Guardar</button></div>`);
+  const fin = () => { d.close(); d.remove(); };
+  d.querySelector('#mhNo').onclick = fin;
+  d.addEventListener('cancel', e => { e.preventDefault(); fin(); });
+  d.querySelector('#mhSin').onchange = e => d.querySelectorAll('#mhTipo,#mhTexto,#mhFecha').forEach(i => i.disabled = e.target.checked);
+  d.querySelector('#mhSi').onclick = async () => {
+    const sin = d.querySelector('#mhSin').checked, sig = leerAccion(d, 'mh');
+    if(!sin && (!sig.texto || !sig.fecha)){ d.querySelector('#mhErr').textContent = 'Pon el siguiente paso con fecha, o marca «Sin siguiente paso».'; return; }
+    d.querySelector('#mhSi').disabled = true;
+    const ok = await completarAccion(a, o, d.querySelector('#mhDesc').value.trim());
+    if(ok && !sin) await crearAccion(o, { ...sig, origen:'manual' });
+    fin();
+    if(despues) despues(); else pintar();
+    if(ok && sin) abrirCajon(o);
+  };
+  d.showModal();
+}
+
+/* ── Escritura ── */
+async function crearAccion(o, r){
+  const { data, error } = await SB.from('accion').insert({
+    oportunidad_id:Number(o.id), tipo:r.tipo, texto:r.texto, fecha:r.fecha, origen:r.origen||'manual'
+  }).select('id,responsable,pospuesta').single();
+  if(error){ aviso('La acción no se ha guardado: ' + error.message); return false; }
+  D.acciones.push({ id:String(data.id), opo:o.id, resp:data.responsable, tipo:r.tipo, texto:r.texto,
+                    fecha:r.fecha, origen:r.origen||'manual', pospuesta:data.pospuesta||0, hecha:false });
+  return true;
+}
+async function moverAccion(a, fecha){
+  const { data, error } = await SB.from('accion').update({ fecha }).eq('id', a.id).select('pospuesta');
+  if(error || !data || !data.length){ aviso('No se ha podido posponer: ' + (error ? error.message : 'sin permiso')); return false; }
+  a.fecha = fecha; a.pospuesta = data[0].pospuesta;
+  return true;
+}
+async function completarAccion(a, o, desc){
+  const texto = desc || (tipoAcc(a.tipo) + ': ' + a.texto);
+  const nota = await insertarNota(o, NOTA_DE_ACCION[a.tipo] || 'nota', texto);
+  const { data, error } = await SB.from('accion').update({ hecha_en:new Date().toISOString(), nota_id:nota ? Number(nota) : null })
+    .eq('id', a.id).select('id');
+  if(error || !data || !data.length){ aviso('No se ha podido marcar como hecha: ' + (error ? error.message : 'sin permiso')); return false; }
+  a.hecha = true;
+  return true;
+}
+async function borrarAccion(a){
+  const { data, error } = await SB.from('accion').delete().eq('id', a.id).select('id');
+  if(error || !data || !data.length){ aviso('No se ha podido borrar: ' + (error ? error.message : 'sin permiso')); return false; }
+  D.acciones = D.acciones.filter(x => x !== a);
+  return true;
+}
+/* Nota en el historial (mueve la última actividad). Devuelve su id o null. */
+async function insertarNota(o, tipo, texto){
+  const hoy = hoyL();
+  const { data, error } = await SB.from('nota').insert({
+    oportunidad_id:Number(o.id), tipo, texto, fecha_actividad:hoy,
+    autor_nombre:MI_PERFIL ? MI_PERFIL.nombre : 'Radar'
+  }).select('id').single();
+  if(error){ aviso('La nota no se ha guardado: ' + error.message); return null; }
+  D.acts.push({ id:String(data.id), opo:o.id, tipo, desc:texto, fecha:hoy + 'T09:00:00.000Z', autor:comoUsuario });
+  o.tocada = hoy + 'T09:00:00.000Z';
+  return String(data.id);
 }
 
 /* ═══════ Informes: contenedor de subpantallas ═══════
@@ -4063,32 +4373,59 @@ function abrirCajon(o){
 
 function actividadHTML(o){
   const acts = D.acts.filter(a=>a.opo===o.id).sort((a,b)=>b.fecha.localeCompare(a.fecha));
-  return `<div class="seccion"><h3>Registrar actividad</h3>
+  const pend = D.acciones.filter(a=>a.opo===o.id && !a.hecha).sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  const hoy = hoyL();
+  const acciones = ACC_ERROR ? `<p class="vacio">Acciones no disponibles: falta ejecutar radar_v4_acciones.sql.</p>` : `
+    ${pend.length ? pend.map(a=>`<div class="proxima ${a.fecha<hoy?'vencida':''}" style="display:flex;gap:8px;align-items:center">
+        <span style="flex:1"><b>${esc(tipoAcc(a.tipo))}</b>: ${esc(a.texto)} · ${fechaCorta(a.fecha)}${a.resp && a.resp!==o.owner?` · ${esc(usuario(a.resp))}`:''}</span>
+        <button class="btn sec" data-borra-acc="${a.id}" title="Borrar acción" style="padding:4px 8px">✕</button>
+        <button class="btn verde" data-hecha-acc="${a.id}" style="padding:4px 10px">Hecha</button></div>`).join('')
+      : (o.estado==='abierta' ? '<p class="vacio" style="padding-left:0">Sin próxima acción. Toda oportunidad abierta debería tener una.</p>' : '')}
+    ${o.estado==='abierta' ? `<div class="campos" style="margin-top:8px">
+      <div class="campo"><label>Tipo</label><select id="pTipo">${Object.entries(TIPOS_ACCION).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></div>
+      <div class="campo"><label>Cuándo</label><input id="pFecha" type="date" value="${laborablesDesdeHoy(2)}"></div>
+      <div class="campo ancho"><label>Qué hay que hacer</label><input id="pTexto" type="text" placeholder="Llamar a Pepito por la oferta"></div>
+      <div class="campo ancho"><button class="btn" id="btnProg">Programar acción</button></div>
+    </div>` : ''}`;
+  return `<div class="seccion"><h3>Próximas acciones <span style="font-weight:400;color:var(--gris)">${pend.length}</span></h3>${acciones}</div>
+    <div class="seccion"><h3>Registrar actividad</h3>
     <div class="campos">
       <div class="campo"><label>Tipo</label><select id="aTipo">${TIPOS.map(t=>`<option>${t[0].toUpperCase()+t.slice(1)}</option>`).join('')}</select></div>
-      <div class="campo"><label>Próxima acción el</label><input id="aFecha" type="date"></div>
       <div class="campo ancho"><label>Qué ha pasado</label><textarea id="aDesc" rows="2" placeholder="Visita técnica con el jefe de mantenimiento."></textarea></div>
-      <div class="campo ancho"><label>Qué toca hacer después</label><input id="aProx" type="text" placeholder="Enviar propuesta revisada"></div>
       <div class="campo ancho"><button class="btn" id="btnAct">Añadir al registro</button></div>
     </div>
     <div class="seccion"><h3>Historial <span style="font-weight:400;color:var(--gris)">${acts.length}</span></h3>
     ${acts.length?acts.map(a=>`<div class="hito">
       <div class="cuando num">${fechaCorta(a.fecha)}</div>
       <div style="flex:1"><div class="tipo">${esc(a.tipo)} · ${esc(usuario(a.autor))}</div>
-      <p>${esc(a.desc)}</p>
-      ${a.prox&&!a.hecha?`<div class="proxima ${dias(a.proxFecha)>0?'vencida':''}">${esc(a.prox)} · ${fechaCorta(a.proxFecha)}</div>`:''}</div>
+      <p>${esc(a.desc)}</p></div>
     </div>`).join(''):'<p class="vacio">Sin actividad todavía.</p>'}</div></div>`;
 }
 
 function activarActividad(o){
-  $('#btnAct').onclick = () => {
-    const desc = $('#aDesc').value.trim(), prox = $('#aProx').value.trim();
-    if(!desc && !prox) return;
-    guardarNota(o); D.acts.push({ id:nuevoId('a'), opo:o.id, tipo:$('#aTipo').value.toLowerCase(), desc, fecha:new Date().toISOString(),
-                  prox:prox||null, proxFecha:$('#aFecha').value||null, hecha:false, autor:comoUsuario });
-    o.tocada = new Date().toISOString();
-    abrirCajon(o); pintarCifras();
+  const repinta = () => { abrirCajon(o); pintar(); };
+  $('#btnAct').onclick = async () => {
+    const desc = $('#aDesc').value.trim();
+    if(!desc) return $('#aDesc').focus();
+    $('#btnAct').disabled = true;
+    await insertarNota(o, $('#aTipo').value.toLowerCase(), desc);
+    repinta();
   };
+  if($('#btnProg')) $('#btnProg').onclick = async () => {
+    const texto = $('#pTexto').value.trim(), fecha = $('#pFecha').value;
+    if(!texto) return $('#pTexto').focus();
+    if(!fecha) return $('#pFecha').focus();
+    $('#btnProg').disabled = true;
+    if(await crearAccion(o, { tipo:$('#pTipo').value, texto, fecha, origen:'manual' })) repinta();
+    else $('#btnProg').disabled = false;
+  };
+  document.querySelectorAll('[data-hecha-acc]').forEach(b => b.onclick = () =>
+    marcarHecha(D.acciones.find(a=>a.id===b.dataset.hechaAcc), repinta));
+  document.querySelectorAll('[data-borra-acc]').forEach(b => b.onclick = async () => {
+    const a = D.acciones.find(x=>x.id===b.dataset.borraAcc);
+    if(!confirm('¿Borrar la acción «' + a.texto + '»?')) return;
+    if(await borrarAccion(a)) repinta();
+  });
 }
 
 
@@ -4102,26 +4439,9 @@ async function notaDePerdida(o, r){
     autor_nombre   : MI_PERFIL ? MI_PERFIL.nombre : 'Radar'
   });
   if(error){ aviso('La nota no se ha guardado: ' + error.message); return; }
-  D.acts.push({ id:nuevoId('a'), opo:o.id, tipo:'nota', desc:texto, fecha:r.fecha + 'T12:00:00',
-                prox:null, proxFecha:null, hecha:false, autor:comoUsuario });
+  D.acts.push({ id:nuevoId('a'), opo:o.id, tipo:'nota', desc:texto, fecha:r.fecha + 'T12:00:00', autor:comoUsuario });
 }
 
-/* La nota se graba aparte: en la base es inmutable y mueve la fecha de
-   última actividad de la oportunidad. */
-async function guardarNota(o){
-  const desc = ($('#aDesc')||{}).value ? $('#aDesc').value.trim() : '';
-  if(!desc) return;
-  const hoy = new Date().toISOString().slice(0,10);
-  const { error } = await SB.from('nota').insert({
-    oportunidad_id : Number(o.id),
-    tipo           : ($('#aTipo')||{value:'nota'}).value.toLowerCase(),
-    texto          : desc,
-    fecha_actividad: hoy,
-    proxima_accion : (($('#aProx')||{}).value) || null,
-    autor_nombre   : MI_PERFIL ? MI_PERFIL.nombre : 'Radar'
-  });
-  if(error) aviso('La nota no se ha guardado: ' + error.message);
-}
 
 
 /* Borrado. Solo dirección. Se usa para las duplicadas de la carga inicial
